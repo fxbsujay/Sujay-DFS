@@ -2,7 +2,7 @@ package com.susu.dfs.client;
 
 /**
  * 心跳响应
- * @author Amazons
+ * @author Sujay
  *
  */
 public class HeartbeatResponse {

@@ -1,4 +1,4 @@
-package com.susu.dfs.client;
+package com.susu.dfs.server;
 
 /**
  * 注册请求

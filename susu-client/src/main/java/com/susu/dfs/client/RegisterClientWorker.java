@@ -2,7 +2,7 @@ package com.susu.dfs.client;
 
 /**
  * 负责向register-server发起注册申请的线程
- * @author Amazons
+ * @author Sujay
  *
  */
 public class RegisterClientWorker extends Thread {
