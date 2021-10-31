@@ -76,5 +76,14 @@ public class RegisterServerController {
 	public Map<String, Map<String, ServiceInstance>> fetchServiceRegistry() {
 		return registry.getRegistry();
 	}
-	
+
+
+	/**
+	 * 服务下线
+	 * @param serviceName
+	 * @param serviceInstanceId
+	 */
+	public void cancel(String serviceName,String serviceInstanceId) {
+		registry.remove(serviceName,serviceInstanceId);
+	}
 }
