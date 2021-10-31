@@ -73,7 +73,17 @@ public class ServiceAliveMonitor {
 							// 认为这个服务就死了
 							// 从注册表中摘除这个服务实例
 							if(!serviceInstance.isAlive()) {
-								registry.remove(serviceName, serviceInstance.getServiceInstanceId()); 
+								registry.remove(serviceName, serviceInstance.getServiceInstanceId());
+								// 更新自我保护机制
+								synchronized (SelfProtectionPolicy.class) {
+									SelfProtectionPolicy selfProtectionPolicy = SelfProtectionPolicy.getInstance();
+									selfProtectionPolicy.setExpectedHeartbeatRate(
+											selfProtectionPolicy.getExpectedHeartbeatRate() - 2
+									);
+									selfProtectionPolicy.setExpectedHeartbeatThreshold(
+											(long) (selfProtectionPolicy.getExpectedHeartbeatThreshold() * 0.85)
+									);
+								}
 							}
 						}
 					}

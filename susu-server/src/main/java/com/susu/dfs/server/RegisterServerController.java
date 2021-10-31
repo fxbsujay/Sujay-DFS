@@ -30,9 +30,21 @@ public class RegisterServerController {
 			serviceInstance.setServiceInstanceId(registerRequest.getServiceInstanceId()); 
 			serviceInstance.setServiceName(registerRequest.getServiceName());  
 			
-			registry.register(serviceInstance);  
-			
-			registerResponse.setStatus(RegisterResponse.SUCCESS); 
+			registry.register(serviceInstance);
+
+			// 更新自我保护机制
+			synchronized (SelfProtectionPolicy.class) {
+				SelfProtectionPolicy selfProtectionPolicy = SelfProtectionPolicy.getInstance();
+				selfProtectionPolicy.setExpectedHeartbeatRate(
+						selfProtectionPolicy.getExpectedHeartbeatRate() + 2
+				);
+				selfProtectionPolicy.setExpectedHeartbeatThreshold(
+						(long) (selfProtectionPolicy.getExpectedHeartbeatThreshold() * 0.85)
+				);
+			}
+
+			registerResponse.setStatus(RegisterResponse.SUCCESS);
+
 		} catch (Exception e) {
 			e.printStackTrace(); 
 			registerResponse.setStatus(RegisterResponse.FAILURE);  
@@ -85,5 +97,16 @@ public class RegisterServerController {
 	 */
 	public void cancel(String serviceName,String serviceInstanceId) {
 		registry.remove(serviceName,serviceInstanceId);
+
+		// 更新自我保护机制
+		synchronized (SelfProtectionPolicy.class) {
+			SelfProtectionPolicy selfProtectionPolicy = SelfProtectionPolicy.getInstance();
+			selfProtectionPolicy.setExpectedHeartbeatRate(
+					selfProtectionPolicy.getExpectedHeartbeatRate() - 2
+			);
+			selfProtectionPolicy.setExpectedHeartbeatThreshold(
+					(long) (selfProtectionPolicy.getExpectedHeartbeatThreshold() * 0.85)
+			);
+		}
 	}
 }
