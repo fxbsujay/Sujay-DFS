@@ -66,7 +66,7 @@ public class RegisterClient {
 			// 启动心跳线程，定时发送心跳
 			heartbeatWorker.start();
 			// 初始化客户端缓存的服务注册组件
-			this.registry.initialize();
+			registry.initialize();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -122,10 +122,11 @@ public class RegisterClient {
 			heartbeatRequest.setServiceInstanceId(serviceInstanceId);
 			
 			HeartbeatResponse heartbeatResponse = null;
-			
+
 			while(isRunning) { 
 				try {
 					heartbeatResponse = httpSender.heartbeat(heartbeatRequest);
+
 					System.out.println("心跳的结果为：" + heartbeatResponse.getStatus() + "......");
 					Thread.sleep(HEARTBEAT_INTERVAL);   
 				} catch (Exception e) {  
