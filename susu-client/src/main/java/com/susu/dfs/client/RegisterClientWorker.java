@@ -1,5 +1,7 @@
 package com.susu.dfs.client;
 
+import java.util.DoubleSummaryStatistics;
+
 /**
  * 负责向register-server发起注册申请的线程
  * @author Sujay
@@ -34,6 +36,7 @@ public class RegisterClientWorker extends Thread {
 	@Override
 	public void run() {
 		if(!finishedRegister) {
+
 			// 应该是获取当前机器的信息
 			// 包括当前机器的ip地址、hostname，以及你配置这个服务监听的端口号
 			// 从配置文件里可以拿到

@@ -30,13 +30,19 @@ public class RegisterClient {
 	/**
 	 * 服务实例是否在运行
 	 */
-	private Boolean isRunning;
+	private volatile Boolean isRunning;
+
+	/**
+	 * 客户端缓存表
+	 */
+	private ClientCachedServiceRegistry registry;
 	
 	public RegisterClient() {
 		this.serviceInstanceId = UUID.randomUUID().toString().replace("-", "");
 		this.httpSender = new HttpSender();
 		this.heartbeatWorker = new HeartbeatWorker();
 		this.isRunning = true;
+		this.registry = new ClientCachedServiceRegistry(this,httpSender);
 	}
 	
 	/**
@@ -56,8 +62,11 @@ public class RegisterClient {
 			RegisterWorker registerWorker = new RegisterWorker();
 			registerWorker.start();
 			registerWorker.join();
-			
+
+			// 启动心跳线程，定时发送心跳
 			heartbeatWorker.start();
+			// 初始化客户端缓存的服务注册组件
+			this.registry.initialize();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -68,7 +77,8 @@ public class RegisterClient {
 	 */
 	public void shutdown() {
 		this.isRunning = false;
-		this.heartbeatWorker.interrupt(); 
+		this.heartbeatWorker.interrupt();
+		this.registry.destroy();
 	}
 	
 	/**
@@ -124,6 +134,15 @@ public class RegisterClient {
 			}
 	 	}
 		
+	}
+
+
+	/**
+	 * 返回RegisterClient是否正在运行
+	 * @return
+	 */
+	public Boolean isRunning() {
+		return isRunning;
 	}
 	
 }
