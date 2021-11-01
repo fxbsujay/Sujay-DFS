@@ -37,10 +37,10 @@ public class SelfProtectionPolicy {
         // 最近一分钟心跳次数
         long latestMinuteHeartbeatRate = heartbeatMessuredRate.get();
         if (latestMinuteHeartbeatRate < this.expectedHeartbeatThreshold) {
-            System.out.printf("【自我保护机制开启】最近一次心跳次数=" + latestMinuteHeartbeatRate + ", 期望心跳次数=" + this.expectedHeartbeatThreshold);
+            System.out.println("【自我保护机制开启】最近一次心跳次数=" + latestMinuteHeartbeatRate + ", 期望心跳次数=" + this.expectedHeartbeatThreshold);
             return true;
         }
-        System.out.printf("【自我保护机制未开启】最近一次心跳次数=" + latestMinuteHeartbeatRate + ", 期望心跳次数=" + this.expectedHeartbeatThreshold);
+        System.out.println("【自我保护机制未开启】最近一次心跳次数=" + latestMinuteHeartbeatRate + ", 期望心跳次数=" + this.expectedHeartbeatThreshold);
         return false;
     }
 
