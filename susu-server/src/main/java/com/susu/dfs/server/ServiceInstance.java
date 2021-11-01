@@ -78,7 +78,7 @@ public class ServiceInstance {
 		/**
 		 * 续约，你只要发送一次心跳，就相当于把register-client和register-server之间维护的一个契约
 		 * 进行了续约，我还存活着，我们俩的契约可以维持着
-		 * @param latestHeartbeatTime
+		 * @param
 		 */
 		public void renew() {
 			this.latestHeartbeatTime = System.currentTimeMillis(); 

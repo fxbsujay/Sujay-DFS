@@ -39,7 +39,7 @@ public class RegisterServerController {
 						selfProtectionPolicy.getExpectedHeartbeatRate() + 2
 				);
 				selfProtectionPolicy.setExpectedHeartbeatThreshold(
-						(long) (selfProtectionPolicy.getExpectedHeartbeatThreshold() * 0.85)
+						(long) (selfProtectionPolicy.getExpectedHeartbeatRate() * 0.85)
 				);
 			}
 
@@ -69,7 +69,7 @@ public class RegisterServerController {
 			serviceInstance.renew();
 			
 			// 记录一下每分钟的心跳的次数
-			HeartbeatMessuredRate heartbeatMessuredRate = new HeartbeatMessuredRate();
+			HeartbeatMeasuredRate heartbeatMessuredRate = HeartbeatMeasuredRate.getInstance();
 			heartbeatMessuredRate.increment();
 			
 			heartbeatResponse.setStatus(HeartbeatResponse.SUCCESS); 
