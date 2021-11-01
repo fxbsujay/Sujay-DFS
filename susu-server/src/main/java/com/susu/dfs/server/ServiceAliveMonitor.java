@@ -62,6 +62,12 @@ public class ServiceAliveMonitor {
 			
 			while(true) {
 				try {
+					// 判断是否需要开启自我保护机制
+					SelfProtectionPolicy selfProtectionPolicy = SelfProtectionPolicy.getInstance();
+					if (selfProtectionPolicy.isEnable()) {
+						Thread.sleep(CHECK_ALIVE_INTERVAL);
+						continue;
+					}
 					registryMap = registry.getRegistry();
 					
 					for(String serviceName : registryMap.keySet()) {
@@ -76,7 +82,6 @@ public class ServiceAliveMonitor {
 								registry.remove(serviceName, serviceInstance.getServiceInstanceId());
 								// 更新自我保护机制
 								synchronized (SelfProtectionPolicy.class) {
-									SelfProtectionPolicy selfProtectionPolicy = SelfProtectionPolicy.getInstance();
 									selfProtectionPolicy.setExpectedHeartbeatRate(
 											selfProtectionPolicy.getExpectedHeartbeatRate() - 2
 									);

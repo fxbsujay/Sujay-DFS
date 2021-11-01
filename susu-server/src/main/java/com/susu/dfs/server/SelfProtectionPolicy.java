@@ -20,11 +20,27 @@ public class SelfProtectionPolicy {
     private long expectedHeartbeatThreshold = 0L;
 
 
-
+    /**
+     * 返回实例
+     * @return
+     */
     public static SelfProtectionPolicy getInstance() {
         return instance;
     }
 
+    /**
+     * 是否需要开启自我保护机制
+     * @return
+     */
+    public Boolean isEnable() {
+        HeartbeatMessuredRate heartbeatMessuredRate = new HeartbeatMessuredRate();
+        // 最近一分钟心跳次数
+        long latestMinuteHeartbeatRate = heartbeatMessuredRate.get();
+        if (latestMinuteHeartbeatRate < this.expectedHeartbeatRate) {
+            return true;
+        }
+        return false;
+    }
 
     public long getExpectedHeartbeatRate() {
         return expectedHeartbeatRate;
@@ -41,4 +57,6 @@ public class SelfProtectionPolicy {
     public void setExpectedHeartbeatThreshold(long expectedHeartbeatThreshold) {
         this.expectedHeartbeatThreshold = expectedHeartbeatThreshold;
     }
+
+
 }
