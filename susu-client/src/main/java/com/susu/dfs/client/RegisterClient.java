@@ -61,6 +61,7 @@ public class RegisterClient {
 			// 每隔30秒就发送一个请求去进行心跳
 			RegisterWorker registerWorker = new RegisterWorker();
 			registerWorker.start();
+			// 其他线程堵塞，等待注册线程执行结束
 			registerWorker.join();
 
 			// 启动心跳线程，定时发送心跳
