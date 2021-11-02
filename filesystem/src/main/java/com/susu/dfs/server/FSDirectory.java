@@ -38,7 +38,8 @@ public class FSDirectory {
 				if (splitPath.trim().equals("")) {
 					continue;
 				}
-				INodeDirectory dir = findDirectory(dirTree, splitPath);
+				INodeDirectory dir = findDirectory(
+						parent == null ? dirTree : parent, splitPath);
 
 				if (dir != null) {
 					parent = dir;
