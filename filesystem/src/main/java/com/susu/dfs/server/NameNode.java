@@ -2,7 +2,7 @@ package com.susu.dfs.server;
 
 /**
  * NameNode核心启动类
- * @author syjay
+ * @author Sujay
  *
  */
 public class NameNode {
@@ -46,9 +46,7 @@ public class NameNode {
 		}
 	}
 		
-	public static void main(String[] args) throws Exception {
-		String path = "/home/dfs/hive";
-		System.out.println(path.split("/").length);
+	public static void main(String[] args) throws Exception {		
 		NameNode namenode = new NameNode();
 		namenode.initialize();
 		namenode.run();

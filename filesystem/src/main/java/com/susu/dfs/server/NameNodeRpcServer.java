@@ -2,7 +2,7 @@ package com.susu.dfs.server;
 
 /**
  * NameNode的rpc服务的接口
- * @author syjay
+ * @author Sujay
  *
  */
 public class NameNodeRpcServer {

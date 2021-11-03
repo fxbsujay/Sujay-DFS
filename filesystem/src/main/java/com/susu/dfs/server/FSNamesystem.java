@@ -2,7 +2,7 @@ package com.susu.dfs.server;
 
 /**
  * 负责管理元数据的核心组件
- * @author syjay
+ * @author Sujay
  *
  */
 public class FSNamesystem {
@@ -32,5 +32,4 @@ public class FSNamesystem {
 		return true;
 	}
 
-	
 }
