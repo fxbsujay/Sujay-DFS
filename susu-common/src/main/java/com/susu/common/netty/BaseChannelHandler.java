@@ -21,7 +21,7 @@ public class BaseChannelHandler extends ChannelInitializer<Channel> {
     protected void initChannel(Channel ch) throws Exception {
         ch.pipeline().addLast(new StringDecoder());
         for (ChannelInboundHandlerAdapter handler : handlerList) {
-            ch.pipeline().addLast(handler);
+            ch.pipeline().addLast("myHandle",handler);
         }
     }
 

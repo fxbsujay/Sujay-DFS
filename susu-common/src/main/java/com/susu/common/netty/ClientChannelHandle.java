@@ -1,6 +1,7 @@
 package com.susu.common.netty;
 
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.socket.SocketChannel;
@@ -14,21 +15,19 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ClientChannelHandle extends ChannelInboundHandlerAdapter {
 
-    private volatile SocketChannel socketChannel;
+    private volatile Channel socketChannel;
+
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-
-        socketChannel = (SocketChannel) ctx.channel();
+        ctx.writeAndFlush("aaaaa");
+        socketChannel = ctx.channel();
         log.info("Socket channel is connected. {}", socketChannel.id());
-        socketChannel.writeAndFlush("AAAAAAAAAAA");
-        ctx.fireChannelActive();
     }
 
 
     public void send(String msg) {
         log.info("发送消息：{}",msg);
-        log.info("A----------{}",socketChannel);
         socketChannel.writeAndFlush(msg);
     }
 }
