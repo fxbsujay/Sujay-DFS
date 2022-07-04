@@ -10,6 +10,11 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.List;
 
+/**
+ * <p>Description: 消息解码器</p>
+ * @author sujay
+ * @version 14:35 2022/7/4
+ */
 @Slf4j
 public class MessageCodec extends ByteToMessageCodec<String> {
 
