@@ -5,6 +5,9 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -19,7 +22,7 @@ public class BaseChannelHandler extends ChannelInitializer<Channel> {
 
     @Override
     protected void initChannel(Channel ch) throws Exception {
-        ch.pipeline().addLast(new StringDecoder());
+        ch.pipeline().addLast(new LoggingHandler(LogLevel.DEBUG));
         for (ChannelInboundHandlerAdapter handler : handlerList) {
             ch.pipeline().addLast("myHandle",handler);
         }

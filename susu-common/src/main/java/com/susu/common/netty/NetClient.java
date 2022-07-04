@@ -2,20 +2,25 @@ package com.susu.common.netty;
 
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.string.StringEncoder;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
+import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
+import java.util.Scanner;
 
 /**
  * <p>Description: Netty 的 客户端端实现 网络服务</p>
  * @author sujay
  * @version 14:36 2022/7/1
  */
+@Slf4j
 public class NetClient {
 
     private String name;
@@ -40,19 +45,25 @@ public class NetClient {
                     // 指定要连接的服务器和端口
                     .connect(new InetSocketAddress("localhost", 8080))
                     .sync();
-            // 获取 channel 对象，它即为通道抽象，可以进行数据读写操作
-            Channel channel = channelFuture.channel();
-            // 写入消息并清空缓冲区
-            channel.writeAndFlush("hello world");
-            channel.writeAndFlush("aaaaa");
-            clientChannelHandle.send("bbbbb");
+            Scanner scanner = new Scanner(System.in);
+            while(scanner.hasNextLine()) {
+                String msg = scanner.nextLine();
+                log.debug("用户输入：{}",msg);
+                clientChannelHandle.send("");
+            }
+
+            channelFuture.channel()
+                    .closeFuture()
+                    .sync();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+
     }
 
     public static void main(String[] args) {
         NetClient netClient = new NetClient("client");
         netClient.start();
+        System.out.println("====================");
     }
 }
