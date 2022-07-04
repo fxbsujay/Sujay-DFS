@@ -15,12 +15,22 @@ public class Node {
     /**
      * 启动的是服务端还是客户端
      */
+    private String name;
+
+    /**
+     * 启动的是服务端还是客户端
+     */
     private String type = "server";
 
     /**
      * 默认启动端口
      */
     private int port = 8090;
+
+    /**
+     * 服务端地址
+     */
+    private String host = "localhost";
 
 
 }

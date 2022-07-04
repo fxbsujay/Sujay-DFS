@@ -1,6 +1,8 @@
 package com.susu.common.netty;
 
 
+import com.susu.common.Node;
+import com.susu.common.config.NodeConfig;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -50,7 +52,7 @@ public class NetClient {
      */
     public NetClient(String name) {
         this.name = name;
-        this.retryTime = -1;
+        this.retryTime = 1;
         loopGroup = new NioEventLoopGroup();
         baseChannelHandler = new BaseChannelHandler();
         clientChannelHandle = new ClientChannelHandle();
@@ -59,6 +61,7 @@ public class NetClient {
 
     /**
      * 启动一个客户端
+     * <p>Description: Netty Client Start </p>
      * @param host 地址
      * @param port 端口号
      */
@@ -68,6 +71,7 @@ public class NetClient {
 
     /**
      * 启动一个客户端
+     * <p>Description: Netty Client Start </p>
      * @param host 地址
      * @param port 端口号
      * @param connectTimes 当前重连次数
@@ -82,14 +86,14 @@ public class NetClient {
             Scanner scanner = new Scanner(System.in);
             while(scanner.hasNextLine()) {
                 String msg = scanner.nextLine();
-                log.debug("用户输入：{}",msg);
+                log.debug("user input：{}",msg);
                 clientChannelHandle.send(msg);
             }
             channelFuture.channel()
                     .closeFuture()
                     .sync();
         } catch (InterruptedException e) {
-            log.error("连接异常：[ex={}, started={}, name={}]", e.getMessage(), started.get(), name);
+            log.error("connect exception：[ex={}, started={}, name={}]", e.getMessage(), started.get(), name);
         } finally {
             int curConnectTimes = connectTimes + 1;
             reStart(host,port,curConnectTimes);
@@ -98,6 +102,7 @@ public class NetClient {
 
     /**
      * 尝试重启客户端
+     * <p>Description: restart client </p>
      * @param host 地址
      * @param port 端口号
      * @param connectTimes 当前重连次数
@@ -106,17 +111,18 @@ public class NetClient {
         if (started.get()) {
             boolean retry = retryTime < 0 || connectTimes <= retryTime;
             if (retry) {
-                log.error("重新发起连接：[started={}, name={}]", started.get(), name);
+                log.error("client restart：[started={}, name={}]", started.get(), name);
                 start(host, port, connectTimes);
             } else {
                 shutdown();
-                log.info("重试次数超出阈值，不再进行重试：[retryTime={}]", retryTime);
+                log.info("The number of retry time exceeds the maximum，not longer retry：[retryTime={}]", retryTime);
             }
         }
     }
 
     /**
      * 关闭客户端
+     * <p>Description: shutdown client </p>
      */
     public void shutdown() {
         if(log.isDebugEnabled()) {
@@ -132,8 +138,10 @@ public class NetClient {
     }
 
     public static void main(String[] args) {
-        NetClient netClient = new NetClient("client");
-        netClient.start("localhost",8080);
-        System.out.println("====================");
+
+        Node node = NodeConfig.getNode("E:\\fxbsuajy@gmail.com\\Sujay-DFS\\doc\\config.json");
+        NetClient netClient = new NetClient(node.getName());
+        netClient.start(node.getHost(),node.getPort());
+
     }
 }

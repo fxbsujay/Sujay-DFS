@@ -40,4 +40,17 @@ public class NodeConfig {
     public Node getNode() {
         return node;
     }
+
+    public static Node getNode(String path) {
+        Node node = null;
+        try {
+            log.info("read config file in ：{}",path);
+            String json = FileUtils.readString(path);
+            node = JSON.parseObject(json, Node.class);
+        } catch (IOException e) {
+            log.error("exception for read file");
+            System.exit(1);
+        }
+        return node;
+    }
 }
