@@ -1,13 +1,12 @@
 package com.susu.common.netty;
 
+import com.susu.common.netty.msg.MessageCodec;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-
 import java.util.LinkedList;
 import java.util.List;
 
@@ -22,7 +21,9 @@ public class BaseChannelHandler extends ChannelInitializer<Channel> {
 
     @Override
     protected void initChannel(Channel ch) throws Exception {
+        ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(1024, 8, 4, 0, 0));
         ch.pipeline().addLast(new LoggingHandler(LogLevel.DEBUG));
+        ch.pipeline().addLast(new MessageCodec());
         for (ChannelInboundHandlerAdapter handler : handlerList) {
             ch.pipeline().addLast("myHandle",handler);
         }

@@ -1,7 +1,5 @@
 package com.susu.test;
 
-import com.susu.dfs.client.RegisterClient;
-
 /**
  * register-client组件的测试类
  * @author zhonghuashishan
