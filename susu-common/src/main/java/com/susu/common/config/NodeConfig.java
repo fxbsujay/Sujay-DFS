@@ -4,6 +4,7 @@ package com.susu.common.config;
 import com.alibaba.fastjson.JSON;
 import com.susu.common.Node;
 import com.susu.common.utils.FileUtils;
+import com.susu.common.utils.SnowFlakeUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -17,7 +18,15 @@ import java.io.IOException;
 public class NodeConfig {
 
 
+    /**
+     * 节点的信息
+     */
     private final Node node;
+
+    /**
+     * 全局id生成策略
+     */
+    private final SnowFlakeUtils snowFlake;
 
     /**
      * @param path 配置文件路径
@@ -33,7 +42,7 @@ public class NodeConfig {
             System.exit(1);
         }
         this.node = node;
-        log.info(node.getType());
+        snowFlake = new SnowFlakeUtils(1,2);
     }
 
 
