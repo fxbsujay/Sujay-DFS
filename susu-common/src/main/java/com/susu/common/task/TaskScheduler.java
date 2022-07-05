@@ -25,8 +25,6 @@ public class TaskScheduler {
      */
     private ScheduledThreadPoolExecutor executor;
 
-    private final SnowFlakeUtils snowFlake = new SnowFlakeUtils(0,1);
-
     /**
      * 计数器
      */
@@ -97,7 +95,8 @@ public class TaskScheduler {
                 if (log.isTraceEnabled()) {
                     log.trace("Beginning execution of scheduled task {}.", name);
                 }
-                MDC.put("logger_id", String.valueOf(snowFlake.nextId()));
+                String loggerId = String.valueOf(System.nanoTime() + new Random().nextInt());
+                MDC.put("logger_id", loggerId);
                 r.run();
             } catch (Throwable e) {
                 log.error("Uncaught exception in scheduled task {} :", name, e);
@@ -128,29 +127,12 @@ public class TaskScheduler {
         }
     }
 
-
     public static void main(String[] args) {
-        TaskScheduler taskScheduler = new TaskScheduler("DataNode-Scheduler-");
+        TaskScheduler taskScheduler = new TaskScheduler("DataNode-Scheduler");
         taskScheduler.scheduleOnce("Test Task",() -> {
-            log.info("==============test1");
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            log.info("==============test2");
+            log.info("==============test==============");
         });
-        taskScheduler.shutdown();
-        taskScheduler.scheduleOnce("Test Task",() -> {
-            try {
-                Thread.sleep(1000);
-                log.info("==============test3");
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
 
-
-        });
     }
 
 }

@@ -1,6 +1,7 @@
 package com.susu.common.netty.msg;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageCodec;
 import lombok.extern.slf4j.Slf4j;
