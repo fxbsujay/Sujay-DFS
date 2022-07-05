@@ -1,0 +1,6 @@
+{
+  "name": "Netty-Client",
+  "type": "client",
+  "port": 8080,
+  "host": "localhost"
+}
