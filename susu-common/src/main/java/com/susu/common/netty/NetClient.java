@@ -2,6 +2,7 @@ package com.susu.common.netty;
 
 import com.susu.common.Node;
 import com.susu.common.config.NodeConfig;
+import com.susu.common.model.NodeTest;
 import com.susu.common.task.TaskScheduler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
@@ -88,6 +89,7 @@ public class NetClient {
      * @param delay 任务启动延时时间
      */
     private void start(String host, int port, final int connectTimes,long delay) {
+
         taskScheduler.scheduleOnce("Netty Client Start",() -> {
             Bootstrap client = new Bootstrap()
                     .group(loopGroup)

@@ -1,11 +1,8 @@
 package com.susu.common.task;
 
-import com.susu.common.utils.SnowFlakeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
-
 import java.util.Random;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
