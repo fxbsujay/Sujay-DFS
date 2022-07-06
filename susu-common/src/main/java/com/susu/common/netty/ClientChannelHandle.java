@@ -28,8 +28,12 @@ public class ClientChannelHandle extends AbstractChannelHandler {
         ctx.fireChannelInactive();
     }
 
-    public void send(NetPacket msg) {
-        socketChannel.writeAndFlush(msg);
+    /**
+     * 发送消息
+     * @param packet 数据包
+     */
+    public void send(NetPacket packet) {
+        socketChannel.writeAndFlush(packet);
     }
 
     /**

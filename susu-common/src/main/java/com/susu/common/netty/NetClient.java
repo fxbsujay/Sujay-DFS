@@ -205,6 +205,16 @@ public class NetClient {
     }
 
     /**
+     * 发送请求
+     *
+     * @param packet 请求数据包
+     */
+    public void send(NetPacket packet) throws InterruptedException {
+        ensureStart();
+        clientChannelHandle.send(packet);
+    }
+
+    /**
      * 关闭客户端
      * <p>Description: shutdown client </p>
      */

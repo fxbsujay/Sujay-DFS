@@ -1,12 +1,10 @@
 package com.susu.common.netty;
 
 import com.susu.common.Constants;
-import com.susu.common.netty.msg.MsgCodec;
 import com.susu.common.netty.msg.NetPacketDecoder;
 import com.susu.common.netty.msg.NetPacketEncoder;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
-import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import java.util.LinkedList;
