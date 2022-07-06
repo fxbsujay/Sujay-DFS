@@ -1,6 +1,7 @@
 package com.susu.common.netty;
 
-import com.susu.common.netty.msg.MessageCodec;
+import com.susu.common.Constants;
+import com.susu.common.netty.msg.MsgCodec;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
@@ -16,13 +17,16 @@ import java.util.List;
  */
 public class BaseChannelHandler extends ChannelInitializer<Channel> {
 
+    /**
+     * 添加其他处理器的数组
+     */
     private List<AbstractChannelHandler> handlerList = new LinkedList<>();
 
     @Override
-    protected void initChannel(Channel ch) throws Exception {
-        ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(1024, 8, 4, 0, 0));
+    protected void initChannel(Channel ch) {
+        ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(Constants.MAX_BYTES, 7, 4, 0, 0));
         ch.pipeline().addLast(new LoggingHandler(LogLevel.DEBUG));
-        ch.pipeline().addLast(new MessageCodec());
+        ch.pipeline().addLast(new MsgCodec());
         for (AbstractChannelHandler handler : handlerList) {
             ch.pipeline().addLast("myHandle",handler);
         }

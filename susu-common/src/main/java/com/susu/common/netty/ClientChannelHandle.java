@@ -1,5 +1,6 @@
 package com.susu.common.netty;
 
+import com.susu.common.netty.msg.NetPacket;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +28,7 @@ public class ClientChannelHandle extends AbstractChannelHandler {
         ctx.fireChannelInactive();
     }
 
-    public void send(String msg) {
+    public void send(NetPacket msg) {
         socketChannel.writeAndFlush(msg);
     }
 

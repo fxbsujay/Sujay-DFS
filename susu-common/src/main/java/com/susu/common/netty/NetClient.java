@@ -2,13 +2,19 @@ package com.susu.common.netty;
 
 import com.susu.common.Node;
 import com.susu.common.config.NodeConfig;
+import com.susu.common.eum.PacketType;
 import com.susu.common.model.NodeTest;
+import com.susu.common.netty.msg.NetPacket;
 import com.susu.common.task.TaskScheduler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -97,11 +103,25 @@ public class NetClient {
                     .handler(baseChannelHandler);
             try {
                 ChannelFuture channelFuture = client.connect(new InetSocketAddress(host, port)).sync();
-                Scanner scanner = new Scanner(System.in);
-                while(scanner.hasNextLine()) {
-                    String msg = scanner.nextLine();
-                    log.debug("user input：{}",msg);
-                    clientChannelHandle.send(msg);
+                ensureStart();
+                if (isConnected()) {
+                    Scanner scanner = new Scanner(System.in);
+                    while(scanner.hasNextLine()) {
+                        String msg = scanner.nextLine();
+                        log.debug("user input：{}",msg);
+                        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                        ObjectOutputStream oos = null;
+                        try {
+                            oos = new ObjectOutputStream(bos);
+                            oos.writeObject(msg);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                        byte[] bytes = bos.toByteArray();
+                        clientChannelHandle.send(NetPacket.buildPacket(bytes, PacketType.TEST));
+                    }
+                }else {
+                    log.info("没有连接成功");
                 }
                 channelFuture.channel()
                         .closeFuture()

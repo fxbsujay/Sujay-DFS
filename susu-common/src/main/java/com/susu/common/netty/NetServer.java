@@ -127,10 +127,9 @@ public class NetServer {
         Node node = NodeConfig.getNode("E:\\fxbsuajy@gmail.com\\Sujay-DFS\\doc\\config.json");
         TaskScheduler taskScheduler = new TaskScheduler("Server-Scheduler",1,false);
         NetServer netServer = new NetServer("server",taskScheduler);
-        try {
-            netServer.start(node.getPort());
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        netServer.startAsync(node.getPort());
+
+
+
     }
 }

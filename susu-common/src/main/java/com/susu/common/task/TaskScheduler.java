@@ -38,7 +38,7 @@ public class TaskScheduler {
     }
 
     /**
-     * <p>Description: 初始化调度器，并设置该任务随着调度器结束而结束</p>
+     * <p>Description: 初始化调度器,只允许初始化一次，并设置该任务随着调度器结束而结束</p>
      *
      * @param schedulerName 任务调度器的名称
      * @param corePoolSize  任务数量
