@@ -26,6 +26,7 @@ import java.util.List;
  * @version 14:35 2022/7/4
  */
 @Slf4j
+@Deprecated
 public class MsgCodec extends ByteToMessageCodec<NetPacket> {
 
     @Override

@@ -2,6 +2,8 @@ package com.susu.common.netty;
 
 import com.susu.common.Constants;
 import com.susu.common.netty.msg.MsgCodec;
+import com.susu.common.netty.msg.NetPacketDecoder;
+import com.susu.common.netty.msg.NetPacketEncoder;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
@@ -24,9 +26,9 @@ public class BaseChannelHandler extends ChannelInitializer<Channel> {
 
     @Override
     protected void initChannel(Channel ch) {
-        ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(Constants.MAX_BYTES, 7, 4, 0, 0));
+        ch.pipeline().addLast(new NetPacketDecoder(Constants.MAX_BYTES));
         ch.pipeline().addLast(new LoggingHandler(LogLevel.DEBUG));
-        ch.pipeline().addLast(new MsgCodec());
+        ch.pipeline().addLast(new NetPacketEncoder());
         for (AbstractChannelHandler handler : handlerList) {
             ch.pipeline().addLast("myHandle",handler);
         }
