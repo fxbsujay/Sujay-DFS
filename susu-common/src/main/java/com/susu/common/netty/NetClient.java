@@ -16,6 +16,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -50,8 +52,19 @@ public class NetClient {
      */
     private BaseChannelHandler baseChannelHandler;
 
+    /**
+     * 客户端的消息处理器
+     */
     private ClientChannelHandle clientChannelHandle;
 
+    /**
+     *客户端连接失败监听器，客户端连接失败时触发
+     */
+    private List<NetClientFailListener> clientFailListeners = new ArrayList<>();
+
+    /**
+     *  EventLoopGroup
+     */
     private EventLoopGroup loopGroup;
 
     /**
@@ -59,12 +72,17 @@ public class NetClient {
      */
     private AtomicBoolean started = new AtomicBoolean(true);
 
+    /**
+     * 客户端的名称  调度器
+     * @param name          名称
+     * @param taskScheduler 调度器
+     */
     public NetClient(String name, TaskScheduler taskScheduler) {
         this(name,taskScheduler,1);
     }
 
     /**
-     * @param name 启动的节点名称
+     * @param retryTime 失败连接后尝试重连的次数
      */
     public NetClient(String name, TaskScheduler taskScheduler, int retryTime) {
         this.name = name;
@@ -152,6 +170,13 @@ public class NetClient {
             } else {
                 shutdown();
                 log.info("The number of retry time exceeds the maximum，not longer retry：[retryTime={}]", retryTime);
+                for (NetClientFailListener listener : new ArrayList<>(clientFailListeners)) {
+                    try {
+                        listener.onConnectFail();
+                    } catch (Exception e) {
+                        log.error("Exception occur on invoke listener :", e);
+                    }
+                }
             }
         }
     }
@@ -227,15 +252,44 @@ public class NetClient {
         if (loopGroup != null) loopGroup.shutdownGracefully();
     }
 
+    /**
+     * 添加连接失败监听器
+     *
+     * @param listener 连接失败触发事件
+     */
+    public void addClientFailListener(NetClientFailListener listener) {
+        clientFailListeners.add(listener);
+    }
+
     public void setRetryTime(int retryTime) {
         this.retryTime = retryTime;
     }
 
     public static void main(String[] args) {
-        TaskScheduler taskScheduler = new TaskScheduler("Client-Scheduler",1,false);
+        TaskScheduler taskScheduler = new TaskScheduler("Client-Scheduler",1,true);
         Node node = NodeConfig.getNode("E:\\fxbsuajy@gmail.com\\Sujay-DFS\\doc\\config.json");
         NetClient netClient = new NetClient(node.getName(),taskScheduler);
+        netClient.addClientFailListener(() -> {
+          log.info("连接失败了！！");
+        });
         netClient.start(node.getHost(),node.getPort());
+        String msg = "我是Sujay";
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = null;
+        try {
+            oos = new ObjectOutputStream(bos);
+            oos.writeObject(msg);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        byte[] bytes = bos.toByteArray();
+
+        try {
+            netClient.send(NetPacket.buildPacket(bytes, PacketType.TEST));
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 }
