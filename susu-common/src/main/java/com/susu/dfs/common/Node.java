@@ -1,4 +1,4 @@
-package com.susu.common;
+package com.susu.dfs.common;
 
 
 import lombok.Data;

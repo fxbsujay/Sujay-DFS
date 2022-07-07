@@ -1,16 +1,15 @@
-package com.susu.common.netty;
+package com.susu.dfs.common.netty;
 
-import com.susu.common.Node;
-import com.susu.common.config.NodeConfig;
-import com.susu.common.model.NodeTest;
-import com.susu.common.task.TaskScheduler;
+import com.susu.dfs.common.netty.msg.NetPacket;
+import com.susu.dfs.common.task.TaskScheduler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 import java.net.InetSocketAddress;
-import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -44,8 +43,19 @@ public class NetClient {
      */
     private BaseChannelHandler baseChannelHandler;
 
+    /**
+     * 客户端的消息处理器
+     */
     private ClientChannelHandle clientChannelHandle;
 
+    /**
+     *客户端连接失败监听器，客户端连接失败时触发
+     */
+    private List<NetClientFailListener> clientFailListeners = new ArrayList<>();
+
+    /**
+     *  EventLoopGroup
+     */
     private EventLoopGroup loopGroup;
 
     /**
@@ -53,21 +63,35 @@ public class NetClient {
      */
     private AtomicBoolean started = new AtomicBoolean(true);
 
+    /**
+     * 客户端的名称  调度器
+     * @param name          名称
+     * @param taskScheduler 调度器
+     */
     public NetClient(String name, TaskScheduler taskScheduler) {
         this(name,taskScheduler,1);
     }
 
     /**
-     * @param name 启动的节点名称
+     * @param retryTime 失败连接后尝试重连的次数
      */
     public NetClient(String name, TaskScheduler taskScheduler, int retryTime) {
         this.name = name;
         this.retryTime = retryTime;
-        loopGroup = new NioEventLoopGroup();
-        baseChannelHandler = new BaseChannelHandler();
-        clientChannelHandle = new ClientChannelHandle();
-        baseChannelHandler.addHandler(clientChannelHandle);
+        this.loopGroup = new NioEventLoopGroup();
         this.taskScheduler = taskScheduler;
+        this.clientChannelHandle = new ClientChannelHandle();
+        this.clientChannelHandle.addConnectListener(isConnected -> {
+            if (isConnected) {
+                synchronized (NetClient.this) {
+                    NetClient.this.notifyAll();
+                }
+            }
+        });
+
+        this.baseChannelHandler = new BaseChannelHandler();
+        this.baseChannelHandler.addHandler(clientChannelHandle);
+
     }
 
     /**
@@ -97,12 +121,6 @@ public class NetClient {
                     .handler(baseChannelHandler);
             try {
                 ChannelFuture channelFuture = client.connect(new InetSocketAddress(host, port)).sync();
-                Scanner scanner = new Scanner(System.in);
-                while(scanner.hasNextLine()) {
-                    String msg = scanner.nextLine();
-                    log.debug("user input：{}",msg);
-                    clientChannelHandle.send(msg);
-                }
                 channelFuture.channel()
                         .closeFuture()
                         .sync();
@@ -132,6 +150,13 @@ public class NetClient {
             } else {
                 shutdown();
                 log.info("The number of retry time exceeds the maximum，not longer retry：[retryTime={}]", retryTime);
+                for (NetClientFailListener listener : new ArrayList<>(clientFailListeners)) {
+                    try {
+                        listener.onConnectFail();
+                    } catch (Exception e) {
+                        log.error("Exception occur on invoke listener :", e);
+                    }
+                }
             }
         }
     }
@@ -185,6 +210,16 @@ public class NetClient {
     }
 
     /**
+     * 发送请求
+     *
+     * @param packet 请求数据包
+     */
+    public void send(NetPacket packet) throws InterruptedException {
+        ensureStart();
+        clientChannelHandle.send(packet);
+    }
+
+    /**
      * 关闭客户端
      * <p>Description: shutdown client </p>
      */
@@ -195,17 +230,38 @@ public class NetClient {
         started.set(false);
 
         if (loopGroup != null) loopGroup.shutdownGracefully();
+        clientChannelHandle.clearConnectListener();
+        clientChannelHandle.clearNetPackageListener();
+    }
+
+    /**
+     * 添加连接失败监听器
+     *
+     * @param listener 连接失败触发事件
+     */
+    public void addClientFailListener(NetClientFailListener listener) {
+        clientFailListeners.add(listener);
+    }
+
+    /**
+     * 添加网络包监听器
+     *
+     * @param listener 监听器
+     */
+    public void addPackageListener(NetPacketListener listener) {
+        clientChannelHandle.addNetPackageListener(listener);
+    }
+
+    /**
+     * 添加连接状态监听器
+     *
+     * @param listener 监听器
+     */
+    public void addConnectListener(NetConnectListener listener) {
+        clientChannelHandle.addConnectListener(listener);
     }
 
     public void setRetryTime(int retryTime) {
         this.retryTime = retryTime;
-    }
-
-    public static void main(String[] args) {
-        TaskScheduler taskScheduler = new TaskScheduler("Client-Scheduler",1,false);
-        Node node = NodeConfig.getNode("E:\\fxbsuajy@gmail.com\\Sujay-DFS\\doc\\config.json");
-        NetClient netClient = new NetClient(node.getName(),taskScheduler);
-        netClient.start(node.getHost(),node.getPort());
-
     }
 }

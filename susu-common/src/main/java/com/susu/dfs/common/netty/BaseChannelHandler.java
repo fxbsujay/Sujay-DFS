@@ -1,9 +1,10 @@
-package com.susu.common.netty;
+package com.susu.dfs.common.netty;
 
-import com.susu.common.netty.msg.MessageCodec;
+import com.susu.dfs.common.Constants;
+import com.susu.dfs.common.netty.msg.NetPacketDecoder;
+import com.susu.dfs.common.netty.msg.NetPacketEncoder;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
-import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import java.util.LinkedList;
@@ -16,13 +17,16 @@ import java.util.List;
  */
 public class BaseChannelHandler extends ChannelInitializer<Channel> {
 
+    /**
+     * 添加其他处理器的数组
+     */
     private List<AbstractChannelHandler> handlerList = new LinkedList<>();
 
     @Override
-    protected void initChannel(Channel ch) throws Exception {
-        ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(1024, 8, 4, 0, 0));
+    protected void initChannel(Channel ch) {
+        ch.pipeline().addLast(new NetPacketDecoder(Constants.MAX_BYTES));
         ch.pipeline().addLast(new LoggingHandler(LogLevel.DEBUG));
-        ch.pipeline().addLast(new MessageCodec());
+        ch.pipeline().addLast(new NetPacketEncoder());
         for (AbstractChannelHandler handler : handlerList) {
             ch.pipeline().addLast("myHandle",handler);
         }

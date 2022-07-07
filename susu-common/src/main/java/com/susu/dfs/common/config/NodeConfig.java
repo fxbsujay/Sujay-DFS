@@ -1,10 +1,10 @@
-package com.susu.common.config;
+package com.susu.dfs.common.config;
 
 
 import com.alibaba.fastjson.JSON;
-import com.susu.common.Node;
-import com.susu.common.utils.FileUtils;
-import com.susu.common.utils.SnowFlakeUtils;
+import com.susu.dfs.common.Node;
+import com.susu.dfs.common.utils.FileUtils;
+import com.susu.dfs.common.utils.SnowFlakeUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -42,7 +42,7 @@ public class NodeConfig {
             System.exit(1);
         }
         this.node = node;
-        snowFlake = new SnowFlakeUtils(1,2);
+        this.snowFlake = new SnowFlakeUtils(1,2);
     }
 
 

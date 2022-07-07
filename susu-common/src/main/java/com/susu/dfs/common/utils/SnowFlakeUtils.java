@@ -1,4 +1,4 @@
-package com.susu.common.utils;
+package com.susu.dfs.common.utils;
 
 /**
  * <p>Description: Snow flakeId Worker</p>

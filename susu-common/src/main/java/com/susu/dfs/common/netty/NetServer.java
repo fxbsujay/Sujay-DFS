@@ -1,8 +1,6 @@
-package com.susu.common.netty;
+package com.susu.dfs.common.netty;
 
-import com.susu.common.Node;
-import com.susu.common.config.NodeConfig;
-import com.susu.common.task.TaskScheduler;
+import com.susu.dfs.common.task.TaskScheduler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -112,6 +110,14 @@ public class NetServer {
     }
 
     /**
+     * 添加自定义的handler
+     */
+    public void addHandler(AbstractChannelHandler handlers) {
+
+        baseChannelHandler.addHandler(handlers);
+    }
+
+    /**
      * 关闭服务端
      * <p>Description: shutdown server </p>
      */
@@ -120,17 +126,6 @@ public class NetServer {
         if (boss != null && worker != null) {
             boss.shutdownGracefully();
             worker.shutdownGracefully();
-        }
-    }
-
-    public static void main(String[] args) {
-        Node node = NodeConfig.getNode("E:\\fxbsuajy@gmail.com\\Sujay-DFS\\doc\\config.json");
-        TaskScheduler taskScheduler = new TaskScheduler("Server-Scheduler",1,false);
-        NetServer netServer = new NetServer("server",taskScheduler);
-        try {
-            netServer.start(node.getPort());
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         }
     }
 }

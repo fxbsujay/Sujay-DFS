@@ -1,4 +1,4 @@
-package com.susu.common.utils;
+package com.susu.dfs.common.utils;
 
 import java.io.*;
 import java.nio.ByteBuffer;
