@@ -1,16 +1,14 @@
 package com.susu.dfs;
 
-import com.sun.jmx.snmp.tasks.TaskServer;
 import com.susu.dfs.common.config.NodeConfig;
 import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.server.TrackerServer;
 import lombok.extern.slf4j.Slf4j;
-
 import java.util.concurrent.atomic.AtomicBoolean;
-
 
 /**
  * <p>Description: DFS 的 服务端，也是核心管理器</p>
+ *
  * @author sujay
  * @version 14:48 2022/7/7
  */
@@ -32,17 +30,19 @@ public class TrackerApplication {
      * </ul>
      */
     public static void main(String[] args) {
+
         NodeConfig nodeConfig = new NodeConfig("E:\\fxbsuajy@gmail.com\\Sujay-DFS\\doc\\config.json");
         TrackerApplication application = new TrackerApplication(nodeConfig);
         try {
             Runtime.getRuntime().addShutdownHook(new Thread(application::shutdown));
             application.start();
         } catch (Exception e) {
-            log.info("启动异常");
+            log.info("Tracker Application Start Error!!");
         }
     }
 
     public TrackerApplication(NodeConfig nodeConfig) {
+
         this.taskScheduler = new TaskScheduler("SUSU-DFS-SERVER",1,false);
         this.trackerServer = new TrackerServer(nodeConfig.getNode(),taskScheduler);
     }
@@ -59,7 +59,7 @@ public class TrackerApplication {
     }
 
     /**
-     * 优雅停机
+     * 停机
      */
     public void shutdown() {
         if (started.compareAndSet(true, false)) {

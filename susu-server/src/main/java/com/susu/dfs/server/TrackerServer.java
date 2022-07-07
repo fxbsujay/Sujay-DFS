@@ -27,15 +27,13 @@ public class TrackerServer {
     }
 
     public void start() {
+        log.info("Start Tracker Server.");
         this.netServer.addHandler(trackerChannelHandle);
         netServer.startAsync(port);
     }
 
-    /**
-     * 停止服务
-     */
     public void shutdown() {
-        log.info("Shutdown NameNodeServer.");
+        log.info("Shutdown Tracker Server.");
         netServer.shutdown();
     }
 }
