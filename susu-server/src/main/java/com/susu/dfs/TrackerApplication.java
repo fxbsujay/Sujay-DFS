@@ -22,14 +22,14 @@ public class TrackerApplication {
     private final AtomicBoolean started = new AtomicBoolean(false);
 
     /**
-     * <h2> 服务端的启动流程 </h3>
+     * <h3> 服务端的启动流程 </h3>
      * <ul>
      *     <li>加载配置文件</li>
      *     <li>初始化任务执行器，一个线程池</li>
      *     <li>初始化一个 Netty 服务端用来处理客户端发来的消息</li>
      * </ul>
      */
-    public static void main(String[] args) {
+     public static void main(String[] args) {
 
         NodeConfig nodeConfig = new NodeConfig("E:\\fxbsuajy@gmail.com\\Sujay-DFS\\doc\\config.json");
         TrackerApplication application = new TrackerApplication(nodeConfig);

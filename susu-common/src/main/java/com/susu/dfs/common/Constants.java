@@ -1,5 +1,7 @@
 package com.susu.dfs.common;
 
+import com.susu.common.model.RegisterRequest;
+
 /**
  * <p>Description: Constants</p>
  * <p>Description: 常量</p>
