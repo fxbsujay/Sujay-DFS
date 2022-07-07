@@ -3,7 +3,6 @@ package com.susu.common.netty;
 import com.susu.common.Node;
 import com.susu.common.config.NodeConfig;
 import com.susu.common.eum.PacketType;
-import com.susu.common.model.NodeTest;
 import com.susu.common.netty.msg.NetPacket;
 import com.susu.common.task.TaskScheduler;
 import io.netty.bootstrap.Bootstrap;
@@ -12,9 +11,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -87,11 +84,20 @@ public class NetClient {
     public NetClient(String name, TaskScheduler taskScheduler, int retryTime) {
         this.name = name;
         this.retryTime = retryTime;
-        loopGroup = new NioEventLoopGroup();
-        baseChannelHandler = new BaseChannelHandler();
-        clientChannelHandle = new ClientChannelHandle();
-        baseChannelHandler.addHandler(clientChannelHandle);
+        this.loopGroup = new NioEventLoopGroup();
         this.taskScheduler = taskScheduler;
+        this.clientChannelHandle = new ClientChannelHandle();
+        this.clientChannelHandle.addConnectListener(isConnected -> {
+            if (isConnected) {
+                synchronized (NetClient.this) {
+                    NetClient.this.notifyAll();
+                }
+            }
+        });
+
+        this.baseChannelHandler = new BaseChannelHandler();
+        this.baseChannelHandler.addHandler(clientChannelHandle);
+
     }
 
     /**
@@ -250,6 +256,8 @@ public class NetClient {
         started.set(false);
 
         if (loopGroup != null) loopGroup.shutdownGracefully();
+        clientChannelHandle.clearConnectListener();
+        clientChannelHandle.clearNetPackageListener();
     }
 
     /**
@@ -261,6 +269,27 @@ public class NetClient {
         clientFailListeners.add(listener);
     }
 
+    /**
+     * 添加网络包监听器
+     *
+     * @param listener 监听器
+     */
+    public void addPackageListener(NetPacketListener listener) {
+        clientChannelHandle.addNetPackageListener(listener);
+    }
+
+
+    /**
+     * 添加连接状态监听器
+     *
+     * @param listener 监听器
+     */
+    public void addConnectListener(NetConnectListener listener) {
+        clientChannelHandle.addConnectListener(listener);
+    }
+
+
+
     public void setRetryTime(int retryTime) {
         this.retryTime = retryTime;
     }
@@ -271,6 +300,27 @@ public class NetClient {
         NetClient netClient = new NetClient(node.getName(),taskScheduler);
         netClient.addClientFailListener(() -> {
           log.info("连接失败了！！");
+        });
+        netClient.addPackageListener(packet -> {
+            byte[] body = packet.getBody();
+
+            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(body));
+            String message = (String) ois.readObject();
+            log.info("-==================B:{}",message);
+        });
+        netClient.addPackageListener(new NetPacketListener() {
+            @Override
+            public void onMessage(NetPacket packet) throws Exception {
+                byte[] body = packet.getBody();
+
+                ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(body));
+                String message = (String) ois.readObject();
+                log.info("-==================A:{}",message);
+            }
+        });
+        netClient.addConnectListener(connected -> {
+            log.info("addConnectListener");
+            log.info("aa{}",connected);
         });
         netClient.start(node.getHost(),node.getPort());
         String msg = "我是Sujay";
