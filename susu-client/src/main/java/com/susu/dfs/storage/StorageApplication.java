@@ -1,11 +1,9 @@
 package com.susu.dfs.storage;
 
-import com.susu.dfs.common.Node;
 import com.susu.dfs.common.config.NodeConfig;
 import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.storage.client.TrackerClient;
 import lombok.extern.slf4j.Slf4j;
-
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
@@ -40,7 +38,7 @@ public class StorageApplication {
      */
     public static void main(String[] args) {
 
-        NodeConfig nodeConfig = new NodeConfig("E:\\fxbsuajy@gmail.com\\Sujay-DFS\\doc\\config.json");
+        NodeConfig nodeConfig = new NodeConfig("D:\\project\\卷\\Sujay-DFS\\doc\\config.json");
         StorageApplication application = new StorageApplication(nodeConfig);
         try {
             Runtime.getRuntime().addShutdownHook(new Thread(application::shutdown));

@@ -1,6 +1,6 @@
 package com.susu.dfs.common.netty;
 
-import com.susu.dfs.common.netty.msg.NetPacket;
+import com.susu.dfs.common.netty.msg.NetRequest;
 
 /**
  * <p>Description: 网络包响应监听器</p>
@@ -22,5 +22,5 @@ public interface NetPacketListener {
      * @param packet 消息
      * @throws Exception 异常
      */
-    void onMessage(NetPacket packet) throws Exception;
+    void onMessage(NetRequest packet) throws Exception;
 }

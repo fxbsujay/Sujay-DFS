@@ -1,7 +1,9 @@
 package com.susu.dfs.tracker.server;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.susu.common.model.HeartbeatRequest;
 import com.susu.common.model.RegisterRequest;
+import com.susu.dfs.common.netty.msg.NetRequest;
 import com.susu.dfs.tracker.client.ClientManager;
 import com.susu.dfs.common.netty.AbstractChannelHandler;
 import com.susu.dfs.common.netty.msg.NetPacket;
@@ -39,12 +41,13 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
     @Override
     protected boolean handlePackage(ChannelHandlerContext ctx, NetPacket packet) throws Exception {
         PacketType packetType = PacketType.getEnum(packet.getType());
+        NetRequest request = new NetRequest(ctx, packet);
         switch (packetType) {
             case CLIENT_REGISTER:
-                clientRegisterHandle(packet);
+                clientRegisterHandle(request);
                 break;
-            case TEST:
-                log.info("测试请求");
+            case CLIENT_HEART_BEAT:
+                clientHeartbeatHandel(request);
                 break;
             default:
                 break;
@@ -63,12 +66,32 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
     }
 
     /**
-     * 客户端注册方法
+     * <p>Description: 客户端注册请求处理</p>
+     * <p>Description: Client registration request processing </p>
+     *
+     * @param request NetWork Request 网络请求
      */
-    public void clientRegisterHandle(NetPacket packet) throws InvalidProtocolBufferException {
-        RegisterRequest registerRequest = RegisterRequest.parseFrom(packet.getBody());
+    private void clientRegisterHandle(NetRequest request) throws InvalidProtocolBufferException {
+        RegisterRequest registerRequest = RegisterRequest.parseFrom(request.getRequest().getBody());
         boolean register = clientManager.register(registerRequest);
-        if (register) log.info("=========================注册成功=========================");
-        else log.info("=========================注册失败=========================");
+        if (register) {
+            request.sendResponse();
+        }
     }
+
+    /**
+     * <p>Description: 客户端心跳请求处理</p>
+     * <p>Description: Client heartbeat request processing </p>
+     *
+     * @param request NetWork Request 网络请求
+     * @throws InvalidProtocolBufferException protobuf error
+     */
+    private void clientHeartbeatHandel(NetRequest request) throws InvalidProtocolBufferException {
+        HeartbeatRequest heartbeatRequest = HeartbeatRequest.parseFrom(request.getRequest().getBody());
+        Boolean isSuccess = clientManager.heartbeat(heartbeatRequest.getHostname());
+        if (!isSuccess) {
+            throw new RuntimeException("Client heartbeat update failed");
+        }
+    }
+
 }

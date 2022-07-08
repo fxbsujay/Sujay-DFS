@@ -29,7 +29,6 @@ public abstract class AbstractChannelHandler extends ChannelInboundHandlerAdapte
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        log.info("消息内容 channelRead： {}",msg);
         Executor executor = getExecutor();
         if (executor != null) {
             executor.execute(() -> channelReadInternal(ctx, msg));

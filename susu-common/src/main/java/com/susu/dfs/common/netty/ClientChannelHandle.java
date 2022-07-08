@@ -1,6 +1,7 @@
 package com.susu.dfs.common.netty;
 
 import com.susu.dfs.common.netty.msg.NetPacket;
+import com.susu.dfs.common.netty.msg.NetRequest;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
 import java.util.Collections;
@@ -65,9 +66,10 @@ public class ClientChannelHandle extends AbstractChannelHandler {
     @Override
     protected boolean handlePackage(ChannelHandlerContext ctx, NetPacket packet) throws Exception {
         synchronized (this) {
+            NetRequest request = new NetRequest(ctx, packet);
             for (NetPacketListener listener : packetListeners) {
                 try {
-                    listener.onMessage(packet);
+                    listener.onMessage(request);
                 } catch (Exception e) {
                     log.error("Exception occur on invoke listener :", e);
                 }

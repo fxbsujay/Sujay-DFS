@@ -12,3 +12,7 @@ message RegisterRequest {
   int32 port = 4;
 
 }
+
+message HeartbeatRequest {
+  string hostname = 1;
+}

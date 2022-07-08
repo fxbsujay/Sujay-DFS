@@ -1,8 +1,11 @@
 package com.susu.dfs.tracker.client;
 
 import com.susu.common.model.RegisterRequest;
+import com.susu.dfs.common.utils.DateUtils;
 import com.susu.dfs.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -40,4 +43,25 @@ public class ClientManager {
         clients.put(client.getHostname(),client);
         return true;
     }
+
+
+    /**
+     * <p>Description: 客户端心跳</p>
+     * <p>Description: Client Heartbeat</p>
+     * @param hostname 客户端主机地址
+     * @return 是否更新成功 【 true / false 】
+     */
+    public Boolean heartbeat(String hostname) {
+        ClientInfo dataNode = clients.get(hostname);
+        if (dataNode == null) {
+            return false;
+        }
+        long latestHeartbeatTime = System.currentTimeMillis();
+        if (log.isDebugEnabled()) {
+            log.debug("Heartbeat received from client：[hostname={}, latestHeartbeatTime={}]", hostname, DateUtils.getTime(new Date(latestHeartbeatTime)));
+        }
+        dataNode.setLatestHeartbeatTime(latestHeartbeatTime);
+        return true;
+    }
+
 }

@@ -17,6 +17,7 @@ public enum PacketType {
      */
     UNKNOWN(0, "未知的包类型"),
     CLIENT_REGISTER(1,"客户端注册"),
+    CLIENT_HEART_BEAT(2,"客户端心跳"),
     TEST(2, "测试请求"),
     ;
 
