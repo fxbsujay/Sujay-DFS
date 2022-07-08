@@ -1,13 +1,13 @@
-package com.susu.dfs;
+package com.susu.dfs.tracker;
 
 import com.susu.dfs.common.config.NodeConfig;
 import com.susu.dfs.common.task.TaskScheduler;
-import com.susu.dfs.server.TrackerServer;
+import com.susu.dfs.tracker.server.TrackerServer;
 import lombok.extern.slf4j.Slf4j;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * <p>Description: DFS 的 服务端，也是核心管理器</p>
+ * <p>Description: DFS 的 调度器，也是核心管理器</p>
  *
  * @author sujay
  * @version 14:48 2022/7/7
@@ -26,7 +26,7 @@ public class TrackerApplication {
      * <ul>
      *     <li>加载配置文件</li>
      *     <li>初始化任务执行器，一个线程池</li>
-     *     <li>初始化一个 Netty 服务端用来处理客户端发来的消息</li>
+     *     <li>初始化一个 Tracker 服务端用来处理 Tracker 客户端发来的消息</li>
      * </ul>
      */
      public static void main(String[] args) {

@@ -41,23 +41,16 @@ public class NetPacketDecoder extends LengthFieldBasedFrameDecoder {
             byte msgType = in.readByte();
             int length = 0;
             int type = 0;
-            byte[] body = new byte[length];
             if (MsgType.getEnum(msgType) == MsgType.PACKET) {
               try {
                   NetPacket packet = NetPacket.read(in);
                   length = packet.getLength();
                   type = packet.getType();
-                  body = packet.getBody();
-
-                  ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(body));
-                  String message = (String) ois.readObject();
-
                   log.info("授权：{}", HexConvertUtils.decToASCII(author));
                   log.info("版本号：{}",version);
                   log.info("消息类型：{}",msgType);
                   log.info("指令类型：{}",type);
                   log.info("正文长度：{}",length);
-                  log.info("正文：{}",message);
                   return packet;
               } finally {
                   ReferenceCountUtil.release(byteBuf);

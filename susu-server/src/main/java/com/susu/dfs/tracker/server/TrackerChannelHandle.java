@@ -1,5 +1,8 @@
-package com.susu.dfs.server;
+package com.susu.dfs.tracker.server;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.susu.common.model.RegisterRequest;
+import com.susu.dfs.tracker.client.ClientManager;
 import com.susu.dfs.common.netty.AbstractChannelHandler;
 import com.susu.dfs.common.netty.msg.NetPacket;
 import com.susu.dfs.common.eum.PacketType;
@@ -22,9 +25,15 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
 
     private final ThreadPoolExecutor executor;
 
+    /**
+     *  Tracker 客户端管理器 保存注册进来的客户端信息
+     */
+    private final ClientManager clientManager;
+
     public TrackerChannelHandle() {
         this.executor = new ThreadPoolExecutor(8,20,
                 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(8));
+        this.clientManager = new ClientManager();
     }
 
     @Override
@@ -32,7 +41,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
         PacketType packetType = PacketType.getEnum(packet.getType());
         switch (packetType) {
             case CLIENT_REGISTER:
-                log.info("收到了客户端的注册消息");
+                clientRegisterHandle(packet);
                 break;
             case TEST:
                 log.info("测试请求");
@@ -56,7 +65,10 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
     /**
      * 客户端注册方法
      */
-    public void clientRegisterHandle() {
-
+    public void clientRegisterHandle(NetPacket packet) throws InvalidProtocolBufferException {
+        RegisterRequest registerRequest = RegisterRequest.parseFrom(packet.getBody());
+        boolean register = clientManager.register(registerRequest);
+        if (register) log.info("=========================注册成功=========================");
+        else log.info("=========================注册失败=========================");
     }
 }

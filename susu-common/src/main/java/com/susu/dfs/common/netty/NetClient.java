@@ -135,7 +135,7 @@ public class NetClient {
 
     /**
      * 尝试重启客户端
-     * <p>Description: restart client </p>
+     * <p>Description: restart client.proto </p>
      *
      * @param host 地址
      * @param port 端口号
@@ -145,7 +145,7 @@ public class NetClient {
         if (started.get()) {
             boolean retry = retryTime < 0 || connectTimes <= retryTime;
             if (retry) {
-                log.error("client restart：[started={}, name={}]", started.get(), name);
+                log.error("client.proto restart：[started={}, name={}]", started.get(), name);
                 start(host, port, connectTimes,3000);
             } else {
                 shutdown();
@@ -221,7 +221,7 @@ public class NetClient {
 
     /**
      * 关闭客户端
-     * <p>Description: shutdown client </p>
+     * <p>Description: shutdown client.proto </p>
      */
     public void shutdown() {
         if(log.isDebugEnabled()) {
