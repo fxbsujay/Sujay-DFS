@@ -1,5 +1,7 @@
 package com.susu.dfs.common.utils;
 
+import java.nio.charset.StandardCharsets;
+
 /**
  * <p>Description: Snow flakeId Worker</p>
  * <p>雪花算法ID</p>
@@ -148,7 +150,7 @@ public class SnowFlakeUtils {
         SnowFlakeUtils utilA = new SnowFlakeUtils(1,1);
         for (int i = 0; i < 10; i++) {
             long id = utilA.nextId();
-            System.out.println(id);
+            System.out.println(String.valueOf(id).getBytes(StandardCharsets.UTF_8).length);
         }
 
         SnowFlakeUtils utilB = new SnowFlakeUtils(2,1);

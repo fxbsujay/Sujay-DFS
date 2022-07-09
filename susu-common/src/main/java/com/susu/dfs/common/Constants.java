@@ -1,7 +1,5 @@
 package com.susu.dfs.common;
 
-import com.susu.common.model.RegisterRequest;
-
 /**
  * <p>Description: Constants</p>
  * <p>Description: 常量</p>
@@ -11,14 +9,14 @@ import com.susu.common.model.RegisterRequest;
 public class Constants {
 
     /**
-     *  系统授权名称
-     */
-    public static final String SYS_AUTHOR = "SUSU";
-
-    /**
      * 系统版本号
      */
     public static final int SYS_VERSION = 1;
+
+    /**
+     *  系统授权名称
+     */
+    public static final String SYS_AUTHOR = "SUSA";
 
     /**
      * Netty 最大传输字节数

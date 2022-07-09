@@ -2,6 +2,7 @@ package com.susu.dfs.common.netty.msg;
 
 import com.susu.dfs.common.eum.MsgType;
 import com.susu.dfs.common.eum.PacketType;
+import com.susu.dfs.common.utils.HexConvertUtils;
 import io.netty.buffer.ByteBuf;
 import lombok.Builder;
 import lombok.Data;
@@ -16,6 +17,11 @@ import lombok.Data;
 @Data
 @Builder
 public class NetPacket {
+
+    /**
+     * 请求序列号 ( 0 - 2147483647 )
+     */
+    private long sequence;
 
     /**
      * 消息类型 1位
@@ -58,6 +64,7 @@ public class NetPacket {
      * @param out 输出
      */
     public void write(ByteBuf out) {
+        out.writeBytes(HexConvertUtils.longToBytes(sequence));
         out.writeByte(MSG_TYPE);
         out.writeByte(type);
         out.writeInt(length);

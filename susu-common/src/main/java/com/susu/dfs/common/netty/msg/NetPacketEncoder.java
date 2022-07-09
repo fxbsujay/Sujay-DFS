@@ -2,6 +2,7 @@ package com.susu.dfs.common.netty.msg;
 
 
 import com.susu.dfs.common.Constants;
+import com.susu.dfs.common.utils.HexConvertUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
@@ -11,11 +12,11 @@ import java.nio.charset.StandardCharsets;
 /**
  * <p>Description: 消息解码器</p>
  *
- *  请求头为 8 byte
- *  +------------------------+-------------------+--------------------------+-----------------------+---------------------------+-------------------+
- *  | Author Magic (4byte)   |  Version (1byte)  |   Message Type (1byte)   | ·Packet Type (1byte)  |  Content Length (1byte)   |   Actual Content  |
- *  |       授权码            |      版本号        |       M类型               |       数据包类型        |          内容体长度         |      真实的数据     |
- *  +------------------------+-------------------+--------------------------*-----------------------+---------------------------+-------------------+
+ *  请求头为 16 byte
+ *  +------------------------+----------------------+--------------------+--------------------------+-----------------------+---------------------------+-------------------+
+ *  | Author Magic (4byte)   |   Sequence (8byte)   |   Version (1byte)  |   Message Type (1byte)   | ·Packet Type (1byte)  |  Content Length (1byte)   |   Actual Content  |
+ *  |       授权码            |        请求号         |      版本号         |       M类型               |       数据包类型        |          内容体长度         |      真实的数据     |
+ *  +------------------------+----------------------+--------------------+--------------------------*-----------------------+---------------------------+-------------------+
  *
  *
  * @author sujay

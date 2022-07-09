@@ -181,6 +181,32 @@ public class HexConvertUtils {
         return decimal;
     }
 
+    /**
+     * <p>Description: long to byte</p>
+     * @return long
+     */
+    public static long bytesToLong(byte[] byteNum, int index) {
+        long num = 0;
+        for (int ix = 0; ix < 8; ++ix) {
+            num <<= 8;
+            num |= (byteNum[ix + index] & 0xff);
+        }
+        return num;
+    }
+
+    /**
+     * <p>Description: byte to long</p>
+     * @return byte[]
+     */
+    public static byte[] longToBytes(long num) {
+        byte[] byteNum = new byte[8];
+        for (int ix = 0; ix < 8; ++ix) {
+            int offset = 64 - (ix + 1) * 8;
+            byteNum[ix] = (byte) ((num >> offset) & 0xff);
+        }
+        return byteNum;
+    }
+    
     public static void main(String[] args) {
         System.out.println(Arrays.toString(String.valueOf(1398100821).getBytes(StandardCharsets.UTF_8)));
     }

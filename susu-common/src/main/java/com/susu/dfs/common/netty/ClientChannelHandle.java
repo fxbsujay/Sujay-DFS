@@ -2,6 +2,7 @@ package com.susu.dfs.common.netty;
 
 import com.susu.dfs.common.netty.msg.NetPacket;
 import com.susu.dfs.common.netty.msg.NetRequest;
+import com.susu.dfs.common.utils.SnowFlakeUtils;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
 import java.util.Collections;
@@ -29,6 +30,9 @@ public class ClientChannelHandle extends AbstractChannelHandler {
      */
     private List<NetConnectListener> connectListeners = new CopyOnWriteArrayList<>();
 
+    private final SnowFlakeUtils snowFlakeUtils = new SnowFlakeUtils(1,1);
+
+
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         socketChannel = ctx;
@@ -50,6 +54,7 @@ public class ClientChannelHandle extends AbstractChannelHandler {
      * @param packet 数据包
      */
     public void send(NetPacket packet) {
+        packet.setSequence(snowFlakeUtils.nextId());
         socketChannel.writeAndFlush(packet);
     }
 
