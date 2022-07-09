@@ -2,6 +2,8 @@ package com.susu.dfs.common.netty;
 
 import com.susu.dfs.common.netty.msg.NetPacket;
 import com.susu.dfs.common.netty.msg.NetRequest;
+import com.susu.dfs.common.netty.msg.NetSyncRequest;
+import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.common.utils.SnowFlakeUtils;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +20,16 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Slf4j
 public class ClientChannelHandle extends AbstractChannelHandler {
 
+
+    /**
+     *  Channel Handler Context
+     */
     public volatile ChannelHandlerContext socketChannel;
+
+    /**
+     * 是否有其他处理器
+     */
+    private volatile boolean hasOtherHandlers = false;
 
     /**
      * 网络包响应监听器
@@ -30,8 +41,24 @@ public class ClientChannelHandle extends AbstractChannelHandler {
      */
     private List<NetConnectListener> connectListeners = new CopyOnWriteArrayList<>();
 
+    /**
+     * 同步请求
+     */
+    private NetSyncRequest netSyncRequest;
+
+    /**
+     * 生成请求序列号的工具
+     */
     private final SnowFlakeUtils snowFlakeUtils = new SnowFlakeUtils(1,1);
 
+
+    public ClientChannelHandle(TaskScheduler taskScheduler) {
+        netSyncRequest = new NetSyncRequest(taskScheduler);
+    }
+
+    public void setHasOtherHandlers(boolean hasOtherHandlers) {
+        this.hasOtherHandlers = hasOtherHandlers;
+    }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
@@ -47,6 +74,18 @@ public class ClientChannelHandle extends AbstractChannelHandler {
         invokeConnectListener(false);
         log.debug("Socket channel is disconnected！{}", ctx.channel().id().asLongText().replaceAll("-",""));
         ctx.fireChannelInactive();
+    }
+
+    /**
+     * 发送消息，异步转同步获取响应
+     *
+     * @param packet 网络包
+     * @return 响应
+     * @throws IllegalStateException 网络异常
+     */
+    public NetPacket sendSync(NetPacket packet) {
+        packet.setSequence(snowFlakeUtils.nextId());
+        return netSyncRequest.sendRequest(packet);
     }
 
     /**
@@ -71,6 +110,7 @@ public class ClientChannelHandle extends AbstractChannelHandler {
     @Override
     protected boolean handlePackage(ChannelHandlerContext ctx, NetPacket packet) throws Exception {
         synchronized (this) {
+            boolean ret = netSyncRequest.onResponse(packet);
             NetRequest request = new NetRequest(ctx, packet);
             for (NetPacketListener listener : packetListeners) {
                 try {
@@ -79,8 +119,8 @@ public class ClientChannelHandle extends AbstractChannelHandler {
                     log.error("Exception occur on invoke listener :", e);
                 }
             }
+            return !hasOtherHandlers || ret;
         }
-        return true;
     }
 
     /**

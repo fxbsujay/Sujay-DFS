@@ -80,7 +80,7 @@ public class NetClient {
         this.retryTime = retryTime;
         this.loopGroup = new NioEventLoopGroup();
         this.taskScheduler = taskScheduler;
-        this.clientChannelHandle = new ClientChannelHandle();
+        this.clientChannelHandle = new ClientChannelHandle(taskScheduler);
         this.clientChannelHandle.addConnectListener(isConnected -> {
             if (isConnected) {
                 synchronized (NetClient.this) {
@@ -232,6 +232,14 @@ public class NetClient {
         if (loopGroup != null) loopGroup.shutdownGracefully();
         clientChannelHandle.clearConnectListener();
         clientChannelHandle.clearNetPackageListener();
+    }
+
+    /**
+     * 添加自定义的handler
+     */
+    public void addHandler(AbstractChannelHandler handlers) {
+        clientChannelHandle.setHasOtherHandlers(true);
+        baseChannelHandler.addHandler(handlers);
     }
 
     /**

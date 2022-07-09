@@ -64,8 +64,8 @@ public class NetPacket {
      * @param out 输出
      */
     public void write(ByteBuf out) {
-        out.writeBytes(HexConvertUtils.longToBytes(sequence));
         out.writeByte(MSG_TYPE);
+        out.writeBytes(HexConvertUtils.longToBytes(sequence));
         out.writeByte(type);
         out.writeInt(length);
         out.writeBytes(body);
@@ -77,11 +77,14 @@ public class NetPacket {
      * @return 数据包
      */
     public static NetPacket read(ByteBuf in) {
+        byte[] sequence = new byte[8];
+        in.readBytes(sequence, 0, 8);
         int type = in.readByte();
         int length = in.readInt();
         byte[] body = new byte[length];
         in.readBytes(body, 0, length);
         return NetPacket.builder()
+                .sequence(HexConvertUtils.bytesToLong(sequence,0))
                 .type(type)
                 .length(length)
                 .body(body).build();

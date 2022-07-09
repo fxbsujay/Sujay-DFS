@@ -12,10 +12,10 @@ import lombok.extern.slf4j.Slf4j;
  * <p>Description: 消息编码器</p>
  *
  *  请求头为 16 byte
- *  +------------------------+----------------------+--------------------+--------------------------+-----------------------+---------------------------+-------------------+
- *  | Author Magic (4byte)   |   Sequence (8byte)   |   Version (1byte)  |   Message Type (1byte)   | ·Packet Type (1byte)  |  Content Length (1byte)   |   Actual Content  |
- *  |       授权码            |        请求号         |      版本号         |       M类型               |       数据包类型        |          内容体长度         |      真实的数据     |
- *  +------------------------+----------------------+--------------------+--------------------------*-----------------------+---------------------------+-------------------+
+ *  +------------------------+---------------------+-------------------------+----------------------+-----------------------+---------------------------+-------------------+
+ *  | Author Magic (4byte)   |  Version (1byte)    |   Message Type (1byte)  |   Sequence (8byte)   |  Packet Type (1byte)  |  Content Length (1byte)   |   Actual Content  |
+ *  |       授权码            |       版本号         |       M类型              |       请求号          |       数据包类型        |          内容体长度         |      真实的数据     |
+ *  +------------------------+---------------------+-------------------------+----------------------*-----------------------+---------------------------+-------------------+
  *
  *
  * @author sujay
@@ -34,9 +34,9 @@ public class NetPacketDecoder extends LengthFieldBasedFrameDecoder {
         if (byteBuf != null) {
             int author = in.readInt();
             byte version = in.readByte();
-            byte[] body = new byte[8];
-            in.readBytes(body, 0, 8);
-            log.info("请求序列号：{}",HexConvertUtils.bytesToLong(body,0));
+            byte[] sequence = new byte[8];
+            in.readBytes(sequence, 0, 8);
+            log.info("请求序列号：{}",HexConvertUtils.bytesToLong(sequence,0));
             byte msgType = in.readByte();
             if (MsgType.getEnum(msgType) == MsgType.PACKET) {
               try {

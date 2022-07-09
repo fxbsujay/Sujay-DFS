@@ -46,6 +46,7 @@ public class NetRequest {
     public void sendResponse(MessageLite response) {
         byte[] body = response == null ? new byte[0] : response.toByteArray();
         NetPacket packet = NetPacket.buildPacket(body, PacketType.getEnum(request.getType()));
+        packet.setSequence(request.getSequence());
         ctx.writeAndFlush(packet);
     }
 

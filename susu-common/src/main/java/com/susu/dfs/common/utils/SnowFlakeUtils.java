@@ -150,14 +150,11 @@ public class SnowFlakeUtils {
         SnowFlakeUtils utilA = new SnowFlakeUtils(1,1);
         for (int i = 0; i < 10; i++) {
             long id = utilA.nextId();
-            System.out.println(String.valueOf(id).getBytes(StandardCharsets.UTF_8).length);
+            byte[] bytes = HexConvertUtils.longToBytes(id);
+            System.out.println(bytes.length);
+            System.out.println(String.valueOf(HexConvertUtils.bytesToLong(bytes,0)));
         }
 
-        SnowFlakeUtils utilB = new SnowFlakeUtils(2,1);
-        for (int i = 0; i < 10; i++) {
-            long id = utilB.nextId();
-            System.out.println(id);
-        }
 
     }
 
