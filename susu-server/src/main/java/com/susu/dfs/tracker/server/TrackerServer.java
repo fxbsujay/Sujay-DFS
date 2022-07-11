@@ -24,7 +24,7 @@ public class TrackerServer {
     public TrackerServer(Node node, TaskScheduler taskScheduler) {
         this.node = node;
         this.netServer = new NetServer(node.getName(),taskScheduler);
-        this.trackerChannelHandle = new TrackerChannelHandle();
+        this.trackerChannelHandle = new TrackerChannelHandle(taskScheduler);
     }
 
     public void start() {

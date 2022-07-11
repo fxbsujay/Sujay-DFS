@@ -1,12 +1,14 @@
 package com.susu.dfs.tracker.client;
 
 import com.susu.common.model.RegisterRequest;
+import com.susu.dfs.common.Constants;
+import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.common.utils.DateUtils;
 import com.susu.dfs.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author sujay
@@ -25,6 +27,11 @@ public class ClientManager {
      */
     private final Map<Long, ClientInfo> clients = new ConcurrentHashMap<>();
 
+
+    public ClientManager(TaskScheduler taskScheduler) {
+        taskScheduler.schedule("Client-Check", new DataNodeAliveMonitor(),
+                Constants.HEARTBEAT_CHECK_INTERVAL, Constants.HEARTBEAT_CHECK_INTERVAL, TimeUnit.MILLISECONDS);
+    }
     /**
      * <p>Description: 客户端注册</p>
      * <p>Description: Client Register</p>
@@ -42,7 +49,6 @@ public class ClientManager {
         clients.put(clientId,client);
         return true;
     }
-
 
     /**
      * <p>Description: 客户端心跳</p>
@@ -63,4 +69,23 @@ public class ClientManager {
         return true;
     }
 
+    /**
+     * client 是否存活的监控线程
+     */
+    private class DataNodeAliveMonitor implements Runnable {
+        @Override
+        public void run() {
+            Iterator<ClientInfo> iterator = clients.values().iterator();
+            while (iterator.hasNext()) {
+                ClientInfo next = iterator.next();
+                long currentTimeMillis = System.currentTimeMillis();
+                if (currentTimeMillis < next.getLatestHeartbeatTime() + Constants.HEARTBEAT_OUT_TIME) {
+                    continue;
+                }
+                log.info("Client out time，remove client：[hostname={}, current={}, latestHeartbeatTime={}]",
+                        next, DateUtils.getTime(new Date(currentTimeMillis)),DateUtils.getTime(new Date(next.getLatestHeartbeatTime())));
+                iterator.remove();
+            }
+        }
+    }
 }

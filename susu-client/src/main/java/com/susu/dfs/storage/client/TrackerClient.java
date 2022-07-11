@@ -2,8 +2,10 @@ package com.susu.dfs.storage.client;
 
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.susu.common.model.HeartbeatResponse;
 import com.susu.common.model.RegisterRequest;
 import com.susu.common.model.RegisterResponse;
+import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.Node;
 import com.susu.dfs.common.eum.PacketType;
 import com.susu.dfs.common.netty.NetClient;
@@ -36,8 +38,6 @@ public class TrackerClient {
      * 用来客户端发送心跳
      */
     private ScheduledFuture<?> scheduledFuture;
-
-    private static final int HEARTBEAT_INTERVAL = 30000;
 
     public TrackerClient(Node node, TaskScheduler taskScheduler) {
         this.node = node;
@@ -101,6 +101,9 @@ public class TrackerClient {
             case CLIENT_REGISTER:
                 clientRegisterResponse(request);
                 break;
+            case CLIENT_HEART_BEAT:
+                clientHeartbeatResponse(request);
+                break;
             default:
                 break;
         }
@@ -117,12 +120,25 @@ public class TrackerClient {
         RegisterResponse response = RegisterResponse.parseFrom(request.getRequest().getBody());
         node.setId(response.getClientId());
         if (scheduledFuture == null) {
-            log.info("Start the scheduled task to send heartbeat, heartbeat interval: [interval={}ms]", HEARTBEAT_INTERVAL);
+            log.info("Start the scheduled task to send heartbeat, heartbeat interval: [interval={}ms]", Constants.HEARTBEAT_INTERVAL);
             scheduledFuture = ctx.executor().scheduleAtFixedRate(new HeartbeatTask(ctx, node),
-                    0, HEARTBEAT_INTERVAL, TimeUnit.MILLISECONDS);
+                    0, Constants.HEARTBEAT_INTERVAL, TimeUnit.MILLISECONDS);
         }
     }
 
+    /**
+     * <p>Description: 处理 心跳请求 返回的消息</p>
+     * <p>Description: Processing messages returned from heartbeat</p>
+     *
+     * @param request NetWork Request 网络请求
+     */
+    private void clientHeartbeatResponse(NetRequest request) throws Exception {
+        HeartbeatResponse response = HeartbeatResponse.parseFrom(request.getRequest().getBody());
+        if (!response.getIsSuccess()) {
+            log.warn("Client heartbeat fail!! ReRegister");
+            register();
+        }
+    }
 
 
 }

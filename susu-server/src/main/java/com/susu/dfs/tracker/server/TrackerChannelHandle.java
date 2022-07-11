@@ -2,9 +2,11 @@ package com.susu.dfs.tracker.server;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.susu.common.model.HeartbeatRequest;
+import com.susu.common.model.HeartbeatResponse;
 import com.susu.common.model.RegisterRequest;
 import com.susu.common.model.RegisterResponse;
 import com.susu.dfs.common.netty.msg.NetRequest;
+import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.common.utils.SnowFlakeUtils;
 import com.susu.dfs.tracker.client.ClientManager;
 import com.susu.dfs.common.netty.AbstractChannelHandler;
@@ -39,10 +41,10 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      */
     private final SnowFlakeUtils snowFlakeUtils = new SnowFlakeUtils(1,1);
 
-    public TrackerChannelHandle() {
+    public TrackerChannelHandle(TaskScheduler taskScheduler) {
         this.executor = new ThreadPoolExecutor(8,20,
                 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(8));
-        this.clientManager = new ClientManager();
+        this.clientManager = new ClientManager(taskScheduler);
     }
 
     @Override
@@ -98,6 +100,8 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
     private void clientHeartbeatHandel(NetRequest request) throws InvalidProtocolBufferException {
         HeartbeatRequest heartbeatRequest = HeartbeatRequest.parseFrom(request.getRequest().getBody());
         Boolean isSuccess = clientManager.heartbeat(heartbeatRequest.getClientId());
+        HeartbeatResponse response = HeartbeatResponse.newBuilder().setIsSuccess(isSuccess).build();
+        request.sendResponse(response);
         if (!isSuccess) {
             throw new RuntimeException("Client heartbeat update failed");
         }

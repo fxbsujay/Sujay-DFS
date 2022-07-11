@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package com.susu.common.proto;
+
+option java_multiple_files = true;
+option java_package = "com.susu.common.model";
+
+/**
+ * 元数据
+ */
+message Metadata {
+  string fileName = 1;
+  int32 type = 2;
+  string hostname = 3;
+  int64 fileSize = 4;
+  map<string, string> attr = 5;
+}

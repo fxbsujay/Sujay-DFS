@@ -22,4 +22,24 @@ public class Constants {
      * Netty 最大传输字节数
      */
     public static final int MAX_BYTES = 10 * 1024 * 1024;
+
+    /**
+     * 客户端心跳间隔
+     */
+    public static final int HEARTBEAT_INTERVAL = 30000;
+
+    /**
+     * 客户端存活时间
+     */
+    public static final int HEARTBEAT_OUT_TIME = 600000;
+
+    /**
+     * 客户端存活检测时间间隔
+     */
+    public static final int HEARTBEAT_CHECK_INTERVAL = 30000;
+
+    /**
+     * slot槽位的总数量
+     */
+    public static final int SLOTS_COUNT = 16384;
 }
