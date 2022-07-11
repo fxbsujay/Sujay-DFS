@@ -69,7 +69,6 @@ public class FileNode {
         return type == FileNodeType.FILE.getValue();
     }
 
-
     /**
      * <p>Description: 添加参数/p>
      * <p>Description: Add parameters/p>
