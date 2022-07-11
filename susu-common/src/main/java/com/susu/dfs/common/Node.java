@@ -1,6 +1,5 @@
 package com.susu.dfs.common;
 
-
 import lombok.Data;
 
 /**
@@ -11,26 +10,30 @@ import lombok.Data;
 @Data
 public class Node {
 
+    /**
+     * 实例id
+     */
+    private Long id;
 
     /**
-     * 启动的是服务端还是客户端
+     * 服务名称
      */
     private String name;
 
     /**
-     * 启动的是服务端还是客户端
-     */
-    private String type = "server";
-
-    /**
      * 默认启动端口
      */
-    private int port = 8090;
+    private Integer port = 8090;
 
     /**
      * 服务端地址
      */
     private String host = "localhost";
+
+    /**
+     * 是否为主节点
+     */
+    private Boolean isMaster;
 
 
 }

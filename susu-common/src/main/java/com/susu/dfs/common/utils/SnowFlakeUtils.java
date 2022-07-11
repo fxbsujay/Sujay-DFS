@@ -1,7 +1,5 @@
 package com.susu.dfs.common.utils;
 
-import java.nio.charset.StandardCharsets;
-
 /**
  * <p>Description: Snow flakeId Worker</p>
  * <p>雪花算法ID</p>

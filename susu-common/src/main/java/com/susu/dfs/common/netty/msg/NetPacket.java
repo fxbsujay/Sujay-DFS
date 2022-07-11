@@ -6,6 +6,7 @@ import com.susu.dfs.common.utils.HexConvertUtils;
 import io.netty.buffer.ByteBuf;
 import lombok.Builder;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>Description: 统一的网络数据包</p>
@@ -16,6 +17,7 @@ import lombok.Data;
  */
 @Data
 @Builder
+@Slf4j
 public class NetPacket {
 
     /**
@@ -79,6 +81,7 @@ public class NetPacket {
     public static NetPacket read(ByteBuf in) {
         byte[] sequence = new byte[8];
         in.readBytes(sequence, 0, 8);
+        log.info("请求序列号：{}",HexConvertUtils.bytesToLong(sequence,0));
         int type = in.readByte();
         int length = in.readInt();
         byte[] body = new byte[length];

@@ -58,7 +58,7 @@ public class NetServer {
      * @param port 端口
      */
     public void startAsync(int port) {
-        taskScheduler.scheduleOnce("Netty Server Start", () -> {
+        taskScheduler.scheduleOnce("NettyServer", () -> {
             try {
                 start(Collections.singletonList(port));
             } catch (InterruptedException e) {

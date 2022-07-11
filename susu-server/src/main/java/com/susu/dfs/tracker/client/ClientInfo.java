@@ -25,7 +25,12 @@ public class ClientInfo {
     /**
      * 客户端Id
      */
-    private Integer clientId;
+    private Long clientId;
+
+    /**
+     * 客户端Name
+     */
+    private String name;
 
     /**
      * 节点地址

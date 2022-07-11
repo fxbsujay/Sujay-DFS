@@ -3,7 +3,9 @@ package com.susu.dfs.tracker.server;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.susu.common.model.HeartbeatRequest;
 import com.susu.common.model.RegisterRequest;
+import com.susu.common.model.RegisterResponse;
 import com.susu.dfs.common.netty.msg.NetRequest;
+import com.susu.dfs.common.utils.SnowFlakeUtils;
 import com.susu.dfs.tracker.client.ClientManager;
 import com.susu.dfs.common.netty.AbstractChannelHandler;
 import com.susu.dfs.common.netty.msg.NetPacket;
@@ -31,6 +33,11 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      *  Tracker 客户端管理器 保存注册进来的客户端信息
      */
     private final ClientManager clientManager;
+
+    /**
+     * 给注册进来的客户端分配id
+     */
+    private final SnowFlakeUtils snowFlakeUtils = new SnowFlakeUtils(1,1);
 
     public TrackerChannelHandle() {
         this.executor = new ThreadPoolExecutor(8,20,
@@ -72,10 +79,12 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      * @param request NetWork Request 网络请求
      */
     private void clientRegisterHandle(NetRequest request) throws InvalidProtocolBufferException {
+        long clientId = snowFlakeUtils.nextId();
         RegisterRequest registerRequest = RegisterRequest.parseFrom(request.getRequest().getBody());
-        boolean register = clientManager.register(registerRequest);
+        boolean register = clientManager.register(registerRequest,clientId);
         if (register) {
-            request.sendResponse();
+            RegisterResponse response = RegisterResponse.newBuilder().setClientId(clientId).build();
+            request.sendResponse(response);
         }
     }
 
@@ -88,7 +97,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      */
     private void clientHeartbeatHandel(NetRequest request) throws InvalidProtocolBufferException {
         HeartbeatRequest heartbeatRequest = HeartbeatRequest.parseFrom(request.getRequest().getBody());
-        Boolean isSuccess = clientManager.heartbeat(heartbeatRequest.getHostname());
+        Boolean isSuccess = clientManager.heartbeat(heartbeatRequest.getClientId());
         if (!isSuccess) {
             throw new RuntimeException("Client heartbeat update failed");
         }

@@ -5,14 +5,19 @@ package com.susu.common.proto;
 option java_multiple_files = true;
 option java_package = "com.susu.common.model";
 
+/**
+*   客户端注册信息
+ */
 message RegisterRequest {
-  int32 clientId = 1;
-  string name = 2;
-  string hostname = 3;
-  int32 port = 4;
+  string name = 1;
+  string hostname = 2;
+  int32 port = 3;
+}
 
+message RegisterResponse {
+  int64 clientId = 1;
 }
 
 message HeartbeatRequest {
-  string hostname = 1;
+  int64 clientId = 1;
 }

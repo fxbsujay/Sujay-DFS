@@ -4,7 +4,6 @@ import com.susu.common.model.RegisterRequest;
 import com.susu.dfs.common.utils.DateUtils;
 import com.susu.dfs.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
-
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,8 +23,7 @@ public class ClientManager {
      *                      value:  clientInfo
      *                  }
      */
-    private final Map<String, ClientInfo> clients = new ConcurrentHashMap<>();
-
+    private final Map<Long, ClientInfo> clients = new ConcurrentHashMap<>();
 
     /**
      * <p>Description: 客户端注册</p>
@@ -33,14 +31,15 @@ public class ClientManager {
      * @param request 注册请求
      * @return 是否注册成功 【 true / false 】
      */
-    public boolean register(RegisterRequest request) {
+    public boolean register(RegisterRequest request,Long clientId) {
         if (StringUtils.isBlank(request.getHostname())) {
             return false;
         }
         ClientInfo client = new ClientInfo(request.getHostname(),request.getPort());
-        client.setClientId(request.getClientId());
+        client.setName(request.getName());
+        client.setClientId(clientId);
         log.info("Client register request : [hostname:{}]",request.getHostname());
-        clients.put(client.getHostname(),client);
+        clients.put(clientId,client);
         return true;
     }
 
@@ -48,17 +47,17 @@ public class ClientManager {
     /**
      * <p>Description: 客户端心跳</p>
      * <p>Description: Client Heartbeat</p>
-     * @param hostname 客户端主机地址
+     * @param clientId 客户端Id
      * @return 是否更新成功 【 true / false 】
      */
-    public Boolean heartbeat(String hostname) {
-        ClientInfo dataNode = clients.get(hostname);
+    public Boolean heartbeat(Long clientId) {
+        ClientInfo dataNode = clients.get(clientId);
         if (dataNode == null) {
             return false;
         }
         long latestHeartbeatTime = System.currentTimeMillis();
         if (log.isDebugEnabled()) {
-            log.debug("Heartbeat received from client：[hostname={}, latestHeartbeatTime={}]", hostname, DateUtils.getTime(new Date(latestHeartbeatTime)));
+            log.debug("Heartbeat received from client：[clientId={}, latestHeartbeatTime={}]", clientId, DateUtils.getTime(new Date(latestHeartbeatTime)));
         }
         dataNode.setLatestHeartbeatTime(latestHeartbeatTime);
         return true;

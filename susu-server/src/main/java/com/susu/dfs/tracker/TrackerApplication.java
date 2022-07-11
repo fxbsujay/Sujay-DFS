@@ -1,7 +1,9 @@
 package com.susu.dfs.tracker;
 
+import com.susu.dfs.common.Node;
 import com.susu.dfs.common.config.NodeConfig;
 import com.susu.dfs.common.task.TaskScheduler;
+import com.susu.dfs.common.utils.SnowFlakeUtils;
 import com.susu.dfs.tracker.server.TrackerServer;
 import lombok.extern.slf4j.Slf4j;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -21,6 +23,7 @@ public class TrackerApplication {
 
     private final AtomicBoolean started = new AtomicBoolean(false);
 
+
     /**
      * <h3> 服务端的启动流程 </h3>
      * <ul>
@@ -31,7 +34,7 @@ public class TrackerApplication {
      */
      public static void main(String[] args) {
 
-        NodeConfig nodeConfig = new NodeConfig("D:\\project\\卷\\Sujay-DFS\\doc\\config.json");
+        NodeConfig nodeConfig = new NodeConfig("E:\\fxbsuajy@gmail.com\\Sujay-DFS\\doc\\server_config.json");
         TrackerApplication application = new TrackerApplication(nodeConfig);
         try {
             Runtime.getRuntime().addShutdownHook(new Thread(application::shutdown));
@@ -42,9 +45,9 @@ public class TrackerApplication {
     }
 
     public TrackerApplication(NodeConfig nodeConfig) {
-
-        this.taskScheduler = new TaskScheduler("SUSU-DFS-SERVER",1,false);
-        this.trackerServer = new TrackerServer(nodeConfig.getNode(),taskScheduler);
+        Node node = nodeConfig.getNode();
+        this.taskScheduler = new TaskScheduler("SUSU-DFS-SERVER",8,false);
+        this.trackerServer = new TrackerServer(node,taskScheduler);
     }
 
     /**

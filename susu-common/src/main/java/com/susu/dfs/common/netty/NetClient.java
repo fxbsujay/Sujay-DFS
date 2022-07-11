@@ -114,7 +114,7 @@ public class NetClient {
      */
     private void start(String host, int port, final int connectTimes,long delay) {
 
-        taskScheduler.scheduleOnce("Netty Client Start",() -> {
+        taskScheduler.scheduleOnce("NettyClient",() -> {
             Bootstrap client = new Bootstrap()
                     .group(loopGroup)
                     .channel(NioSocketChannel.class)

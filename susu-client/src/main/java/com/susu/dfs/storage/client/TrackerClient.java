@@ -1,7 +1,9 @@
 package com.susu.dfs.storage.client;
 
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.susu.common.model.RegisterRequest;
+import com.susu.common.model.RegisterResponse;
 import com.susu.dfs.common.Node;
 import com.susu.dfs.common.eum.PacketType;
 import com.susu.dfs.common.netty.NetClient;
@@ -70,9 +72,8 @@ public class TrackerClient {
      */
     private void register() throws InterruptedException {
         RegisterRequest request = RegisterRequest.newBuilder()
-                .setClientId(1111)
-                .setHostname(node.getHost())
                 .setName(node.getName())
+                .setHostname(node.getHost())
                 .setPort(node.getPort()).build();
         NetPacket packet = NetPacket.buildPacket(request.toByteArray(),PacketType.CLIENT_REGISTER);
         log.info("Tracker Client Register : {}",request.getHostname());
@@ -94,7 +95,7 @@ public class TrackerClient {
      *
      * @param request NetWork Request 网络请求
      */
-    private void onTrackerResponse(NetRequest request) {
+    private void onTrackerResponse(NetRequest request) throws Exception {
         PacketType packetType = PacketType.getEnum(request.getRequest().getType());
         switch (packetType) {
             case CLIENT_REGISTER:
@@ -111,8 +112,10 @@ public class TrackerClient {
      *
      * @param request NetWork Request 网络请求
      */
-    private void clientRegisterResponse(NetRequest request) {
+    private void clientRegisterResponse(NetRequest request) throws InvalidProtocolBufferException {
         ChannelHandlerContext ctx = request.getCtx();
+        RegisterResponse response = RegisterResponse.parseFrom(request.getRequest().getBody());
+        node.setId(response.getClientId());
         if (scheduledFuture == null) {
             log.info("Start the scheduled task to send heartbeat, heartbeat interval: [interval={}ms]", HEARTBEAT_INTERVAL);
             scheduledFuture = ctx.executor().scheduleAtFixedRate(new HeartbeatTask(ctx, node),

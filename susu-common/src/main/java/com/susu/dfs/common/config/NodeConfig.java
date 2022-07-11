@@ -24,11 +24,6 @@ public class NodeConfig {
     private final Node node;
 
     /**
-     * 全局id生成策略
-     */
-    private final SnowFlakeUtils snowFlake;
-
-    /**
      * @param path 配置文件路径
      */
     public NodeConfig(String path) {
@@ -42,7 +37,6 @@ public class NodeConfig {
             System.exit(1);
         }
         this.node = node;
-        this.snowFlake = new SnowFlakeUtils(1,2);
     }
 
 

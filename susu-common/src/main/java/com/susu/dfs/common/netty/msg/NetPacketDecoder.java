@@ -34,9 +34,6 @@ public class NetPacketDecoder extends LengthFieldBasedFrameDecoder {
         if (byteBuf != null) {
             int author = in.readInt();
             byte version = in.readByte();
-            byte[] sequence = new byte[8];
-            in.readBytes(sequence, 0, 8);
-            log.info("请求序列号：{}",HexConvertUtils.bytesToLong(sequence,0));
             byte msgType = in.readByte();
             if (MsgType.getEnum(msgType) == MsgType.PACKET) {
               try {
