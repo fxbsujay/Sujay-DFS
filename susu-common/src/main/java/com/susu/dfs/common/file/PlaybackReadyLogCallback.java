@@ -1,4 +1,6 @@
-package com.susu.dfs.common.file.log;
+package com.susu.dfs.common.file;
+
+import com.susu.dfs.common.file.log.ReadyLogWrapper;
 
 /**
  * <p>Description: 回放 </p>

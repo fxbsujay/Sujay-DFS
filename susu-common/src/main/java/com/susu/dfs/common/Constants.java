@@ -48,8 +48,30 @@ public class Constants {
      */
     public static final String DEFAULT_BASE_DIR = "E:\\srv\\file";
 
+
+    /**
+     * 文件垃圾箱目录
+     */
+    public static final String TRASH_DIR = ".Trash";
+
     /**
      * 缓冲区的大小
      */
     public static final int READY_LOG_FLUSH_THRESHOLD = 524288;
+
+    /**
+     * 文件删除后能被垃圾清理任务清理的时间
+     */
+    public static final int TRASH_CLEAR_THRESHOLD = 86400000;
+
+
+    /**
+     *  垃圾清理任务的时间间隔
+     */
+    public static final int TRASH_CLEAR_INTERVAL = 3600000;
+
+    /**
+     * 文件属性之删除时间
+     */
+    public static final String ATTR_FILE_DEL_TIME = "DEL_TIME";
 }

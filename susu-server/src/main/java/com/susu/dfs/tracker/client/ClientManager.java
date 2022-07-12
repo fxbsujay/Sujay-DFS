@@ -2,13 +2,16 @@ package com.susu.dfs.tracker.client;
 
 import com.susu.common.model.RegisterRequest;
 import com.susu.dfs.common.Constants;
+import com.susu.dfs.common.file.FileInfo;
 import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.common.utils.DateUtils;
 import com.susu.dfs.common.utils.StringUtils;
+import com.susu.dfs.tracker.rebalance.RemoveReplicaTask;
 import lombok.extern.slf4j.Slf4j;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * @author sujay
@@ -26,6 +29,26 @@ public class ClientManager {
      *                  }
      */
     private final Map<Long, ClientInfo> clients = new ConcurrentHashMap<>();
+
+    /**
+     * 每个文件对应存储的Datanode信息
+     *      Example:    {
+     *                      key:    filename
+     *                      value:  clientInfo
+     *                  }
+     */
+    private final Map<String, List<ClientInfo>> replicaByFilename = new ConcurrentHashMap<>();
+
+    /**
+     * 每个DataNode 存储的文件列表
+     *      Example:    {
+     *                      key:    clientId
+     *                      value:  FileInfo
+     *                  }
+     */
+    private final Map<String, Map<String, FileInfo>> filesByDataNode = new ConcurrentHashMap<>();
+
+    private final ReentrantReadWriteLock replicaLock = new ReentrantReadWriteLock();
 
 
     public ClientManager(TaskScheduler taskScheduler) {
@@ -53,6 +76,7 @@ public class ClientManager {
     /**
      * <p>Description: 客户端心跳</p>
      * <p>Description: Client Heartbeat</p>
+     *
      * @param clientId 客户端Id
      * @return 是否更新成功 【 true / false 】
      */
@@ -86,6 +110,41 @@ public class ClientManager {
                         next, DateUtils.getTime(new Date(currentTimeMillis)),DateUtils.getTime(new Date(next.getLatestHeartbeatTime())));
                 iterator.remove();
             }
+        }
+    }
+
+    /**
+     * <p>Description: 删除对应文件存储信息</p>
+     *
+     * @param filename 文件名称
+     * @param delReplica 是否删除副本
+     * @return 被删除的文件信息
+     */
+    public FileInfo removeFileStorage(String filename, boolean delReplica) {
+        replicaLock.writeLock().lock();
+        try {
+            List<ClientInfo> clientInfoList = replicaByFilename.remove(filename);
+            if (clientInfoList == null) {
+                return null;
+            }
+            FileInfo ret = null;
+            for (Map<String, FileInfo> dataNodeFileInfo : filesByDataNode.values()) {
+                FileInfo fileInfo = dataNodeFileInfo.remove(filename);
+                if (fileInfo != null) {
+                    ret = fileInfo;
+                }
+            }
+            if (delReplica) {
+                for (ClientInfo client : clientInfoList) {
+                    ClientInfo dataNode = clients.get(client.getClientId());
+                    RemoveReplicaTask task = new RemoveReplicaTask(dataNode.getClientId(), filename);
+                    log.info("下发副本删除任务：[clientId={}, filename={}]", dataNode.getClientId(), filename);
+                    dataNode.addRemoveReplicaTask(task);
+                }
+            }
+            return ret;
+        }finally {
+            replicaLock.writeLock().unlock();
         }
     }
 }

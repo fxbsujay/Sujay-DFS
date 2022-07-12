@@ -25,3 +25,13 @@ message ReadyLog {
   string path = 3;
   map<string, string> attr = 4;
 }
+
+/**
+ *  文件目录树
+ */
+message INode {
+  string path = 1;
+  int32 type = 2;
+  repeated INode children = 3;
+  map<string, string> attr = 4;
+}

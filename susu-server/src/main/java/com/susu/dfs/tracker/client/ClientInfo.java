@@ -1,8 +1,12 @@
 package com.susu.dfs.tracker.client;
 
+import com.susu.dfs.tracker.rebalance.RemoveReplicaTask;
 import lombok.Data;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * @author sujay
@@ -52,6 +56,11 @@ public class ClientInfo {
      */
     private long latestHeartbeatTime;
 
+    /**
+     * 删除副本的任务
+     */
+    private ConcurrentLinkedQueue<RemoveReplicaTask> removeReplicaTasks = new ConcurrentLinkedQueue<>();
+
 
     public ClientInfo(String hostname, int port) {
         this.hostname = hostname;
@@ -59,6 +68,24 @@ public class ClientInfo {
         this.latestHeartbeatTime = System.currentTimeMillis();
         this.status = STATUS_INIT;
     }
+
+    public List<RemoveReplicaTask> pollRemoveReplicaTask(int maxNum) {
+        List<RemoveReplicaTask> result = new LinkedList<>();
+
+        for (int i = 0; i < maxNum; i++) {
+            RemoveReplicaTask task = removeReplicaTasks.poll();
+            if (task == null) {
+                break;
+            }
+            result.add(task);
+        }
+        return result;
+    }
+
+    public void addRemoveReplicaTask(RemoveReplicaTask task) {
+        removeReplicaTasks.add(task);
+    }
+
 
     @Override
     public boolean equals(Object o) {

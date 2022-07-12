@@ -1,6 +1,7 @@
 package com.susu.dfs.common.file.log;
 
 import com.susu.dfs.common.Constants;
+import com.susu.dfs.common.file.PlaybackReadyLogCallback;
 import com.susu.dfs.common.utils.FileUtils;
 import com.susu.dfs.common.utils.StopWatch;
 import lombok.extern.slf4j.Slf4j;
@@ -73,9 +74,9 @@ public class DoubleBuffer {
      */
     private List<ReadyLogInfo> readyLogs = null;
 
-    public DoubleBuffer(ReadyLogBuffer regularBuffer, ReadyLogBuffer syncBuffer) {
-        this.regularBuffer = regularBuffer;
-        this.syncBuffer = syncBuffer;
+    public DoubleBuffer() {
+        this.regularBuffer = new ReadyLogBuffer();
+        this.syncBuffer = new ReadyLogBuffer();
     }
 
     /**

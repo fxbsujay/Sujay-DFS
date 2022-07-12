@@ -3,6 +3,12 @@ package com.susu.dfs.common.file;
 import com.susu.common.model.Metadata;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -52,6 +58,40 @@ public abstract class AbstractFileService implements FileService{
     public Set<Metadata> getFilesBySlot(int slot) {
         return directory.findAllFileBySlot(slot);
     }
+
+
+    /**
+     * 获取文件列表
+     *
+     * @param filename 文件路径
+     * @return 文件列表
+     */
+    public FileNode listFiles(String filename) {
+        return this.directory.listFiles(filename);
+    }
+
+   /* *//**
+     * 扫描最新的FSImage文件
+     *
+     * @return 最新并合法的FSImage
+     *//*
+    protected FsImage scanLatestValidFsImage(String baseDir) throws IOException {
+        Map<Long, String> timeFsImageMap = scanFsImageMap(baseDir);
+        List<Long> sortedList = new ArrayList<>(timeFsImageMap.keySet());
+        sortedList.sort((o1, o2) -> o1.equals(o2) ? 0 : (int) (o2 - o1));
+        for (Long time : sortedList) {
+            String path = timeFsImageMap.get(time);
+            try (RandomAccessFile raf = new RandomAccessFile(path, "r");
+                 FileInputStream fis = new FileInputStream(raf.getFD()); FileChannel channel = fis.getChannel()) {
+                FsImage fsImage = FsImage.parse(channel, path, (int) raf.length());
+                if (fsImage != null) {
+                    return fsImage;
+                }
+            }
+        }
+        return null;
+    }*/
+
 
 
 }
