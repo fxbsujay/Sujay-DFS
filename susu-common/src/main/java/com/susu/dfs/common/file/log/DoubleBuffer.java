@@ -1,9 +1,12 @@
 package com.susu.dfs.common.file.log;
 
 import com.susu.dfs.common.Constants;
+import com.susu.dfs.common.utils.FileUtils;
+import com.susu.dfs.common.utils.StopWatch;
 import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
@@ -76,11 +79,11 @@ public class DoubleBuffer {
     }
 
     /**
-     * readyLog
+     * write readyLog
      *
      * @param readyLog 内容
      */
-    public void logEdit(ReadyLogWrapper readyLog) {
+    public void writeLog(ReadyLogWrapper readyLog) {
         synchronized (this) {
 
             waitSchedulingSync();
@@ -117,6 +120,16 @@ public class DoubleBuffer {
         } catch (Exception e) {
             log.info("waitSchedulingSync has interrupted !!");
         }
+    }
+
+    /**
+     * <p>Description: 写入缓冲区 </p>
+     *
+     * @param wrapper  操作磁盘的一条文件记录
+     * @throws IOException IO异常
+     */
+    private void write(ReadyLogWrapper wrapper) throws IOException {
+        regularBuffer.write(wrapper);
     }
 
     /**
@@ -179,7 +192,6 @@ public class DoubleBuffer {
         }
     }
 
-
     /**
      * <p>Description: Load all ReadyLog file information from disk </p>
      * <p>Description: 从磁盘中加载所有的log文件信息 </p>
@@ -225,29 +237,37 @@ public class DoubleBuffer {
         return result;
     }
 
-    /**
-     * <p>Description: 写入缓冲区 </p>
-     *
-     * @param wrapper  操作磁盘的一条文件记录
-     * @throws IOException IO异常
-     */
-    public void write(ReadyLogWrapper wrapper) throws IOException {
-        regularBuffer.write(wrapper);
-    }
 
     /**
      * 交换缓冲区
      */
-    public void regularToSync() {
+    private void regularToSync() {
         ReadyLogBuffer temp = regularBuffer;
         regularBuffer = syncBuffer;
         syncBuffer = temp;
     }
 
     /**
+     * 强制把内存缓冲里的数据刷入磁盘中
+     */
+    public void flushBuffer() {
+        synchronized (this) {
+            try {
+                regularToSync();
+                ReadyLogInfo readyLog = flush();
+                if (readyLog != null) {
+                    readyLogs.add(readyLog);
+                }
+            } catch (IOException e) {
+                log.error("Forced flush of buffer to disk failed!!.", e);
+            }
+        }
+    }
+
+    /**
      * 将缓冲区的内容刷入磁盘，保存记录日志
      */
-    public ReadyLogInfo flush() throws IOException {
+    private ReadyLogInfo flush() throws IOException {
         ReadyLogInfo readyLogInfo = syncBuffer.flush();
         if (readyLogInfo != null) {
             syncBuffer.clear();
@@ -261,11 +281,130 @@ public class DoubleBuffer {
      *
      * @return 当前是否能刷新缓冲区
      */
-    public boolean isForceSync() {
+    private boolean isForceSync() {
         return regularBuffer.size() >= Constants.READY_LOG_FLUSH_THRESHOLD;
     }
 
+    /**
+     * <p>Description: 获取当前正则写操作的缓冲区 </p>
+     *
+     * @return  缓冲区内的记录
+     */
     public List<ReadyLogWrapper> getRegularReadyLog() {
-        return regularBuffer.getReadyLog();
+        synchronized (this) {
+            return regularBuffer.getReadyLog();
+        }
     }
+
+    /**
+     * <p>Description: 服务重启时需要回放readyLog到内存中</p>
+     * <p>Description: The readyLog needs to be played back to memory when the service is restarted</p>
+     *
+     * @param txiId    回放比txId大的日志
+     * @param callback 回放日志回调
+     * @throws IOException IO异常
+     */
+    public void playbackReadyLog(long txiId, PlaybackReadyLogCallback callback) throws IOException {
+        long regularTxSeq = txiId;
+        this.txIdSeq = regularTxSeq;
+        List<ReadyLogInfo> readyLogInfos = getSortedReadyLogFiles(txiId);
+        StopWatch stopWatch = new StopWatch();
+        for (ReadyLogInfo info : readyLogInfos) {
+            if (info.getEnd() <= regularTxSeq) {
+                continue;
+            }
+            List<ReadyLogWrapper> readyLogWrappers = readReadyLogFromFile(info.getName());
+            stopWatch.start();
+            for (ReadyLogWrapper readyLogWrapper : readyLogWrappers) {
+                long tmpTxId = readyLogWrapper.getTxId();
+                if (tmpTxId <= regularTxSeq) {
+                    continue;
+                }
+                regularTxSeq = tmpTxId;
+                this.txIdSeq = regularTxSeq;
+                if (callback != null) {
+                    callback.playback(readyLogWrapper);
+                }
+            }
+            stopWatch.stop();
+            log.info("playback readyLog file: [file={}, cost={} s]", info.getName(), stopWatch.getTime() / 1000.0D);
+            stopWatch.reset();
+        }
+    }
+
+    /**
+     * <p>Description: 获取比minTxId更大的readyLog文件，经过排序后的文件</p>
+     * <p>Description: Get the readyLog file larger than minTxId, and the sorted file</p>
+     *
+     * Example:
+     * <pre>
+     *      1_1000.log
+     *      1001_2000.log
+     *      2001_3000.log
+     * </pre>
+     *
+     * <p>
+     *     minTxId = 1500
+     *     return    [1001_2000.log, 2001_3000.log]
+     * </p>
+     *
+     * @param minTxId 最小的txId
+     * @return 排序后的文件信息
+     */
+    public List<ReadyLogInfo> getSortedReadyLogFiles(long minTxId) {
+        List<ReadyLogInfo> result = new ArrayList<>();
+        for (ReadyLogInfo readyLog : readyLogs) {
+            if (readyLog.getEnd() <= minTxId) {
+                continue;
+            }
+            result.add(readyLog);
+        }
+        return result;
+    }
+
+    /**
+     * <p>Description: 从文件中读取ReadyLog</p>
+     * <p>Description: Read readyLog from file</p>
+     *
+     * @param absolutePath 绝对路径
+     * @return EditLog
+     * @throws IOException IO异常
+     */
+    public List<ReadyLogWrapper> readReadyLogFromFile(String absolutePath) throws IOException {
+        return ReadyLogWrapper.parseFrom(FileUtils.readBuffer(absolutePath));
+    }
+
+    /**
+     * <p>Description: 清除比txId小的日志文件</p>
+     * <p>Description: Clear log files smaller than txId</p>
+     *
+     * Example:
+     * <pre>
+     *      1_1000.log
+     *      1001_2000.log
+     *      2001_3000.log
+     * </pre>
+     *
+     * <p>
+     *      minTxId = 1500
+     *      return    [1_1000.log]
+     * </p>
+     *
+     * @param txId txId
+     */
+    public void cleanReadyLogByTxId(long txId) {
+        List<ReadyLogInfo> toRemoveEditLog = new ArrayList<>();
+        for (ReadyLogInfo readyLogInfo : readyLogs) {
+            if (readyLogInfo.getEnd() > txId) {
+                continue;
+            }
+            File file = new File(readyLogInfo.getName());
+            if (file.delete()) {
+                log.info("delete ReadyLog file: [file={}]", readyLogInfo.getName());
+            }
+            toRemoveEditLog.add(readyLogInfo);
+        }
+        readyLogs.removeAll(toRemoveEditLog);
+    }
+
 }
