@@ -42,4 +42,14 @@ public class Constants {
      * slot槽位的总数量
      */
     public static final int SLOTS_COUNT = 16384;
+
+    /**
+     * 默认的文件目录
+     */
+    public static final String DEFAULT_BASE_DIR = "E:\\srv\\file";
+
+    /**
+     * 缓冲区的大小
+     */
+    public static final int READY_LOG_FLUSH_THRESHOLD = 524288;
 }

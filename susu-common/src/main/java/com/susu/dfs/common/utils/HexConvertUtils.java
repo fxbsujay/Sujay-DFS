@@ -206,7 +206,52 @@ public class HexConvertUtils {
         }
         return byteNum;
     }
-    
+
+    /**
+     * <p>Description: int to long</p>
+     * @return byte[]
+     */
+    public static byte[] intToBytes(int bodyLength, int index, int value) {
+        byte[] bytes = new byte[bodyLength];
+        bytes[index] = (byte) (value >>> 24);
+        bytes[index + 1] = (byte) (value >>> 16);
+        bytes[index + 2] = (byte) (value >>> 8);
+        bytes[index + 3] = (byte) value;
+        return bytes;
+    }
+
+    public static byte[] longToBytes(int bodyLength, int index, long value) {
+        byte[] bytes = new byte[bodyLength];
+        bytes[index] = (byte) (value >>> 56);
+        bytes[index + 1] = (byte) (value >>> 48);
+        bytes[index + 2] = (byte) (value >>> 40);
+        bytes[index + 3] = (byte) (value >>> 32);
+        bytes[index + 4] = (byte) (value >>> 24);
+        bytes[index + 5] = (byte) (value >>> 16);
+        bytes[index + 6] = (byte) (value >>> 8);
+        bytes[index + 7] = (byte) value;
+        return bytes;
+    }
+
+    public static int bytesToInt(byte[] memory, int index) {
+        return  (memory[index]     & 0xff) << 24 |
+                (memory[index + 1] & 0xff) << 16 |
+                (memory[index + 2] & 0xff) <<  8 |
+                memory[index + 3] & 0xff;
+    }
+
+    static long byteToLong(byte[] memory, int index) {
+        return  ((long) memory[index]     & 0xff) << 56 |
+                ((long) memory[index + 1] & 0xff) << 48 |
+                ((long) memory[index + 2] & 0xff) << 40 |
+                ((long) memory[index + 3] & 0xff) << 32 |
+                ((long) memory[index + 4] & 0xff) << 24 |
+                ((long) memory[index + 5] & 0xff) << 16 |
+                ((long) memory[index + 6] & 0xff) <<  8 |
+                (long) memory[index + 7] & 0xff;
+    }
+
+
     public static void main(String[] args) {
         System.out.println(Arrays.toString(String.valueOf(1398100821).getBytes(StandardCharsets.UTF_8)));
     }
