@@ -7,6 +7,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <p>Description: ReadyLog 缓冲区 </p>
@@ -66,6 +68,14 @@ public class ReadyLogBuffer {
         log.info("保存 ReadyLog 文件：[file={}]", path);
         FileUtils.writeFile(path,false,dataBuffer);
         return new ReadyLogInfo(path, startTxId, endTxId);
+    }
+
+    public List<ReadyLogWrapper> getReadyLog() {
+        byte[] bytes = buffer.toByteArray();
+        if (bytes.length == 0) {
+            return new ArrayList<>();
+        }
+        return ReadyLogWrapper.parseFrom(bytes);
     }
 
     /**
