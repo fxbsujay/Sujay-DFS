@@ -1,12 +1,10 @@
 package com.susu.dfs.common.file;
 
+import com.susu.common.model.ImageLog;
 import com.susu.dfs.common.eum.FileNodeType;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * <p>Description: FILE NODE</p>
@@ -129,7 +127,7 @@ public class FileNode {
     }
 
     /**
-     * 获取当前节点的全名路径
+     * <p>Description: 获取当前节点的全名路径/p>
      *
      * @return 当前节点的全路径
      */
@@ -146,6 +144,68 @@ public class FileNode {
             return "";
         }
         return parentPath + "/" + parent.path;
+    }
+
+    /**
+     * <p>Description: 将文件目录树转换成目录树内存镜像记录/p>
+     *
+     * @param node  文件节点
+     * @return 目录树内存镜像
+     */
+    public static ImageLog toImage(FileNode node) {
+        ImageLog.Builder builder = ImageLog.newBuilder();
+        String path = node.getPath();
+        int type = node.getType();
+        builder.setPath(path);
+        builder.setType(type);
+        builder.putAllAttr(node.getAttr());
+        Collection<FileNode> children = node.getChildren().values();
+        if (children.isEmpty()) {
+            return builder.build();
+        }
+        List<ImageLog> tmpNode = new ArrayList<>(children.size());
+        for (FileNode child : children) {
+            ImageLog iNode = toImage(child);
+            tmpNode.add(iNode);
+        }
+        builder.addAllChildren(tmpNode);
+        return builder.build();
+    }
+
+    /**
+     * <p>Description: 目录树内存镜像记录转换成文件目录树/p>
+     *
+     * @param imageLog  目录树镜像
+     * @return 文件目录树
+     */
+    public static FileNode parseImage(ImageLog imageLog) {
+        return parseImage(imageLog, null);
+    }
+
+    /**
+     * <p>Description: 目录树内存镜像记录转换成文件目录树/p>
+     *
+     * @param imageLog  目录树镜像
+     * @return 文件目录树
+     */
+    public static FileNode parseImage(ImageLog imageLog, String parent) {
+        FileNode node = new FileNode();
+        if (parent != null && log.isDebugEnabled()) {
+            log.debug("parseINode executing :[path={},  type={}]", parent, node.getType());
+        }
+        String path = imageLog.getPath();
+        int type = imageLog.getType();
+        node.setPath(path);
+        node.setType(type);
+        node.putAllAttr(imageLog.getAttrMap());
+        List<ImageLog> children = imageLog.getChildrenList();
+        if (children.isEmpty()) {
+            return node;
+        }
+        for (ImageLog child : children) {
+            node.addChildren(parseImage(child, parent == null ? null : parent + "/" + child.getPath()));
+        }
+        return node;
     }
 
 }

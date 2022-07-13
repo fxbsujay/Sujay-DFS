@@ -64,7 +64,7 @@ public class ReadyLogBuffer {
         }
         byte[] data = buffer.toByteArray();
         ByteBuffer dataBuffer = ByteBuffer.wrap(data);
-        String path = Constants.DEFAULT_BASE_DIR + File.separator + "ready_log_" + startTxId + "_" + endTxId + ".log";
+        String path = Constants.DEFAULT_BASE_DIR + File.separator + Constants.READY_LOG_NAME + startTxId + "_" + endTxId + ".log";
         log.info("保存 ReadyLog 文件：[file={}]", path);
         FileUtils.writeFile(path,false,dataBuffer);
         return new ReadyLogInfo(path, startTxId, endTxId);

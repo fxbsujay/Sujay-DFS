@@ -1,10 +1,14 @@
 package com.susu.dfs.common.file;
 
+import com.susu.common.model.ImageLog;
 import com.susu.common.model.Metadata;
 import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.eum.FileNodeType;
+import com.susu.dfs.common.file.image.ImageLogWrapper;
 import com.susu.dfs.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+
+import java.io.File;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -138,7 +142,7 @@ public class FileDirectory {
     }
 
     /**
-     * <p>Description: 查询目录/p>
+     * <p>Description: 查查询当前节点下查询是否有这个目录Path/p>
      * <p>Description: query directory/p>
      *
      * @param current 当前节点
@@ -152,6 +156,45 @@ public class FileDirectory {
         }
         current = childrenNode;
         return current;
+    }
+
+    /**
+     * 根据内存目录树生成Image
+     *
+     * @return FsImage
+     */
+    public ImageLogWrapper getImage() {
+        try {
+            lock.readLock().lock();
+            ImageLog image = FileNode.toImage(root);
+            return new ImageLogWrapper(0L, image);
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    /**
+     * <p>Description: 保存ImageLog文件/p>
+     */
+    public void writImage() throws Exception {
+        String fileName = Constants.DEFAULT_BASE_DIR + File.separator + Constants.IMAGE_LOG_NAME + System.currentTimeMillis();
+        ImageLogWrapper image = getImage();
+        image.writeFile(fileName);
+    }
+
+
+    /**
+     * 根据Image初始化内存目录树
+     *
+     * @param image 镜像文件
+     */
+    public void readImage(ImageLogWrapper image) {
+        try {
+            lock.writeLock().lock();
+            this.root = FileNode.parseImage(image.getImageLog(), "");
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
 
@@ -220,6 +263,13 @@ public class FileDirectory {
         return findAllFiles(node);
     }
 
+    /**
+     * <p>Description: 该节点下所有的文件名称/p>
+     * <p>Description: All file names under this node/p>
+     *
+     * @param node   文件节点
+     * @return       [/bbb/c1.png, /bbb/c2.png]
+     */
     private List<String> findAllFiles(FileNode node) {
         List<String> ret = new ArrayList<>();
         if (node.isFile()) {
@@ -232,7 +282,6 @@ public class FileDirectory {
         }
         return ret;
     }
-
 
     public Set<Metadata> findAllFileBySlot(int slot) {
         return findAllFilesFilterBySlot(root, slot);
@@ -258,6 +307,4 @@ public class FileDirectory {
         }
         return ret;
     }
-
-
 }

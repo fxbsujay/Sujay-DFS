@@ -27,11 +27,11 @@ message ReadyLog {
 }
 
 /**
- *  文件目录树
+ *  文件目录树的文件记录
  */
-message INode {
+message ImageLog {
   string path = 1;
   int32 type = 2;
-  repeated INode children = 3;
+  repeated ImageLog children = 3;
   map<string, string> attr = 4;
 }

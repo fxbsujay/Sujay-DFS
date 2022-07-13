@@ -74,4 +74,20 @@ public class Constants {
      * 文件属性之删除时间
      */
     public static final String ATTR_FILE_DEL_TIME = "DEL_TIME";
+
+
+    /**
+     * 文件属性之文件大小
+     */
+    public static final String ATTR_FILE_SIZE = "FILE_SIZE";
+
+    /**
+     * 目录树文件名称
+     */
+    public static final String IMAGE_LOG_NAME = "image_log_";
+
+    /**
+     * 磁盘操作日志文件名称
+     */
+    public static final String READY_LOG_NAME = "ready_log_";
 }

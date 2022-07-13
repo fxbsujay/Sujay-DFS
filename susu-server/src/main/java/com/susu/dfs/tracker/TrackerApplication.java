@@ -3,7 +3,9 @@ package com.susu.dfs.tracker;
 import com.susu.dfs.common.Node;
 import com.susu.dfs.common.config.NodeConfig;
 import com.susu.dfs.common.task.TaskScheduler;
+import com.susu.dfs.tracker.client.ClientManager;
 import com.susu.dfs.tracker.server.TrackerServer;
+import com.susu.dfs.tracker.service.TrackerFileService;
 import lombok.extern.slf4j.Slf4j;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -18,10 +20,13 @@ public class TrackerApplication {
 
     private final TaskScheduler taskScheduler;
 
+    private final ClientManager clientManager;
+
     private final TrackerServer trackerServer;
 
-    private final AtomicBoolean started = new AtomicBoolean(false);
+    private final TrackerFileService fileService;
 
+    private final AtomicBoolean started = new AtomicBoolean(false);
 
     /**
      * <h3> 服务端的启动流程 </h3>
@@ -40,13 +45,16 @@ public class TrackerApplication {
             application.start();
         } catch (Exception e) {
             log.info("Tracker Application Start Error!!");
+            System.exit(1);
         }
     }
 
     public TrackerApplication(NodeConfig nodeConfig) {
         Node node = nodeConfig.getNode();
         this.taskScheduler = new TaskScheduler("SUSU-DFS-SERVER",8,false);
-        this.trackerServer = new TrackerServer(node,taskScheduler);
+        this.clientManager = new ClientManager(taskScheduler);
+        this.trackerServer = new TrackerServer(node,taskScheduler,clientManager);
+        this.fileService = new TrackerFileService(taskScheduler,clientManager);
     }
 
     /**
@@ -56,6 +64,7 @@ public class TrackerApplication {
      */
     public void start() throws Exception {
         if (started.compareAndSet(false, true)) {
+            this.fileService.start();
             this.trackerServer.start();
         }
     }
@@ -67,6 +76,7 @@ public class TrackerApplication {
         if (started.compareAndSet(true, false)) {
             this.taskScheduler.shutdown();
             this.trackerServer.shutdown();
+            this.fileService.shutdown();
         }
     }
 }

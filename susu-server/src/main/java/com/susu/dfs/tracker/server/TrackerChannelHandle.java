@@ -41,10 +41,10 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      */
     private final SnowFlakeUtils snowFlakeUtils = new SnowFlakeUtils(1,1);
 
-    public TrackerChannelHandle(TaskScheduler taskScheduler) {
+    public TrackerChannelHandle(TaskScheduler taskScheduler, ClientManager clientManager) {
         this.executor = new ThreadPoolExecutor(8,20,
                 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(8));
-        this.clientManager = new ClientManager(taskScheduler);
+        this.clientManager = clientManager;
     }
 
     @Override

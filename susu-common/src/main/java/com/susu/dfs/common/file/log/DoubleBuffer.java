@@ -77,6 +77,7 @@ public class DoubleBuffer {
     public DoubleBuffer() {
         this.regularBuffer = new ReadyLogBuffer();
         this.syncBuffer = new ReadyLogBuffer();
+        loadReadyLogs();
     }
 
     /**

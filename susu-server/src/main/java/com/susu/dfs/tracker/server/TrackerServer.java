@@ -4,6 +4,7 @@ import com.susu.dfs.common.Node;
 import com.susu.dfs.common.netty.NetServer;
 import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.common.utils.SnowFlakeUtils;
+import com.susu.dfs.tracker.client.ClientManager;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -21,10 +22,10 @@ public class TrackerServer {
 
     private final Node node;
 
-    public TrackerServer(Node node, TaskScheduler taskScheduler) {
+    public TrackerServer(Node node, TaskScheduler taskScheduler, ClientManager clientManager) {
         this.node = node;
         this.netServer = new NetServer(node.getName(),taskScheduler);
-        this.trackerChannelHandle = new TrackerChannelHandle(taskScheduler);
+        this.trackerChannelHandle = new TrackerChannelHandle(taskScheduler, clientManager);
     }
 
     public void start() {
