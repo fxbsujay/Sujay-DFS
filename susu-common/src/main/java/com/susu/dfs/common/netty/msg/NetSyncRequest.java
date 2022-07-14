@@ -2,6 +2,7 @@ package com.susu.dfs.common.netty.msg;
 
 import com.susu.dfs.common.eum.PacketType;
 import com.susu.dfs.common.task.TaskScheduler;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.SocketChannel;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,13 +25,13 @@ public class NetSyncRequest {
      */
     private Map<Long, NetSyncRequestPromise> promises = new ConcurrentHashMap<>();
 
-    private SocketChannel socketChannel;
+    private ChannelHandlerContext socketChannel;
 
     public NetSyncRequest(TaskScheduler taskScheduler) {
         taskScheduler.schedule("NetSyncRequest", this::checkRequestTimeout, 0, 1000, TimeUnit.MILLISECONDS);
     }
 
-    public void setSocketChannel(SocketChannel socketChannel) {
+    public void setSocketChannel(ChannelHandlerContext socketChannel) {
         this.socketChannel = socketChannel;
     }
 

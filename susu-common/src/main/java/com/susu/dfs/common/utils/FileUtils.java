@@ -456,6 +456,19 @@ public class FileUtils {
         return displaySize;
     }
 
+    public static boolean validateFileName(String filename) {
+        String osName = System.getProperty("os.name").toLowerCase();
+        boolean win = osName.startsWith("win");
+        if (!win && !filename.startsWith(File.separator)) {
+            return false;
+        }
+        String name = new File(filename).getName();
+        if (filename.contains("//")) {
+            return false;
+        }
+        return !name.startsWith(".");
+    }
+
 
     public static void main(String[] args) throws Exception {
         toZip("D:/project/卷/test/aa","D:/project/卷/test/test.zip",true);

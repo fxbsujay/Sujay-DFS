@@ -24,6 +24,11 @@ public class Constants {
     public static final int MAX_BYTES = 10 * 1024 * 1024;
 
     /**
+     * map初始化容量
+     */
+    public static final int MAP_SIZE = 32;
+
+    /**
      * 客户端心跳间隔
      */
     public static final int HEARTBEAT_INTERVAL = 30000;

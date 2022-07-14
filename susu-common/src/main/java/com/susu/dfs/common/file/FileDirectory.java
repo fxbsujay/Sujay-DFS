@@ -46,6 +46,8 @@ public class FileDirectory {
                 current = findDirectory(current, p);
             }
             current.putAllAttr(attr);
+        }catch (Exception e){
+            e.printStackTrace();
         } finally {
             lock.writeLock().unlock();
         }

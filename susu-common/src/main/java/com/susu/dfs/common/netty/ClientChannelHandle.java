@@ -63,9 +63,11 @@ public class ClientChannelHandle extends AbstractChannelHandler {
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         socketChannel = ctx;
+        netSyncRequest.setSocketChannel(socketChannel);
         invokeConnectListener(true);
         log.info("Socket channel is connected. {}", socketChannel);
         ctx.fireChannelInactive();
+
     }
 
     @Override

@@ -4,11 +4,3 @@ package com.susu.common.proto;
 
 option java_multiple_files = true;
 option java_package = "com.susu.common.model";
-
-/**
- *  创建文件夹
- */
-message MkdirRequest {
-  string path = 1;
-  map<string, string> attr = 2;
-}

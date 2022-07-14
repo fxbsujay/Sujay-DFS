@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package com.susu.common.proto;
+
+option java_multiple_files = true;
+option java_package = "com.susu.common.model";
+
+/**
+*   客户端注册信息
+ */
+message RegisterRequest {
+  string name = 1;
+  string hostname = 2;
+  int32 port = 3;
+}
+
+message RegisterResponse {
+  int64 clientId = 1;
+}
+
+/**
+ *  客户端心跳
+ *  @param isSuccess 心跳是否发送成功
+ */
+message HeartbeatRequest {
+  int64 clientId = 1;
+}
+
+message HeartbeatResponse {
+  bool isSuccess = 1;
+}

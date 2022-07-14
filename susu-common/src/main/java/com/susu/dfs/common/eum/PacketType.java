@@ -16,8 +16,9 @@ public enum PacketType {
      * 请求类型
      */
     UNKNOWN(0, "未知的包类型"),
-    CLIENT_REGISTER(1,"客户端注册"),
-    CLIENT_HEART_BEAT(2,"客户端心跳"),
+    CLIENT_REGISTER(1,"Storage注册"),
+    CLIENT_HEART_BEAT(2,"Storage心跳"),
+    MKDIR(3, "Client往Tracker发送Mkdir请求"),
     TEST(2, "测试请求"),
     ;
 

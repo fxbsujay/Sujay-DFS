@@ -135,7 +135,7 @@ public class NetClient {
 
     /**
      * 尝试重启客户端
-     * <p>Description: restart client.proto </p>
+     * <p>Description: restart storage.proto </p>
      *
      * @param host 地址
      * @param port 端口号
@@ -145,7 +145,7 @@ public class NetClient {
         if (started.get()) {
             boolean retry = retryTime < 0 || connectTimes <= retryTime;
             if (retry) {
-                log.error("client.proto restart：[started={}, name={}]", started.get(), name);
+                log.error("storage.proto restart：[started={}, name={}]", started.get(), name);
                 start(host, port, connectTimes,3000);
             } else {
                 shutdown();
@@ -219,9 +219,14 @@ public class NetClient {
         clientChannelHandle.send(packet);
     }
 
+    public NetPacket sendSync(NetPacket packet) throws InterruptedException {
+        ensureStart();
+        return clientChannelHandle.sendSync(packet);
+    }
+
     /**
      * 关闭客户端
-     * <p>Description: shutdown client.proto </p>
+     * <p>Description: shutdown storage.proto </p>
      */
     public void shutdown() {
         if(log.isDebugEnabled()) {

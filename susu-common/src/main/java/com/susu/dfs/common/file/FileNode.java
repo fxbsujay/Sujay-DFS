@@ -208,4 +208,14 @@ public class FileNode {
         return node;
     }
 
+    @Override
+    public String toString() {
+        return "Node{" +
+                "path='" + path + '\'' +
+                ", type=" + type +
+                ", children=" + children +
+                ", attr=" + attr +
+                '}';
+    }
+
 }
