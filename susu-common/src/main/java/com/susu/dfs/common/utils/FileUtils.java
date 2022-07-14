@@ -1,5 +1,7 @@
 package com.susu.dfs.common.utils;
 
+import org.apache.commons.codec.digest.DigestUtils;
+
 import java.io.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -468,6 +470,13 @@ public class FileUtils {
         }
         return !name.startsWith(".");
     }
+
+    public static String fileMd5(String fileName) throws IOException {
+        try (FileInputStream fis = new FileInputStream(fileName)) {
+            return DigestUtils.md5Hex(fis);
+        }
+    }
+
 
 
     public static void main(String[] args) throws Exception {

@@ -16,7 +16,8 @@ public enum MsgType {
     UNKNOWN(404, "未知的消息类型"),
     STRING(0, "String类型消息"),
     PACKET(1, "byte数据包"),
-    HTML(2, "html请求");
+    FILE(2, "文件二进制数据包"),
+    HTML(3, "html请求");
 
     public int value;
 

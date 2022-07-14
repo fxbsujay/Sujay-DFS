@@ -210,7 +210,7 @@ public class FileNode {
 
     @Override
     public String toString() {
-        return "Node{" +
+        return "FileNode{" +
                 "path='" + path + '\'' +
                 ", type=" + type +
                 ", children=" + children +

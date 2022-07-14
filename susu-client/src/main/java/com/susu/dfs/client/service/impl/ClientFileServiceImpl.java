@@ -1,11 +1,16 @@
 package com.susu.dfs.client.service.impl;
 
+import com.susu.common.model.CreateFileRequest;
+import com.susu.common.model.CreateFileResponse;
+import com.susu.common.model.DataNode;
 import com.susu.common.model.MkdirRequest;
 import com.susu.dfs.client.TrackerClient;
 import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.eum.PacketType;
-import com.susu.dfs.common.file.OnProgressListener;
+import com.susu.dfs.common.file.transfer.OnProgressListener;
+import com.susu.dfs.common.netty.NetClient;
 import com.susu.dfs.common.netty.msg.NetPacket;
+import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.common.utils.FileUtils;
 import com.susu.dfs.client.service.ClientFileService;
 import lombok.extern.slf4j.Slf4j;
@@ -25,8 +30,11 @@ public class ClientFileServiceImpl implements ClientFileService {
 
     private TrackerClient trackerClient;
 
-    public ClientFileServiceImpl(TrackerClient trackerClient) {
+    private TaskScheduler taskScheduler;
+
+    public ClientFileServiceImpl(TrackerClient trackerClient, TaskScheduler taskScheduler) {
         this.trackerClient = trackerClient;
+        this.taskScheduler = taskScheduler;
     }
 
     @Override
@@ -48,21 +56,49 @@ public class ClientFileServiceImpl implements ClientFileService {
 
     @Override
     public void put(String filename, File file) throws Exception {
-
+        put(filename, file, -1, new HashMap<>(Constants.MAP_SIZE));
     }
 
     @Override
-    public void put(String filename, File file, int numOfReplica) throws Exception {
-
+    public void put(String filename, File file, int replicaNum) throws Exception {
+        put(filename, file, replicaNum, new HashMap<>(Constants.MAP_SIZE));
     }
 
     @Override
-    public void put(String filename, File file, int numOfReplica, Map<String, String> attr) throws Exception {
-
+    public void put(String filename, File file, int replicaNum, Map<String, String> attr) throws Exception {
+        put(filename, file, replicaNum, attr, null);
     }
 
     @Override
-    public void put(String filename, File file, int numOfReplica, Map<String, String> attr, OnProgressListener listener) throws Exception {
+    public void put(String filename, File file, int replicaNum, Map<String, String> attr, OnProgressListener listener) throws Exception {
+       validate(filename);
+       if (replicaNum > Constants.MAX_REPLICA_NUM) {
+           throw new RuntimeException("不合法的副本数量：" + replicaNum);
+       }
+        for (String key : Constants.KEYS_ATTR_SET) {
+            if (attr.containsKey(key)) {
+                log.warn("文件属性包含关键属性：[key={}]", key);
+            }
+        }
+        if (replicaNum > 0) {
+            attr.put(Constants.ATTR_REPLICA_NUM, String.valueOf(replicaNum));
+        }
+        CreateFileRequest request = CreateFileRequest.newBuilder()
+                .setFilename(filename)
+                .setFileSize(file.length())
+                .putAllAttr(attr)
+                .build();
+        NetPacket packet = NetPacket.buildPacket(request.toByteArray(), PacketType.CREATE_FILE);
+        NetPacket resp = trackerClient.authSendSync(packet);
+        CreateFileResponse response = CreateFileResponse.parseFrom(resp.getBody());
+        for (int i = 0; i < response.getDataNodesList().size(); i++) {
+            DataNode node = response.getDataNodes(i);
+            String hostname = node.getHostname();
+            int port = node.getPort();
+            NetClient netClient = new NetClient("File-Client" + hostname,taskScheduler);
+
+        }
+
 
     }
 

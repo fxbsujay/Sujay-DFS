@@ -24,7 +24,7 @@ public class ClientApplication {
     public ClientApplication(NodeConfig nodeConfig) {
         this.taskScheduler = new TaskScheduler("SUSU-DFS-CLIENT",8,false);
         this.trackerClient = new TrackerClient(nodeConfig.getNode(),taskScheduler);
-        this.clientFileService = new ClientFileServiceImpl(trackerClient);
+        this.clientFileService = new ClientFileServiceImpl(trackerClient,taskScheduler);
     }
 
     public ClientFileService getFileService() {

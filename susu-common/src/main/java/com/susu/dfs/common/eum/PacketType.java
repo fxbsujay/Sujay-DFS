@@ -19,6 +19,8 @@ public enum PacketType {
     CLIENT_REGISTER(1,"Storage注册"),
     CLIENT_HEART_BEAT(2,"Storage心跳"),
     MKDIR(3, "Client往Tracker发送Mkdir请求"),
+    CREATE_FILE(4, "Client往Tracker发送创建文件请求"),
+    TRANSFER_FILE(5, "文件传输的二进制包类型"),
     TEST(2, "测试请求"),
     ;
 

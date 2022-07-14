@@ -5,10 +5,25 @@ package com.susu.common.proto;
 option java_multiple_files = true;
 option java_package = "com.susu.common.model";
 
+import "common.proto";
 /**
  *  创建文件夹
  */
 message MkdirRequest {
   string path = 1;
   map<string, string> attr = 2;
+}
+
+/**
+ *  创建文件
+ */
+message CreateFileRequest {
+  string filename = 1;
+  int64 fileSize = 2;
+  map<string, string> attr = 3;
+}
+
+message CreateFileResponse {
+  repeated DataNode dataNodes = 1;
+  string realFileName = 2;
 }

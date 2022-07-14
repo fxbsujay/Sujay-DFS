@@ -1,5 +1,8 @@
 package com.susu.dfs.common;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * <p>Description: Constants</p>
  * <p>Description: 常量</p>
@@ -80,6 +83,10 @@ public class Constants {
      */
     public static final String ATTR_FILE_DEL_TIME = "DEL_TIME";
 
+    /**
+     * 文件属性之副本数量
+     */
+    public static final String ATTR_REPLICA_NUM = "REPLICA_NUM";
 
     /**
      * 文件属性之文件大小
@@ -95,4 +102,18 @@ public class Constants {
      * 磁盘操作日志文件名称
      */
     public static final String READY_LOG_NAME = "ready_log_";
+
+    /**
+     * 文件副本最大数量
+     */
+    public static final int MAX_REPLICA_NUM = 5;
+
+    /**
+     * 保留的属性名称
+     */
+    public static final Set<String> KEYS_ATTR_SET = new HashSet<String>(){{
+        add(ATTR_FILE_DEL_TIME);
+        add(ATTR_REPLICA_NUM);
+        add(ATTR_FILE_SIZE);
+    }};
 }
