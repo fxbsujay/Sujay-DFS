@@ -5,6 +5,7 @@ import com.susu.dfs.common.task.TaskScheduler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 import java.net.InetSocketAddress;
@@ -92,6 +93,10 @@ public class NetClient {
         this.baseChannelHandler = new BaseChannelHandler();
         this.baseChannelHandler.addHandler(clientChannelHandle);
 
+    }
+
+    public ChannelHandlerContext socketChannel() {
+        return clientChannelHandle.getSocketChannel();
     }
 
     /**

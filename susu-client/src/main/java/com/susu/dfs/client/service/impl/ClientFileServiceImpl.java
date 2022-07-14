@@ -4,9 +4,11 @@ import com.susu.common.model.CreateFileRequest;
 import com.susu.common.model.CreateFileResponse;
 import com.susu.common.model.DataNode;
 import com.susu.common.model.MkdirRequest;
+import com.susu.dfs.client.OnMultiFileProgressListener;
 import com.susu.dfs.client.TrackerClient;
 import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.eum.PacketType;
+import com.susu.dfs.common.file.transfer.FileTransportClient;
 import com.susu.dfs.common.file.transfer.OnProgressListener;
 import com.susu.dfs.common.netty.NetClient;
 import com.susu.dfs.common.netty.msg.NetPacket;
@@ -91,13 +93,27 @@ public class ClientFileServiceImpl implements ClientFileService {
         NetPacket packet = NetPacket.buildPacket(request.toByteArray(), PacketType.CREATE_FILE);
         NetPacket resp = trackerClient.authSendSync(packet);
         CreateFileResponse response = CreateFileResponse.parseFrom(resp.getBody());
+        OnMultiFileProgressListener onMultiFileProgressListener =
+                new OnMultiFileProgressListener(listener, response.getDataNodesList().size());
         for (int i = 0; i < response.getDataNodesList().size(); i++) {
             DataNode node = response.getDataNodes(i);
             String hostname = node.getHostname();
             int port = node.getPort();
             NetClient netClient = new NetClient("File-Client" + hostname,taskScheduler);
-
+            FileTransportClient fileTransportClient = new FileTransportClient(netClient);
+            netClient.start(hostname,port);
+            netClient.ensureStart();
+            if (log.isDebugEnabled()) {
+                log.debug("开始上传文件到：[node={}:{}, filename={}]", hostname, port, filename);
+            }
+            fileTransportClient.sendFile(response.getRealFileName(), file.getAbsolutePath(), onMultiFileProgressListener, true);
+            fileTransportClient.shutdown();
+            if (log.isDebugEnabled()) {
+                log.debug("完成上传文件到：[node={}:{}, filename={}]", hostname, port, filename);
+            }
         }
+        NetPacket confirmRequest = NetPacket.buildPacket(request.toByteArray(), PacketType.CREATE_FILE_CONFIRM);
+        trackerClient.authSendSync(confirmRequest);
 
 
     }

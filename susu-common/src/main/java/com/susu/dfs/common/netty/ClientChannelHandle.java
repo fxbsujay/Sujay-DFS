@@ -14,6 +14,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * <p>Description: 用来处理客户端端的消息处理器</p>
+ *
  * @author sujay
  * @version 17:45 2022/7/1
  */
@@ -54,6 +55,10 @@ public class ClientChannelHandle extends AbstractChannelHandler {
 
     public ClientChannelHandle(TaskScheduler taskScheduler) {
         netSyncRequest = new NetSyncRequest(taskScheduler);
+    }
+
+    public ChannelHandlerContext getSocketChannel() {
+        return socketChannel;
     }
 
     public void setHasOtherHandlers(boolean hasOtherHandlers) {

@@ -1,5 +1,6 @@
 package com.susu.dfs.common.utils;
 
+import java.util.Random;
 import java.util.UUID;
 
 /**
@@ -11,6 +12,10 @@ import java.util.UUID;
  * @since JDK1.8
  */
 public class StringUtils {
+
+    public static final Random RANDOM = new Random();
+
+    public static final String BASE_KEY = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
     /**
      * <p>将字符串text中由openToken和closeToken组成的占位符依次替换为args数组中的值</p>
@@ -359,6 +364,42 @@ public class StringUtils {
 
     public static int toPositive(int number) {
         return number & 0x7fffffff;
+    }
+
+    /**
+     * 获取随机字符串
+     *
+     * @param length 字符串长度
+     * @return 随机字符串
+     */
+    public static String getRandomString(int length) {
+        return getRandomString(length, BASE_KEY);
+    }
+
+    /**
+     * 获取随机字符串
+     *
+     * @param length 字符串长度
+     * @return 随机字符串
+     */
+    public static String getRandomString(int length, String key) {
+        return getRandomString(length, key, false);
+    }
+
+    /**
+     * 获取随机字符串
+     *
+     * @param length 字符串长度
+     * @return 随机字符串
+     */
+    public static String getRandomString(int length, String key, boolean upperCase) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            int number = RANDOM.nextInt(key.length());
+            sb.append(key.charAt(number));
+        }
+        String s = sb.toString();
+        return upperCase ? s.toUpperCase() : s;
     }
 
 

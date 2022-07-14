@@ -21,6 +21,8 @@ public enum PacketType {
     MKDIR(3, "Client往Tracker发送Mkdir请求"),
     CREATE_FILE(4, "Client往Tracker发送创建文件请求"),
     TRANSFER_FILE(5, "文件传输的二进制包类型"),
+    GET_FILE(6, "Client从Storage下载文件，或Storage之间相互同步副本请求"),
+    CREATE_FILE_CONFIRM(7, "Client往Storage上传完文件之后，再发请求往Tracker确认"),
     TEST(2, "测试请求"),
     ;
 
