@@ -44,7 +44,7 @@ public class ImageLogWrapper {
     public void writeFile(String path) throws Exception {
         ByteBuffer buffer = ByteBuffer.wrap(toByteArray());
         FileUtils.writeFile(path, true, buffer);
-        log.info("保存Image文件：[file={}]", path);
+        log.info("Save image file：[file={}]", path);
     }
 
     /**
