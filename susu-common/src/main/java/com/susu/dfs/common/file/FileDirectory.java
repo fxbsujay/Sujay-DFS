@@ -23,9 +23,16 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class FileDirectory {
 
     private FileNode root;
+
+    /**
+     * ImageLog文件的存储路径
+     */
+    private final String baseDir;
+
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
 
-    public FileDirectory() {
+    public FileDirectory(String baseDir) {
+        this.baseDir = baseDir;
         this.root = new FileNode("/", FileNodeType.DIRECTORY.getValue());
     }
 
@@ -179,7 +186,7 @@ public class FileDirectory {
      * <p>Description: 保存ImageLog文件/p>
      */
     public void writImage() throws Exception {
-        String fileName = Constants.DEFAULT_BASE_DIR + File.separator + Constants.IMAGE_LOG_NAME + System.currentTimeMillis();
+        String fileName = baseDir + File.separator + Constants.IMAGE_LOG_NAME + System.currentTimeMillis();
         ImageLogWrapper image = getImage();
         image.writeFile(fileName);
     }

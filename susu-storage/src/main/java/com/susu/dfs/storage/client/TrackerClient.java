@@ -1,6 +1,5 @@
 package com.susu.dfs.storage.client;
 
-
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.susu.common.model.HeartbeatResponse;
 import com.susu.common.model.RegisterRequest;
@@ -16,7 +15,6 @@ import com.susu.dfs.common.task.TaskScheduler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.concurrent.ScheduledFuture;
 import lombok.extern.slf4j.Slf4j;
-
 import java.util.concurrent.TimeUnit;
 
 /**

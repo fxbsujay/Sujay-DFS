@@ -16,7 +16,6 @@ import com.susu.dfs.common.eum.PacketType;
 import com.susu.dfs.tracker.service.TrackerFileService;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
-import java.io.File;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -150,7 +149,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
 
         FileNode node = trackerFileService.listFiles(filename);
         if (node != null) {
-            throw new RuntimeException("文件已存在：" + createFileRequest.getFilename());
+            throw new RuntimeException("file already exist：" + createFileRequest.getFilename());
         }
         List<ClientInfo> clientInfoList = clientManager.selectAllClientsByFile(StringUtils.isNotBlank(replicaNumStr) ? Integer.parseInt(replicaNumStr) : 1, filename);
         List<StorageNode> storages = new ArrayList<>();
@@ -162,7 +161,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
             storages.add(storage);
         }
         trackerFileService.createFile(filename,attrMap);
-        log.info("创建文件：[ filename={},storages={}]",filename,storages);
+        log.info("create a file：[ filename={},storages={}]",filename,storages);
         CreateFileResponse response = CreateFileResponse.newBuilder()
                 .setFilename(filename)
                 .addAllStorages(storages)

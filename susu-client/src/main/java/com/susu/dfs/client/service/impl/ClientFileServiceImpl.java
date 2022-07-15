@@ -54,7 +54,7 @@ public class ClientFileServiceImpl implements ClientFileService {
                 .build();
         NetPacket packet = NetPacket.buildPacket(request.toByteArray(), PacketType.MKDIR);
         trackerClient.authSendSync(packet);
-        log.info("创建文件夹成功：[filename={}]", path);
+        log.info("mkdir success：[filename={}]", path);
     }
 
     @Override
@@ -76,11 +76,11 @@ public class ClientFileServiceImpl implements ClientFileService {
     public void put(String filename, File file, int replicaNum, Map<String, String> attr, OnProgressListener listener) throws Exception {
        validate(filename);
        if (replicaNum > Constants.MAX_REPLICA_NUM) {
-           throw new RuntimeException("不合法的副本数量：" + replicaNum);
+           throw new RuntimeException("Number of illegal copies error：" + replicaNum);
        }
         for (String key : Constants.KEYS_ATTR_SET) {
             if (attr.containsKey(key)) {
-                log.warn("文件属性包含关键属性：[key={}]", key);
+                log.warn("File attributes contain key attributes：[key={}]", key);
             }
         }
         if (replicaNum > 0) {
@@ -123,7 +123,7 @@ public class ClientFileServiceImpl implements ClientFileService {
     private void validate(String filename) throws Exception {
         boolean ret = FileUtils.validateFileName(filename);
         if (!ret) {
-            throw new RuntimeException("不合法的文件名：" + filename);
+            throw new RuntimeException("Exception: Illegal file name !! [filename=" + filename + "]");
         }
     }
 

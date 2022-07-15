@@ -74,9 +74,15 @@ public class DoubleBuffer {
      */
     private List<ReadyLogInfo> readyLogs = null;
 
-    public DoubleBuffer() {
-        this.regularBuffer = new ReadyLogBuffer();
-        this.syncBuffer = new ReadyLogBuffer();
+    /**
+     * ReadyLog文件的存储路径
+     */
+    private final String baseDir;
+
+    public DoubleBuffer(String baseDir) {
+        this.baseDir = baseDir;
+        this.regularBuffer = new ReadyLogBuffer(baseDir);
+        this.syncBuffer = new ReadyLogBuffer(baseDir);
         loadReadyLogs();
     }
 
@@ -200,7 +206,7 @@ public class DoubleBuffer {
      */
     private void loadReadyLogs() {
         this.readyLogs = new CopyOnWriteArrayList<>();
-        File dir = new File(Constants.DEFAULT_BASE_DIR);
+        File dir = new File(baseDir);
         if (!dir.isDirectory()) {
             return;
         }
@@ -213,7 +219,7 @@ public class DoubleBuffer {
                 continue;
             }
             long[] index = getIndexFromFileName(file.getName());
-            this.readyLogs.add(new ReadyLogInfo(Constants.DEFAULT_BASE_DIR + File.separator + file.getName(),index[0], index[1]));
+            this.readyLogs.add(new ReadyLogInfo(baseDir + File.separator + file.getName(),index[0], index[1]));
         }
         this.readyLogs.sort(null);
     }

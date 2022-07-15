@@ -11,7 +11,6 @@ import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.tracker.client.ClientManager;
 import com.susu.dfs.tracker.task.TrashPolicyTask;
 import lombok.extern.slf4j.Slf4j;
-
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -29,9 +28,15 @@ public class TrackerFileService extends AbstractFileService {
      */
     private DoubleBuffer doubleBuffer;
 
+    /**
+     * ReadyLog和ImageLog文件的存储路径
+     */
+    private final String baseDir;
+
     public TrackerFileService(TaskScheduler taskScheduler, ClientManager clientManager) {
-        super();
-        this.doubleBuffer = new DoubleBuffer();
+        super(Constants.DEFAULT_BASE_DIR);
+        this.baseDir = Constants.DEFAULT_BASE_DIR;
+        this.doubleBuffer = new DoubleBuffer(baseDir);
         TrashPolicyTask trashPolicyTask = new TrashPolicyTask(this,clientManager);
         taskScheduler.schedule("定时扫描物理删除文件",trashPolicyTask, Constants.TRASH_CLEAR_INTERVAL, Constants.TRASH_CLEAR_INTERVAL, TimeUnit.MILLISECONDS);
     }
@@ -39,7 +44,7 @@ public class TrackerFileService extends AbstractFileService {
     @Override
     public void recoveryNamespace() throws Exception {
         try {
-            ImageLogWrapper image = scanLatestValidImageLog(Constants.DEFAULT_BASE_DIR);
+            ImageLogWrapper image = scanLatestValidImageLog(baseDir);
             long txId = 0L;
             if (image != null) {
                 txId = image.getMaxTxId();
@@ -57,7 +62,7 @@ public class TrackerFileService extends AbstractFileService {
                 }
             });
         } catch (Exception e) {
-            log.info("根据ImageLog恢复目录树异常：", e);
+            log.info("Recover directory tree exception according to imageLog !!：", e);
             throw e;
         }
     }
@@ -108,7 +113,7 @@ public class TrackerFileService extends AbstractFileService {
             doubleBuffer.flushBuffer();
             writImage();
         } catch (Exception e) {
-            log.error("保存操作日志失败！！");
+            log.error("Failed to save operation log !!");
         }
     }
 

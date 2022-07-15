@@ -64,7 +64,7 @@ public class FileTransportClient {
             FileReceiveHandler fileReceiveHandler = new FileReceiveHandler(callback);
             this.netClient.addPackageListener(requestWrapper -> {
                 NetPacket request = requestWrapper.getRequest();
-                if (request.getType() == PacketType.TRANSFER_FILE.getValue()) {
+                if (request.getType() == PacketType.UPLOAD_FILE.getValue()) {
                     FilePacket filePacket = FilePacket.parseFrom(request.getBody());
                     fileReceiveHandler.handleRequest(filePacket);
                 }

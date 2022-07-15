@@ -402,6 +402,19 @@ public class StringUtils {
         return upperCase ? s.toUpperCase() : s;
     }
 
+    public static String format(int i) {
+        if (i >= 100) {
+            return String.valueOf(i);
+        }
+        if (i >= 10) {
+            return "0" + i;
+        }
+        if (i >= 0) {
+            return "00" + i;
+        }
+        return "";
+    }
+
 
     public static void main(String[] args) {
         String str = "  Hello Word Java ";

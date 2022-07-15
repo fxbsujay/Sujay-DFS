@@ -64,7 +64,7 @@ public class DefaultFileSendTask {
                     .type(FilePacket.HEAD)
                     .fileMetaData(fileAttribute.getAttr())
                     .build();
-            NetPacket nettyPacket = NetPacket.buildPacket(headPackage.toBytes(), PacketType.TRANSFER_FILE);
+            NetPacket nettyPacket = NetPacket.buildPacket(headPackage.toBytes(), PacketType.UPLOAD_FILE);
             sendPackage(nettyPacket, force);
             ByteBuffer buffer = ByteBuffer.allocate(1024 * 1024);
             int len;
@@ -78,7 +78,7 @@ public class DefaultFileSendTask {
                         .fileMetaData(fileAttribute.getAttr())
                         .body(data)
                         .build().toBytes();
-                nettyPacket = NetPacket.buildPacket(content, PacketType.TRANSFER_FILE);
+                nettyPacket = NetPacket.buildPacket(content, PacketType.UPLOAD_FILE);
                 sendPackage(nettyPacket, force);
                 buffer.clear();
                 readLength += len;
@@ -95,7 +95,7 @@ public class DefaultFileSendTask {
                     .type(FilePacket.TAIL)
                     .fileMetaData(fileAttribute.getAttr())
                     .build();
-            nettyPacket = NetPacket.buildPacket(tailPackage.toBytes(), PacketType.TRANSFER_FILE);
+            nettyPacket = NetPacket.buildPacket(tailPackage.toBytes(), PacketType.UPLOAD_FILE);
             sendPackage(nettyPacket, force);
             if (log.isDebugEnabled()) {
                 log.debug("发送文件完毕，filename = {}", filename);

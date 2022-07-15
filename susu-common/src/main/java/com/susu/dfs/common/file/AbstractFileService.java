@@ -27,8 +27,8 @@ public abstract class AbstractFileService implements FileService{
      */
     protected FileDirectory directory;
 
-    public AbstractFileService() {
-        this.directory = new FileDirectory();
+    public AbstractFileService(String baseDir) {
+        this.directory = new FileDirectory(baseDir);
     }
 
     /**

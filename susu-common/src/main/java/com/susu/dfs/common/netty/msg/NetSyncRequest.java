@@ -60,7 +60,7 @@ public class NetSyncRequest {
         promises.put(request.getSequence(), promise);
         socketChannel.writeAndFlush(request);
         if (log.isDebugEnabled()) {
-            log.debug("发送请求并同步等待结果：[request={}, sequence={}]",
+            log.debug("Send requests and synchronize waiting results：[request={}, sequence={}]",
                     PacketType.getEnum(request.getType()).getDescription(), request.getSequence());
         }
         return promise.getResult();
