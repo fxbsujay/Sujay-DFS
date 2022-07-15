@@ -2,8 +2,8 @@ package com.susu.dfs.client.service.impl;
 
 import com.susu.common.model.CreateFileRequest;
 import com.susu.common.model.CreateFileResponse;
-import com.susu.common.model.DataNode;
 import com.susu.common.model.MkdirRequest;
+import com.susu.common.model.StorageNode;
 import com.susu.dfs.client.OnMultiFileProgressListener;
 import com.susu.dfs.client.TrackerClient;
 import com.susu.dfs.common.Constants;
@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -93,27 +94,8 @@ public class ClientFileServiceImpl implements ClientFileService {
         NetPacket packet = NetPacket.buildPacket(request.toByteArray(), PacketType.CREATE_FILE);
         NetPacket resp = trackerClient.authSendSync(packet);
         CreateFileResponse response = CreateFileResponse.parseFrom(resp.getBody());
-        OnMultiFileProgressListener onMultiFileProgressListener =
-                new OnMultiFileProgressListener(listener, response.getDataNodesList().size());
-        for (int i = 0; i < response.getDataNodesList().size(); i++) {
-            DataNode node = response.getDataNodes(i);
-            String hostname = node.getHostname();
-            int port = node.getPort();
-            NetClient netClient = new NetClient("File-Client" + hostname,taskScheduler);
-            FileTransportClient fileTransportClient = new FileTransportClient(netClient);
-            netClient.start(hostname,port);
-            netClient.ensureStart();
-            if (log.isDebugEnabled()) {
-                log.debug("开始上传文件到：[node={}:{}, filename={}]", hostname, port, filename);
-            }
-            fileTransportClient.sendFile(response.getRealFileName(), file.getAbsolutePath(), onMultiFileProgressListener, true);
-            fileTransportClient.shutdown();
-            if (log.isDebugEnabled()) {
-                log.debug("完成上传文件到：[node={}:{}, filename={}]", hostname, port, filename);
-            }
-        }
-        NetPacket confirmRequest = NetPacket.buildPacket(request.toByteArray(), PacketType.CREATE_FILE_CONFIRM);
-        trackerClient.authSendSync(confirmRequest);
+        List<StorageNode> storagesList = response.getStoragesList();
+        log.info("===============storagesList={}",storagesList);
 
 
     }

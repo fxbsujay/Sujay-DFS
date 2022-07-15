@@ -2,9 +2,13 @@ package com.susu.dfs.tracker.server;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.susu.common.model.*;
+import com.susu.dfs.common.Constants;
+import com.susu.dfs.common.file.FileNode;
 import com.susu.dfs.common.netty.msg.NetRequest;
 import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.common.utils.SnowFlakeUtils;
+import com.susu.dfs.common.utils.StringUtils;
+import com.susu.dfs.tracker.client.ClientInfo;
 import com.susu.dfs.tracker.client.ClientManager;
 import com.susu.dfs.common.netty.AbstractChannelHandler;
 import com.susu.dfs.common.netty.msg.NetPacket;
@@ -13,8 +17,7 @@ import com.susu.dfs.tracker.service.TrackerFileService;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
 import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -55,13 +58,16 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
         NetRequest request = new NetRequest(ctx, packet);
         switch (packetType) {
             case CLIENT_REGISTER:
-                clientRegisterHandle(request);
+                storageRegisterHandle(request);
                 break;
             case CLIENT_HEART_BEAT:
-                clientHeartbeatHandel(request);
+                storageHeartbeatHandel(request);
                 break;
             case MKDIR:
                 clientMkdirHandel(request);
+                break;
+            case CREATE_FILE:
+                clientCreateFileHandel(request);
                 break;
             default:
                 break;
@@ -85,7 +91,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      *
      * @param request NetWork Request 网络请求
      */
-    private void clientRegisterHandle(NetRequest request) throws InvalidProtocolBufferException {
+    private void storageRegisterHandle(NetRequest request) throws InvalidProtocolBufferException {
         long clientId = snowFlakeUtils.nextId();
         RegisterRequest registerRequest = RegisterRequest.parseFrom(request.getRequest().getBody());
         boolean register = clientManager.register(registerRequest,clientId);
@@ -102,7 +108,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      * @param request NetWork Request 网络请求
      * @throws InvalidProtocolBufferException protobuf error
      */
-    private void clientHeartbeatHandel(NetRequest request) throws InvalidProtocolBufferException {
+    private void storageHeartbeatHandel(NetRequest request) throws InvalidProtocolBufferException {
         HeartbeatRequest heartbeatRequest = HeartbeatRequest.parseFrom(request.getRequest().getBody());
         Boolean isSuccess = clientManager.heartbeat(heartbeatRequest.getClientId());
         HeartbeatResponse response = HeartbeatResponse.newBuilder().setIsSuccess(isSuccess).build();
@@ -125,5 +131,42 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
         String realFilename =  "/susu" + mkdirRequest.getPath();
         trackerFileService.mkdir(realFilename, mkdirRequest.getAttrMap());
         request.sendResponse();
+    }
+
+    /**
+     * <p>Description: 客户端的创建文件请求</p>
+     * <p>Description: Create file request from client </p>
+     *
+     * @param request NetWork Request 网络请求
+     * @throws InvalidProtocolBufferException protobuf error
+     */
+    private void clientCreateFileHandel(NetRequest request)  throws InvalidProtocolBufferException{
+        NetPacket packet = request.getRequest();
+        CreateFileRequest createFileRequest = CreateFileRequest.parseFrom(packet.getBody());
+        String filename =  "/susu" + createFileRequest.getFilename();
+        Map<String, String> attrMap = new HashMap<>(createFileRequest.getAttrMap());
+        String replicaNumStr = attrMap.get(Constants.ATTR_REPLICA_NUM);
+        attrMap.put(Constants.ATTR_FILE_SIZE, String.valueOf(createFileRequest.getFileSize()));
+
+        FileNode node = trackerFileService.listFiles(filename);
+        if (node != null) {
+            throw new RuntimeException("文件已存在：" + createFileRequest.getFilename());
+        }
+        List<ClientInfo> clientInfoList = clientManager.selectAllClientsByFile(StringUtils.isNotBlank(replicaNumStr) ? Integer.parseInt(replicaNumStr) : 1, filename);
+        List<StorageNode> storages = new ArrayList<>();
+        for (ClientInfo client : clientInfoList) {
+            StorageNode storage = StorageNode.newBuilder()
+                    .setHostname(client.getHostname())
+                    .setPort(client.getPort())
+                    .build();
+            storages.add(storage);
+        }
+        trackerFileService.createFile(filename,attrMap);
+        log.info("创建文件：[ filename={},storages={}]",filename,storages);
+        CreateFileResponse response = CreateFileResponse.newBuilder()
+                .setFilename(filename)
+                .addAllStorages(storages)
+                .build();
+        request.sendResponse(response);
     }
 }

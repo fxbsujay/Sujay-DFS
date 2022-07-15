@@ -57,6 +57,11 @@ public class ClientInfo {
     private long latestHeartbeatTime;
 
     /**
+     * 当前存储量
+     */
+    private volatile long storedSize;
+
+    /**
      * 删除副本的任务
      */
     private ConcurrentLinkedQueue<RemoveReplicaTask> removeReplicaTasks = new ConcurrentLinkedQueue<>();
@@ -66,6 +71,7 @@ public class ClientInfo {
         this.hostname = hostname;
         this.port = port;
         this.latestHeartbeatTime = System.currentTimeMillis();
+        this.storedSize = 0L;
         this.status = STATUS_INIT;
     }
 

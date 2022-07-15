@@ -5,7 +5,7 @@ package com.susu.common.proto;
 option java_multiple_files = true;
 option java_package = "com.susu.common.model";
 
-import "common.proto";
+import "storage.proto";
 /**
  *  创建文件夹
  */
@@ -24,6 +24,6 @@ message CreateFileRequest {
 }
 
 message CreateFileResponse {
-  repeated DataNode dataNodes = 1;
-  string realFileName = 2;
+  repeated StorageNode storages = 1;
+  string filename = 2;
 }

@@ -35,3 +35,7 @@ message ImageLog {
   repeated ImageLog children = 3;
   map<string, string> attr = 4;
 }
+
+message GetFileRequest {
+  string filename = 1;
+}

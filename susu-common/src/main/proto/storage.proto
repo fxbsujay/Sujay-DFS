@@ -6,6 +6,15 @@ option java_multiple_files = true;
 option java_package = "com.susu.common.model";
 
 /**
+ *  节点信息
+ */
+message StorageNode {
+  string hostname = 1;
+  int32 port = 2;
+}
+
+
+/**
 *   客户端注册信息
  */
 message RegisterRequest {
