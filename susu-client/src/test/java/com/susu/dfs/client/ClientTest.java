@@ -10,7 +10,7 @@ import java.util.Map;
 
 public class ClientTest {
 
-    private static final String UPLOAD_LOCAL_PATH = System.getProperty("user.dir") + "/../img/susu.jpg";
+    private static final String UPLOAD_LOCAL_PATH = System.getProperty("user.dir") + "/img/susu.jpg";
     public static void main(String[] args) {
         NodeConfig nodeConfig = new NodeConfig("E:\\fxbsuajy@gmail.com\\Sujay-DFS\\doc\\client_config.json");
         ClientApplication application = new ClientApplication(nodeConfig);

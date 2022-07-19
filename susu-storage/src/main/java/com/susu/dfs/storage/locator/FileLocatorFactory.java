@@ -8,13 +8,13 @@ package com.susu.dfs.storage.locator;
  */
 public class FileLocatorFactory {
 
-    private static final String SIMPLE = "simple";
+    public static final String SIMPLE = "simple";
 
-    private static final String MD5 = "md5";
+    public static final String MD5 = "md5";
 
-    private static final String SHA1 = "sha1";
+    public static final String SHA1 = "sha1";
 
-    private static final String AES = "aes";
+    public static final String AES = "aes";
 
     /**
      * <p>Description: 获取寻址器</p>

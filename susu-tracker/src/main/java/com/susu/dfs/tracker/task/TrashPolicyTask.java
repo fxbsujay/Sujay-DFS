@@ -2,7 +2,7 @@ package com.susu.dfs.tracker.task;
 
 import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.eum.FileNodeType;
-import com.susu.dfs.common.file.FileInfo;
+import com.susu.dfs.common.FileInfo;
 import com.susu.dfs.common.file.FileNode;
 import com.susu.dfs.tracker.client.ClientManager;
 import com.susu.dfs.tracker.service.TrackerFileService;

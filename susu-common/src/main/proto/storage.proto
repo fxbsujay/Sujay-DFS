@@ -38,3 +38,12 @@ message HeartbeatRequest {
 message HeartbeatResponse {
   bool isSuccess = 1;
 }
+
+/**
+ *  Client 上传文件完成，向Tracker上报信息
+ */
+message UploadCompletionRequest {
+  int64 clientId = 1;
+  string filename = 2;
+  int64 fileSize = 3;
+}

@@ -1,0 +1,5 @@
+{
+  "name": "Netty-Tracker",
+  "port": 8090,
+  "isMaster": true
+}

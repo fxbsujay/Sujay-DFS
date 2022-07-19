@@ -4,6 +4,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.susu.common.model.HeartbeatResponse;
 import com.susu.common.model.RegisterRequest;
 import com.susu.common.model.RegisterResponse;
+import com.susu.common.model.UploadCompletionRequest;
 import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.Node;
 import com.susu.dfs.common.eum.PacketType;
@@ -12,6 +13,7 @@ import com.susu.dfs.common.netty.msg.NetPacket;
 import com.susu.dfs.common.netty.msg.NetRequest;
 import com.susu.dfs.common.task.HeartbeatTask;
 import com.susu.dfs.common.task.TaskScheduler;
+import com.susu.dfs.storage.server.StorageManager;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.concurrent.ScheduledFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -37,10 +39,13 @@ public class TrackerClient {
      */
     private ScheduledFuture<?> scheduledFuture;
 
-    public TrackerClient(Node node, TaskScheduler taskScheduler) {
+    private StorageManager storageManager;
+
+    public TrackerClient(Node node, TaskScheduler taskScheduler, StorageManager storageManager) {
         this.node = node;
         this.netClient = new NetClient(node.getName(), taskScheduler);
         this.taskScheduler = taskScheduler;
+        this.storageManager = storageManager;
     }
 
     /**
@@ -62,7 +67,7 @@ public class TrackerClient {
         this.netClient.addClientFailListener(() -> {
             log.info("Tracker Server Down !!");
         });
-        this.netClient.start(node.getHost(),node.getPort());
+        this.netClient.start(node.getTrackerHost(),node.getTrackerPort());
     }
 
     /**
@@ -73,7 +78,7 @@ public class TrackerClient {
                 .setName(node.getName())
                 .setHostname(node.getHost())
                 .setPort(node.getPort()).build();
-        NetPacket packet = NetPacket.buildPacket(request.toByteArray(),PacketType.CLIENT_REGISTER);
+        NetPacket packet = NetPacket.buildPacket(request.toByteArray(),PacketType.STORAGE_REGISTER);
         log.info("Tracker Client Register : {}",request.getHostname());
         netClient.send(packet);
     }
@@ -96,11 +101,11 @@ public class TrackerClient {
     private void onTrackerResponse(NetRequest request) throws Exception {
         PacketType packetType = PacketType.getEnum(request.getRequest().getType());
         switch (packetType) {
-            case CLIENT_REGISTER:
-                clientRegisterResponse(request);
+            case STORAGE_REGISTER:
+                storageRegisterResponse(request);
                 break;
-            case CLIENT_HEART_BEAT:
-                clientHeartbeatResponse(request);
+            case STORAGE_HEART_BEAT:
+                storageHeartbeatResponse(request);
                 break;
             default:
                 break;
@@ -113,7 +118,7 @@ public class TrackerClient {
      *
      * @param request NetWork Request 网络请求
      */
-    private void clientRegisterResponse(NetRequest request) throws InvalidProtocolBufferException {
+    private void storageRegisterResponse(NetRequest request) throws InvalidProtocolBufferException {
         ChannelHandlerContext ctx = request.getCtx();
         RegisterResponse response = RegisterResponse.parseFrom(request.getRequest().getBody());
         node.setId(response.getClientId());
@@ -130,7 +135,7 @@ public class TrackerClient {
      *
      * @param request NetWork Request 网络请求
      */
-    private void clientHeartbeatResponse(NetRequest request) throws Exception {
+    private void storageHeartbeatResponse(NetRequest request) throws Exception {
         HeartbeatResponse response = HeartbeatResponse.parseFrom(request.getRequest().getBody());
         if (!response.getIsSuccess()) {
             log.warn("Client heartbeat fail!! ReRegister");
@@ -138,5 +143,22 @@ public class TrackerClient {
         }
     }
 
+
+    /**
+     * <p>Description: 客户端上传文件完成，Storage将信息上报给 Tracker</p>
+     * <p>Description: Processing messages returned from heartbeat</p>
+     *
+     * @param filename 文件名称
+     * @param fileSize 文件大小
+     */
+    public void clientUploadCompletionRequest(String filename, long fileSize) throws InterruptedException {
+        UploadCompletionRequest uploadCompletionRequest = UploadCompletionRequest.newBuilder()
+                .setClientId(node.getId())
+                .setFilename(filename)
+                .setFileSize(fileSize)
+                .build();
+        NetPacket packet = NetPacket.buildPacket(uploadCompletionRequest.toByteArray(), PacketType.UPLOAD_FILE_COMPLETE);
+        netClient.send(packet);
+    }
 
 }

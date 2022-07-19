@@ -35,5 +35,15 @@ public class Node {
      */
     private Boolean isMaster;
 
+    /**
+     * 调度器端口
+     */
+    private Integer trackerPort;
+
+    /**
+     * 调度器地址
+     */
+    private String trackerHost;
+
 
 }

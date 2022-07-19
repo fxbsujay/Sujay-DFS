@@ -39,6 +39,7 @@ public class TrackerFileService extends AbstractFileService {
         this.doubleBuffer = new DoubleBuffer(baseDir);
         TrashPolicyTask trashPolicyTask = new TrashPolicyTask(this,clientManager);
         taskScheduler.schedule("定时扫描物理删除文件",trashPolicyTask, Constants.TRASH_CLEAR_INTERVAL, Constants.TRASH_CLEAR_INTERVAL, TimeUnit.MILLISECONDS);
+        clientManager.setTrackerFileService(this);
     }
 
     @Override

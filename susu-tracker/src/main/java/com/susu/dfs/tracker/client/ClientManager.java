@@ -2,11 +2,14 @@ package com.susu.dfs.tracker.client;
 
 import com.susu.common.model.RegisterRequest;
 import com.susu.dfs.common.Constants;
-import com.susu.dfs.common.file.FileInfo;
+import com.susu.dfs.common.FileInfo;
+import com.susu.dfs.common.file.FileNode;
 import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.common.utils.DateUtils;
 import com.susu.dfs.common.utils.StringUtils;
 import com.susu.dfs.tracker.rebalance.RemoveReplicaTask;
+import com.susu.dfs.tracker.service.TrackerFileService;
+import jdk.internal.org.objectweb.asm.tree.FieldNode;
 import lombok.extern.slf4j.Slf4j;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,6 +52,8 @@ public class ClientManager {
      */
     private final Map<Long, Map<String, FileInfo>> clientOfFiles = new ConcurrentHashMap<>();
 
+    private TrackerFileService trackerFileService;
+
     private final ReentrantReadWriteLock replicaLock = new ReentrantReadWriteLock();
 
 
@@ -56,6 +61,11 @@ public class ClientManager {
         taskScheduler.schedule("Client-Check", new DataNodeAliveMonitor(),
                 Constants.HEARTBEAT_CHECK_INTERVAL, Constants.HEARTBEAT_CHECK_INTERVAL, TimeUnit.MILLISECONDS);
     }
+
+    public void setTrackerFileService(TrackerFileService trackerFileService) {
+        this.trackerFileService = trackerFileService;
+    }
+
     /**
      * <p>Description: 客户端注册</p>
      * <p>Description: Client Register</p>
@@ -261,6 +271,46 @@ public class ClientManager {
         }finally {
             replicaLock.writeLock().unlock();
         }
+    }
+
+    public void addFile(FileInfo file) {
+        replicaLock.writeLock().lock();
+        try {
+            ClientInfo clientInfo = clients.get(file.getClientId());
+            List<ClientInfo> clientInfoList = fileOfClients.computeIfAbsent(file.getFileName(), k -> new ArrayList<>());
+            FileNode fileNode = isInTrash(file.getFileName());
+            if (fileNode == null) {
+                log.warn("收到Storage上报信息，但未查询到该文件,下令删除文件: [hostname={}, filename={}]", file.getClientId(), file.getFileName());
+                RemoveReplicaTask task = new RemoveReplicaTask(file.getClientId(),file.getFileName());
+                clientInfo.addRemoveReplicaTask(task);
+                return;
+            }
+
+
+        }finally {
+            replicaLock.writeLock().unlock();
+        }
+    }
+
+    /**
+     * <p>Description: 文件是否在目录树种或者垃圾箱中</p>
+     *
+     * @param fileName  文件名
+     * @return          文件节点
+     */
+    private FileNode isInTrash(String fileName) {
+        FileNode node = trackerFileService.listFiles(fileName);
+        if (node != null) {
+            return node;
+        }
+        String[] split = fileName.split("/");
+        String[] newSplit = new String[split.length + 1];
+        newSplit[0] = split[0];
+        newSplit[1] = split[1];
+        newSplit[2] = Constants.TRASH_DIR;
+        System.arraycopy(split, 2, newSplit, 3, split.length - 2);
+        String trashPath = String.join("/", newSplit);
+        return trackerFileService.listFiles(trashPath);
     }
 
 

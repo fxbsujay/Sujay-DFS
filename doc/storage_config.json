@@ -1,0 +1,7 @@
+{
+  "name": "Netty-Storage",
+  "port": 8091,
+  "host": "localhost",
+  "trackerPort": 8090,
+  "trackerHost": "localhost"
+}

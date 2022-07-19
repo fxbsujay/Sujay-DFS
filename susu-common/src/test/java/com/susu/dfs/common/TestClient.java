@@ -56,7 +56,7 @@ public class TestClient {
                         throw new RuntimeException(e);
                     }
                     byte[] bytes = bos.toByteArray();
-                    netClient.send(NetPacket.buildPacket(bytes, PacketType.CLIENT_REGISTER));
+                    netClient.send(NetPacket.buildPacket(bytes, PacketType.STORAGE_REGISTER));
                 }
             }else {
                 log.info("没有连接成功");

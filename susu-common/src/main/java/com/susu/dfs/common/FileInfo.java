@@ -1,4 +1,4 @@
-package com.susu.dfs.common.file;
+package com.susu.dfs.common;
 
 import lombok.Data;
 
@@ -11,7 +11,7 @@ import lombok.Data;
 @Data
 public class FileInfo {
 
-    private String hostname;
+    private Long clientId;
 
     private String fileName;
 
@@ -20,8 +20,8 @@ public class FileInfo {
     public FileInfo() {
     }
 
-    public FileInfo(String hostname, String fileName, long fileSize) {
-        this.hostname = hostname;
+    public FileInfo(Long clientId, String fileName, long fileSize) {
+        this.clientId = clientId;
         this.fileName = fileName;
         this.fileSize = fileSize;
     }

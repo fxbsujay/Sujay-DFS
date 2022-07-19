@@ -28,7 +28,6 @@ public abstract class AbstractFileLocator implements FileLocator{
         this.encodeFileName(NetUtils.getHostName(NetUtils.LINUX));
     }
 
-
     @Override
     public String locate(String filename) {
         String afterTransferPath = encodeFileName(filename);

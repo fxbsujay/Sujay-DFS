@@ -1,6 +1,0 @@
-{
-  "name": "Netty-Client",
-  "port": 8090,
-  "host": "localhost",
-  "isMaster": true
-}

@@ -3,6 +3,7 @@ package com.susu.dfs.tracker.server;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.susu.common.model.*;
 import com.susu.dfs.common.Constants;
+import com.susu.dfs.common.FileInfo;
 import com.susu.dfs.common.file.FileNode;
 import com.susu.dfs.common.netty.msg.NetRequest;
 import com.susu.dfs.common.task.TaskScheduler;
@@ -16,6 +17,8 @@ import com.susu.dfs.common.eum.PacketType;
 import com.susu.dfs.tracker.service.TrackerFileService;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
+
+import java.io.File;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -56,10 +59,10 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
         PacketType packetType = PacketType.getEnum(packet.getType());
         NetRequest request = new NetRequest(ctx, packet);
         switch (packetType) {
-            case CLIENT_REGISTER:
+            case STORAGE_REGISTER:
                 storageRegisterHandle(request);
                 break;
-            case CLIENT_HEART_BEAT:
+            case STORAGE_HEART_BEAT:
                 storageHeartbeatHandel(request);
                 break;
             case MKDIR:
@@ -67,6 +70,12 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
                 break;
             case CREATE_FILE:
                 clientCreateFileHandel(request);
+                break;
+            case UPLOAD_FILE_COMPLETE:
+                clientUploadFileComplete(request);
+                break;
+            case UPLOAD_FILE_CONFIRM:
+                clientUploadFileConfirm(request);
                 break;
             default:
                 break;
@@ -139,7 +148,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      * @param request NetWork Request 网络请求
      * @throws InvalidProtocolBufferException protobuf error
      */
-    private void clientCreateFileHandel(NetRequest request)  throws InvalidProtocolBufferException{
+    private void clientCreateFileHandel(NetRequest request) throws InvalidProtocolBufferException{
         NetPacket packet = request.getRequest();
         CreateFileRequest createFileRequest = CreateFileRequest.parseFrom(packet.getBody());
         String filename =  "/susu" + createFileRequest.getFilename();
@@ -167,5 +176,33 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
                 .addAllStorages(storages)
                 .build();
         request.sendResponse(response);
+    }
+
+    /**
+     * <p>Description: 客户端的上传文件的确认请求</p>
+     * <p>Description: Confirmation request for uploading files from the client </p>
+     *
+     * @param request NetWork Request 网络请求
+     * @throws InvalidProtocolBufferException protobuf error
+     */
+    private void clientUploadFileConfirm(NetRequest request) throws InvalidProtocolBufferException{
+        NetPacket packet = request.getRequest();
+        CreateFileRequest createFileRequest = CreateFileRequest.parseFrom(packet.getBody());
+        String realFilename =  "/susu"  + createFileRequest.getFilename();
+
+    }
+
+    /**
+     * <p>Description: Storage 接收文件完成后上报给Tracker的请求</p>
+     *
+     * @param request NetWork Request 网络请求
+     * @throws InvalidProtocolBufferException protobuf error
+     */
+    private void clientUploadFileComplete(NetRequest request) throws InvalidProtocolBufferException{
+        NetPacket packet = request.getRequest();
+        UploadCompletionRequest uploadCompletionRequest = UploadCompletionRequest.parseFrom(packet.getBody());
+        log.info("收到增量上报的存储信息：[clientId={}, filename={}]", uploadCompletionRequest.getClientId(), uploadCompletionRequest.getFilename());
+        FileInfo fileInfo = new FileInfo(uploadCompletionRequest.getClientId(), uploadCompletionRequest.getFilename(), uploadCompletionRequest.getFileSize());
+
     }
 }

@@ -96,8 +96,37 @@ public class ClientFileServiceImpl implements ClientFileService {
         CreateFileResponse response = CreateFileResponse.parseFrom(resp.getBody());
         List<StorageNode> storagesList = response.getStoragesList();
         log.info("===============storagesList={}",storagesList);
-
-
+        OnMultiFileProgressListener onMultiFileProgressListener = new OnMultiFileProgressListener(listener,response.getStoragesList().size());
+        for (int i = 0; i < response.getStoragesList().size(); i++) {
+            StorageNode storage = response.getStorages(i);
+            String hostname = storage.getHostname();
+            int port = storage.getPort();
+            NetClient netClient = new NetClient("SUSU-Client-" + hostname, taskScheduler);
+            FileTransportClient fileTransportClient = new FileTransportClient(netClient);
+            netClient.start(hostname, port);
+            netClient.ensureStart();
+            log.debug("开始上传文件到：[node={}:{}, filename={}]", hostname, port, filename);
+            fileTransportClient.sendFile(response.getFilename(), file.getAbsolutePath(), onMultiFileProgressListener, true);
+            fileTransportClient.shutdown();
+            log.debug("完成上传文件到：[node={}:{}, filename={}]", hostname, port, filename);
+        }
+        /*
+         * 文件上传是上传到DataNode节点，客户端上传到DataNode之后，DataNode再上报给NameNode节点中间有一个时间差
+         * 为了达到强一致性，保证文件上传后，立马是可以读取文件的，需要等待NameNode收到DataNode上报的信息，才认为是上传成功的。
+         * 但是这样一来会降低上传文件的吞吐量。 因为会占用NameNode一个线程池的线程在哪里hang住等待3秒，
+         * 有可能让DataNode上报的请求在队列里面一直等待，最终出现超时错误。这里有两种方案可以选择：
+         *
+         * 1、 客户端可以配置让NameNode确认是否等待，如果开启确认等待，则吞吐量会下降，但是保证强一致性。如果不开启确认等待，则吞吐量比较高，
+         *     但是一致性不能保证，就是说上传完毕后有可能立即读文件读不到
+         *
+         * 2、 在NameNode那边等待的过程，不要直接在线程里面等待，而是建立一个任务Task，保存在集合中，后台起一个线程，就无限循环的去判断
+         *     这个Task是否完成，如果完成才写回响应。这种方式可以保证强一致性，并且不会阻塞线程池中的线程。
+         *
+         * 目前我们先采用第一种方式实现，第二种后面可以考虑优化实现。
+         *
+         */
+        NetPacket confirmRequest = NetPacket.buildPacket(request.toByteArray(), PacketType.UPLOAD_FILE_CONFIRM);
+        trackerClient.authSendSync(confirmRequest);
     }
 
     @Override
