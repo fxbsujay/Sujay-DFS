@@ -203,6 +203,9 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
         UploadCompletionRequest uploadCompletionRequest = UploadCompletionRequest.parseFrom(packet.getBody());
         log.info("收到增量上报的存储信息：[clientId={}, filename={}]", uploadCompletionRequest.getClientId(), uploadCompletionRequest.getFilename());
         FileInfo fileInfo = new FileInfo(uploadCompletionRequest.getClientId(), uploadCompletionRequest.getFilename(), uploadCompletionRequest.getFileSize());
-
+        clientManager.addFile(fileInfo);
+        ClientInfo client = clientManager.getClientById(uploadCompletionRequest.getClientId());
+        client.addStoredDataSize(uploadCompletionRequest.getFileSize());
+        request.sendResponse();
     }
 }

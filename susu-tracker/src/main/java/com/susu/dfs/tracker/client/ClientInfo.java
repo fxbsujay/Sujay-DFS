@@ -61,6 +61,8 @@ public class ClientInfo {
      */
     private volatile long storedSize;
 
+    private volatile long freeSpace;
+
     /**
      * 删除副本的任务
      */
@@ -86,6 +88,18 @@ public class ClientInfo {
             result.add(task);
         }
         return result;
+    }
+
+    /**
+     * 增加存储信息
+     *
+     * @param fileSize 文件大小
+     */
+    public void addStoredDataSize(long fileSize) {
+        synchronized (this) {
+            this.storedSize += fileSize;
+            this.freeSpace -= fileSize;
+        }
     }
 
     public void addRemoveReplicaTask(RemoveReplicaTask task) {
