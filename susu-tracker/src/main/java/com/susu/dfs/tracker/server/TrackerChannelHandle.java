@@ -185,11 +185,13 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      * @param request NetWork Request 网络请求
      * @throws InvalidProtocolBufferException protobuf error
      */
-    private void clientUploadFileConfirm(NetRequest request) throws InvalidProtocolBufferException{
+    private void clientUploadFileConfirm(NetRequest request) throws InvalidProtocolBufferException, InterruptedException {
         NetPacket packet = request.getRequest();
         CreateFileRequest createFileRequest = CreateFileRequest.parseFrom(packet.getBody());
-        String realFilename =  "/susu"  + createFileRequest.getFilename();
-
+        String filename =  "/susu"  + createFileRequest.getFilename();
+        clientManager.waitUploadFile(filename,3000);
+        CreateFileResponse response = CreateFileResponse.newBuilder().build();
+        request.sendResponse(response);
     }
 
     /**

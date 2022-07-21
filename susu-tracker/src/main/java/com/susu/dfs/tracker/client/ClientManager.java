@@ -1,5 +1,6 @@
 package com.susu.dfs.tracker.client;
 
+import com.susu.common.model.Client;
 import com.susu.common.model.RegisterRequest;
 import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.FileInfo;
@@ -331,6 +332,64 @@ public class ClientManager {
         return trackerFileService.listFiles(trashPath);
     }
 
+    /**
+     * <p>Description: 等待Storage上报Client上传Storage的文件</p>
+     *
+     * @param filename  文件名
+     * @param timeout   超时等待时间
+     */
+    public void waitUploadFile(String filename, long timeout) throws InterruptedException {
+        long remainTimeout = timeout;
+        synchronized (this) {
+            while (chooseReadableClientByFileName(filename) == null) {
+                if (remainTimeout < 0) {
+                    throw new RuntimeException("Timeout waiting for file upload confirmation ！！" + filename);
+                }
+                wait(10);
+                remainTimeout -= 10;
+            }
+        }
+    }
+
+    /**
+     * <p>Description: 根据文件名查询所在的Storage客户端，删除不可用的客户端</p>
+     *
+     * @param filename          文件名
+     * @return                  随机获取一个可以读该文件的客户端
+     */
+    public ClientInfo chooseReadableClientByFileName(String filename) {
+        return chooseReadableClientByFileName(filename, null);
+    }
+
+
+    /**
+     * <p>Description: 根据文件名查询所在的Storage客户端，删除不可用的客户端</p>
+     *
+     * @param filename          文件名
+     * @param toRemoveClient    客户端
+     * @return                  随机获取一个可以读该文件的客户端
+     */
+    public ClientInfo chooseReadableClientByFileName(String filename, ClientInfo toRemoveClient) {
+        replicaLock.readLock().lock();
+        try {
+            List<ClientInfo> clientInfoList = fileOfClients.get(filename);
+            if (clientInfoList == null) {
+                return null;
+            }
+            if (toRemoveClient != null) {
+                clientInfoList.remove(toRemoveClient);
+            }
+            if (clientInfoList.isEmpty()) {
+                return null;
+            }
+            int size = clientInfoList.size();
+            Random random = new Random();
+            int i = random.nextInt(size);
+            return clientInfoList.get(i);
+        } finally {
+            replicaLock.readLock().unlock();
+        }
+    }
 
 
 }

@@ -4,7 +4,10 @@ import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.netty.msg.NetPacketDecoder;
 import com.susu.dfs.common.netty.msg.NetPacketEncoder;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
+import io.netty.handler.codec.FixedLengthFrameDecoder;
+import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import java.util.LinkedList;
@@ -15,6 +18,7 @@ import java.util.List;
  * @author sujay
  * @version 16:02 2022/7/1
  */
+@ChannelHandler.Sharable
 public class BaseChannelHandler extends ChannelInitializer<Channel> {
 
     /**
@@ -25,7 +29,6 @@ public class BaseChannelHandler extends ChannelInitializer<Channel> {
     @Override
     protected void initChannel(Channel ch) {
         ch.pipeline().addLast(new NetPacketDecoder(Constants.MAX_BYTES));
-        ch.pipeline().addLast(new LoggingHandler(LogLevel.DEBUG));
         ch.pipeline().addLast(new NetPacketEncoder());
         for (AbstractChannelHandler handler : handlerList) {
             ch.pipeline().addLast("myHandle",handler);

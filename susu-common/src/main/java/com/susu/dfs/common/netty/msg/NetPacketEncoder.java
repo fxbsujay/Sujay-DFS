@@ -26,6 +26,7 @@ public class NetPacketEncoder extends MessageToByteEncoder<NetPacket> {
 
     @Override
     protected void encode(ChannelHandlerContext channelHandlerContext, NetPacket packet, ByteBuf out) throws Exception {
+
         out.writeBytes(Constants.SYS_AUTHOR.getBytes(StandardCharsets.UTF_8));
         out.writeByte(Constants.SYS_VERSION);
         packet.write(out);

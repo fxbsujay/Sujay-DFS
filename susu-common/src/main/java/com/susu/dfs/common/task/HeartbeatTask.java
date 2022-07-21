@@ -30,7 +30,7 @@ public class HeartbeatTask implements Runnable {
                 .setClientId(node.getId())
                 .build();
         // 发送心跳请求
-        NetPacket nettyPacket = NetPacket.buildPacket(request.toByteArray(), PacketType.CLIENT_HEART_BEAT);
+        NetPacket nettyPacket = NetPacket.buildPacket(request.toByteArray(), PacketType.STORAGE_HEART_BEAT);
         ctx.writeAndFlush(nettyPacket);
     }
 }
