@@ -1,6 +1,6 @@
 package com.susu.dfs.tracker.cluster;
 
-import com.susu.dfs.common.ClusterInfo;
+import com.susu.dfs.common.TrackerInfo;
 
 /**
  * @author sujay
@@ -9,7 +9,7 @@ import com.susu.dfs.common.ClusterInfo;
  */
 public abstract class AbstractTrackerCluster implements TrackerCluster{
 
-    private ClusterInfo cluster;
+    private TrackerInfo tracker;
 
     /**
      * 当前节点下标
@@ -21,10 +21,10 @@ public abstract class AbstractTrackerCluster implements TrackerCluster{
      */
     private int targetIndex;
 
-    public AbstractTrackerCluster(int currentIndex, int targetIndex, ClusterInfo cluster) {
+    public AbstractTrackerCluster(int currentIndex, int targetIndex, TrackerInfo tracker) {
         this.currentIndex = currentIndex;
         this.targetIndex = targetIndex;
-        this.cluster = cluster;
+        this.tracker = tracker;
     }
 
     @Override
@@ -33,7 +33,7 @@ public abstract class AbstractTrackerCluster implements TrackerCluster{
     }
 
     @Override
-    public ClusterInfo getServer() {
-        return cluster;
+    public TrackerInfo getServer() {
+        return tracker;
     }
 }

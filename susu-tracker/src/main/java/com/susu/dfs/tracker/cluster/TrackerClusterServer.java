@@ -1,6 +1,6 @@
 package com.susu.dfs.tracker.cluster;
 
-import com.susu.dfs.common.ClusterInfo;
+import com.susu.dfs.common.TrackerInfo;
 import com.susu.dfs.common.netty.msg.NetPacket;
 import com.susu.dfs.common.netty.msg.NetSyncRequest;
 import com.susu.dfs.common.task.TaskScheduler;
@@ -21,8 +21,8 @@ public class TrackerClusterServer extends AbstractTrackerCluster{
 
     private final NetSyncRequest syncRequest;
 
-    public TrackerClusterServer(ClusterInfo cluster, SocketChannel socketChannel, int currentIndex, int targetIndex, TaskScheduler taskScheduler) {
-        super(currentIndex, targetIndex, cluster);
+    public TrackerClusterServer(TrackerInfo tracker, SocketChannel socketChannel, int currentIndex, int targetIndex, TaskScheduler taskScheduler) {
+        super(currentIndex, targetIndex, tracker);
         this.name = "Tracker-Cluster-" + currentIndex + "-" + targetIndex;
         this.syncRequest = new NetSyncRequest(taskScheduler);
         this.setSocketChannel(socketChannel);

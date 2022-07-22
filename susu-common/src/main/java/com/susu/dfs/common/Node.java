@@ -34,7 +34,7 @@ public class Node {
     /**
      * 是否为主节点
      */
-    private boolean isMaster;
+    private Boolean isMaster;
 
     /**
      * 调度器端口
@@ -49,7 +49,7 @@ public class Node {
     /**
      * 是否为集群模式
      */
-    private boolean isCluster;
+    private Boolean isCluster;
 
     /**
      * 当前节点所在集群下标

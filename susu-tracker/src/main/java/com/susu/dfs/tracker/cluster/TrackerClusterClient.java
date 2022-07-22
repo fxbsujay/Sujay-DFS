@@ -1,7 +1,7 @@
 package com.susu.dfs.tracker.cluster;
 
 
-import com.susu.dfs.common.ClusterInfo;
+import com.susu.dfs.common.TrackerInfo;
 import com.susu.dfs.common.netty.NetClient;
 import com.susu.dfs.common.netty.msg.NetPacket;
 
@@ -14,8 +14,8 @@ public class TrackerClusterClient extends AbstractTrackerCluster{
 
     private NetClient netClient;
 
-    public TrackerClusterClient(NetClient netClient, int currentIndex, int targetIndex, ClusterInfo cluster) {
-        super(currentIndex, targetIndex, cluster);
+    public TrackerClusterClient(NetClient netClient, int currentIndex, int targetIndex, TrackerInfo tracker) {
+        super(currentIndex, targetIndex, tracker);
         this.netClient = netClient;
     }
 

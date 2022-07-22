@@ -24,8 +24,7 @@ public enum PacketType {
     UPLOAD_FILE_CONFIRM(6, "Client往Storage上传完文件之后，再发请求往Tracker确认"),
     UPLOAD_FILE_COMPLETE(7, "Storage保存完文件之后，再发请求往Tracker上报信息"),
     GET_FILE(8, "Client从Storage下载文件，或Storage之间相互同步副本请求"),
-
-    TEST(9, "测试请求"),
+    TRACKER_SERVER_AWARE(9, "Tracker 服务端 相互之间发起连接时的感知请求"),
     ;
 
     public int value;

@@ -1,6 +1,6 @@
 package com.susu.dfs.tracker.cluster;
 
-import com.susu.dfs.common.ClusterInfo;
+import com.susu.dfs.common.TrackerInfo;
 import com.susu.dfs.common.netty.msg.NetPacket;
 
 /**
@@ -11,7 +11,7 @@ import com.susu.dfs.common.netty.msg.NetPacket;
 public interface TrackerCluster {
 
     /**
-     * 往 PeerNameNode发送网络包, 如果连接断开了，会同步等待连接重新建立
+     * <p>Description: 往 Tracker Cluster 发送网络包, 如果连接断开了，会同步等待连接重新建立</p>
      *
      * @param packet 网络包
      * @throws InterruptedException 中断异常
@@ -19,7 +19,7 @@ public interface TrackerCluster {
     void send(NetPacket packet) throws InterruptedException;
 
     /**
-     * 往 PeerNameNode发送网络包, 同步发送
+     * <p>Description: 往 Tracker Cluster 发送网络包, 同步发送</p>
      *
      * @param packet 网络包
      * @return 响应
@@ -34,22 +34,16 @@ public interface TrackerCluster {
 
     /**
      * 获取节点下标
-     *
-     * @return index
      */
     int getTargetIndex();
 
     /**
      * 获取服务连接的IP和端口号
-     *
-     * @return IP 和端口号
      */
-    ClusterInfo getServer();
+    TrackerInfo getServer();
 
     /**
      * 是否连接上
-     *
-     * @return 是否连接上
      */
     boolean isConnected();
 

@@ -4,7 +4,9 @@ import com.susu.dfs.common.Node;
 import com.susu.dfs.common.config.NodeConfig;
 import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.tracker.client.ClientManager;
+import com.susu.dfs.tracker.server.ServerManager;
 import com.susu.dfs.tracker.server.TrackerServer;
+import com.susu.dfs.tracker.service.TrackerClusterService;
 import com.susu.dfs.tracker.service.TrackerFileService;
 import lombok.extern.slf4j.Slf4j;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -22,9 +24,13 @@ public class TrackerApplication {
 
     private final ClientManager clientManager;
 
+    private final ServerManager serverManager;
+
     private final TrackerServer trackerServer;
 
     private final TrackerFileService fileService;
+
+    private final TrackerClusterService clusterService;
 
     private final AtomicBoolean started = new AtomicBoolean(false);
 
@@ -44,6 +50,7 @@ public class TrackerApplication {
             Runtime.getRuntime().addShutdownHook(new Thread(application::shutdown));
             application.start();
         } catch (Exception e) {
+            e.printStackTrace();
             log.info("Tracker Application Start Error!!");
             System.exit(1);
         }
@@ -54,6 +61,8 @@ public class TrackerApplication {
         this.taskScheduler = new TaskScheduler("SUSU-DFS-TRACKER",8,false);
         this.clientManager = new ClientManager(taskScheduler);
         this.fileService = new TrackerFileService(taskScheduler,clientManager);
+        this.clusterService = new TrackerClusterService(node,nodeConfig.getTrackers(),taskScheduler);
+        this.serverManager = new ServerManager(node,nodeConfig.getTrackers(),clusterService);
         this.trackerServer = new TrackerServer(node,taskScheduler,clientManager,fileService);
     }
 
@@ -65,6 +74,7 @@ public class TrackerApplication {
     public void start() throws Exception {
         if (started.compareAndSet(false, true)) {
             this.fileService.start();
+            this.clusterService.start();
             this.trackerServer.start();
         }
     }
@@ -75,8 +85,9 @@ public class TrackerApplication {
     public void shutdown() {
         if (started.compareAndSet(true, false)) {
             this.taskScheduler.shutdown();
-            this.trackerServer.shutdown();
             this.fileService.shutdown();
+            this.clusterService.shutdown();
+            this.trackerServer.shutdown();
         }
     }
 }

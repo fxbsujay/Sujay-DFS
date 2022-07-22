@@ -9,6 +9,18 @@ option java_package = "com.susu.common.model";
  *  节点信息
  */
 message TrackerNode {
-  string hostname = 1;
-  int32 port = 2;
+  int32 index = 1;
+  string hostname = 2;
+  int32 port = 3;
+}
+
+/**
+ *  集群之间互相传达的自身信息
+ */
+message TrackerAwareRequest {
+  int32 index = 1;
+  int32 trackerSize = 2;
+  TrackerNode node = 3;
+  repeated TrackerNode nodes = 4;
+  bool isClient = 5;
 }
