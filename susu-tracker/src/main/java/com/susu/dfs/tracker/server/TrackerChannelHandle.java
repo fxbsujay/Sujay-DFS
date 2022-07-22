@@ -14,11 +14,10 @@ import com.susu.dfs.tracker.client.ClientManager;
 import com.susu.dfs.common.netty.AbstractChannelHandler;
 import com.susu.dfs.common.netty.msg.NetPacket;
 import com.susu.dfs.common.eum.PacketType;
+import com.susu.dfs.tracker.service.TrackerClusterService;
 import com.susu.dfs.tracker.service.TrackerFileService;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
-
-import java.io.File;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -40,18 +39,27 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      */
     private final ClientManager clientManager;
 
+    private final ServerManager serverManager;
+
     private final TrackerFileService trackerFileService;
+
+    private final TrackerClusterService trackerClusterService;
 
     /**
      * 给注册进来的客户端分配id
      */
     private final SnowFlakeUtils snowFlakeUtils = new SnowFlakeUtils(1,1);
 
-    public TrackerChannelHandle(TaskScheduler taskScheduler, ClientManager clientManager, TrackerFileService trackerFileService) {
+    public TrackerChannelHandle(TaskScheduler taskScheduler,
+                                ClientManager clientManager, ServerManager serverManager,
+                                TrackerFileService trackerFileService, TrackerClusterService trackerClusterService) {
         this.executor = new ThreadPoolExecutor(8,20,
                 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(8));
         this.clientManager = clientManager;
+        this.serverManager = serverManager;
         this.trackerFileService = trackerFileService;
+        this.trackerClusterService = trackerClusterService;
+
     }
 
     @Override

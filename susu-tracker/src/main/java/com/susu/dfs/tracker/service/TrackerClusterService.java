@@ -53,6 +53,7 @@ public class TrackerClusterService {
      * 启动服务，连接Tracker
      */
     public void start() {
+        log.info("Tracker is cluster：[mode={}]", node.getIsCluster());
         if (!node.getIsCluster()) {
             return;
         }

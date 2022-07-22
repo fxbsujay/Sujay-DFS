@@ -5,6 +5,7 @@ import com.susu.dfs.common.config.NodeConfig;
 import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.tracker.client.ClientManager;
 import com.susu.dfs.tracker.server.ServerManager;
+import com.susu.dfs.tracker.server.TrackerChannelHandle;
 import com.susu.dfs.tracker.server.TrackerServer;
 import com.susu.dfs.tracker.service.TrackerClusterService;
 import com.susu.dfs.tracker.service.TrackerFileService;
@@ -21,6 +22,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class TrackerApplication {
 
     private final TaskScheduler taskScheduler;
+
+    private final TrackerChannelHandle trackerChannelHandle;
 
     private final ClientManager clientManager;
 
@@ -63,7 +66,8 @@ public class TrackerApplication {
         this.fileService = new TrackerFileService(taskScheduler,clientManager);
         this.clusterService = new TrackerClusterService(node,nodeConfig.getTrackers(),taskScheduler);
         this.serverManager = new ServerManager(node,nodeConfig.getTrackers(),clusterService);
-        this.trackerServer = new TrackerServer(node,taskScheduler,clientManager,fileService);
+        this.trackerChannelHandle = new TrackerChannelHandle(taskScheduler, clientManager, serverManager, fileService, clusterService);
+        this.trackerServer = new TrackerServer(node,taskScheduler,trackerChannelHandle);
     }
 
     /**

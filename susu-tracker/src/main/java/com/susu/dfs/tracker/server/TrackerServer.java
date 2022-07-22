@@ -23,10 +23,10 @@ public class TrackerServer {
 
     private final Node node;
 
-    public TrackerServer(Node node, TaskScheduler taskScheduler, ClientManager clientManager, TrackerFileService trackerFileService) {
+    public TrackerServer(Node node, TaskScheduler taskScheduler, TrackerChannelHandle trackerChannelHandle) {
         this.node = node;
         this.netServer = new NetServer(node.getName(),taskScheduler);
-        this.trackerChannelHandle = new TrackerChannelHandle(taskScheduler, clientManager, trackerFileService);
+        this.trackerChannelHandle = trackerChannelHandle;
     }
 
     public void start() {
