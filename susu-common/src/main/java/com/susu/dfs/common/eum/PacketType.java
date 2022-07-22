@@ -15,7 +15,7 @@ public enum PacketType {
     /**
      * 请求类型
      */
-    UNKNOWN(0, "未知的包类型"),
+    EMPTY(0, "空的的包类型"),
     STORAGE_REGISTER(1,"Storage注册"),
     STORAGE_HEART_BEAT(2,"Storage心跳"),
     MKDIR(3, "Client往Tracker发送Mkdir请求"),
@@ -37,6 +37,6 @@ public enum PacketType {
                 return packetType;
             }
         }
-        return UNKNOWN;
+        return EMPTY;
     }
 }

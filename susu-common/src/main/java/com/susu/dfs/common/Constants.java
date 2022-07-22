@@ -27,6 +27,11 @@ public class Constants {
     public static final int MAX_BYTES = 10 * 1024 * 1024;
 
     /**
+     * 分块传输，每一块的大小
+     */
+    public static final int CHUNKED_SIZE = (int) (MAX_BYTES * 0.5F);
+
+    /**
      * map初始化容量
      */
     public static final int MAP_SIZE = 32;

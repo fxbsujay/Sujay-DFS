@@ -60,7 +60,7 @@ public class FileAppender {
         this.fileChannel.position(0);
         this.startTransportTime = System.currentTimeMillis();
         this.fileAttribute.setAbsolutePath(file.getAbsolutePath());
-        log.info("文件传输开始：[filename={}]", this.fileAttribute.getFilename());
+        log.info("File transfer started：[filename={}]", this.fileAttribute.getFilename());
     }
 
     /**
@@ -75,7 +75,7 @@ public class FileAppender {
         float v = new BigDecimal(String.valueOf(readLength)).multiply(new BigDecimal(100))
                 .divide(new BigDecimal(String.valueOf(fileAttribute.getSize())), 2, RoundingMode.HALF_UP).floatValue();
         if (log.isDebugEnabled()) {
-            log.debug("文件传输进度：[filename={}, progress={}]", fileAttribute.getFilename(), v);
+            log.debug("File transfer progress：[filename={}, progress={}]", fileAttribute.getFilename(), v);
         }
         fileTransportCallback.onProgress(fileAttribute.getFilename(), fileAttribute.getSize(), readLength, v, data.length);
     }
@@ -87,10 +87,10 @@ public class FileAppender {
         String md5 = FileUtils.fileMd5(file.getAbsolutePath());
         boolean success = this.fileAttribute.getMd5().equals(md5);
         if (!success) {
-            throw new IllegalStateException("文件损坏.");
+            throw new IllegalStateException("File corruption !!");
         }
         fileTransportCallback.onCompleted(fileAttribute);
-        log.info("文件传输完成：[filename={}]", fileAttribute.getFilename());
+        log.info("File transfer complete：[filename={}]", fileAttribute.getFilename());
     }
 
     /**
@@ -101,14 +101,14 @@ public class FileAppender {
             try {
                 fileChannel.close();
             } catch (IOException e) {
-                log.error("关闭channel失败：", e);
+                log.error("close channel fail !!：", e);
             }
         }
         if (fos != null) {
             try {
                 fos.close();
             } catch (IOException e) {
-                log.error("关闭channel失败：", e);
+                log.error("close channel fail !!：", e);
             }
         }
     }

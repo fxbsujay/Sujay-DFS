@@ -27,12 +27,12 @@ import java.nio.channels.FileChannel;
 public class DefaultFileSendTask {
 
     private OnProgressListener listener;
-    private ChannelHandlerContext socketChannel;
+    private SocketChannel socketChannel;
     private String filename;
     private File file;
     private FileAttribute fileAttribute;
 
-    public DefaultFileSendTask(File file, String filename, ChannelHandlerContext socketChannel,
+    public DefaultFileSendTask(File file, String filename, SocketChannel socketChannel,
                                OnProgressListener listener) throws IOException {
         this.file = file;
         this.filename = filename;
@@ -51,14 +51,14 @@ public class DefaultFileSendTask {
     public void execute(boolean force) {
         try {
             if (!file.exists()) {
-                log.error("文件不存在：[filename={}, localFile={}]", filename, file.getAbsolutePath());
+                log.error("file does not exist !!：[filename={}, localFile={}]", filename, file.getAbsolutePath());
                 return;
             }
             RandomAccessFile raf = new RandomAccessFile(file.getAbsoluteFile(), "r");
             FileInputStream fis = new FileInputStream(raf.getFD());
             FileChannel fileChannel = fis.getChannel();
             if (log.isDebugEnabled()) {
-                log.debug("发送文件头：{}", filename);
+                log.debug("Send file header：{}", filename);
             }
             FilePacket headPackage = FilePacket.builder()
                     .type(FilePacket.HEAD)
@@ -85,7 +85,7 @@ public class DefaultFileSendTask {
                 float progress = new BigDecimal(String.valueOf(readLength)).multiply(new BigDecimal(100))
                         .divide(new BigDecimal(String.valueOf(fileAttribute.getSize())), 2, RoundingMode.HALF_UP).floatValue();
                 if (log.isDebugEnabled()) {
-                    log.debug("发送文件包，filename = {}, size={}, progress={}", filename, data.length, progress);
+                    log.debug("Send file package，filename = {}, size={}, progress={}", filename, data.length, progress);
                 }
                 if (listener != null) {
                     listener.onProgress(fileAttribute.getSize(), readLength, progress, len);
@@ -98,13 +98,13 @@ public class DefaultFileSendTask {
             nettyPacket = NetPacket.buildPacket(tailPackage.toBytes(), PacketType.UPLOAD_FILE);
             sendPackage(nettyPacket, force);
             if (log.isDebugEnabled()) {
-                log.debug("发送文件完毕，filename = {}", filename);
+                log.debug("Send file completed，filename = {}", filename);
             }
             if (listener != null) {
                 listener.onCompleted();
             }
         } catch (Exception e) {
-            log.error("文件发送失败：", e);
+            log.error("Send file failed !!：", e);
         }
     }
 

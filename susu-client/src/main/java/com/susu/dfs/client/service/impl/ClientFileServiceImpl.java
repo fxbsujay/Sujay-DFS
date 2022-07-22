@@ -94,8 +94,6 @@ public class ClientFileServiceImpl implements ClientFileService {
         NetPacket packet = NetPacket.buildPacket(request.toByteArray(), PacketType.CREATE_FILE);
         NetPacket resp = trackerClient.authSendSync(packet);
         CreateFileResponse response = CreateFileResponse.parseFrom(resp.getBody());
-        List<StorageNode> storagesList = response.getStoragesList();
-        log.info("===============storagesList={}",storagesList);
         OnMultiFileProgressListener onMultiFileProgressListener = new OnMultiFileProgressListener(listener,response.getStoragesList().size());
         for (int i = 0; i < response.getStoragesList().size(); i++) {
             StorageNode storage = response.getStorages(i);
@@ -105,10 +103,10 @@ public class ClientFileServiceImpl implements ClientFileService {
             FileTransportClient fileTransportClient = new FileTransportClient(netClient);
             netClient.start(hostname, port);
             netClient.ensureStart();
-            log.debug("开始上传文件到：[node={}:{}, filename={}]", hostname, port, filename);
+            log.debug("Start uploading files to：[node={}:{}, filename={}]", hostname, port, filename);
             fileTransportClient.sendFile(response.getFilename(), file.getAbsolutePath(), onMultiFileProgressListener, true);
             fileTransportClient.shutdown();
-            log.debug("完成上传文件到：[node={}:{}, filename={}]", hostname, port, filename);
+            log.debug("Finish uploading files to：[node={}:{}, filename={}]", hostname, port, filename);
         }
         /*
          * 文件上传是上传到DataNode节点，客户端上传到DataNode之后，DataNode再上报给NameNode节点中间有一个时间差

@@ -1,8 +1,12 @@
 package com.susu.dfs.common.netty.msg;
 
 import com.google.protobuf.MessageLite;
+import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.eum.PacketType;
 import io.netty.channel.ChannelHandlerContext;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
 
 /**
  * <p>Description: 网络请求</p>
@@ -11,15 +15,19 @@ import io.netty.channel.ChannelHandlerContext;
  * @author sujay
  * @version 0:31 2022/7/9
  */
+@Slf4j
 public class NetRequest {
 
 
     private ChannelHandlerContext ctx;
 
+    private long requestSequence;
+
     private NetPacket request;
 
     public NetRequest(ChannelHandlerContext ctx, NetPacket request) {
         this.ctx = ctx;
+        this.requestSequence = request.getSequence();
         this.request = request;
     }
 
@@ -46,8 +54,19 @@ public class NetRequest {
     public void sendResponse(MessageLite response) {
         byte[] body = response == null ? new byte[0] : response.toByteArray();
         NetPacket packet = NetPacket.buildPacket(body, PacketType.getEnum(request.getType()));
+        List<NetPacket> responses = packet.partitionChunk(request.isSupportChunked(), Constants.CHUNKED_SIZE);
+        if (responses.size() > 1) {
+            log.info("返回响应通过chunked方式，共拆分为{}个包", responses.size());
+        }
+        for (NetPacket res : responses) {
+            sendResponse(res, requestSequence);
+        }
         packet.setSequence(request.getSequence());
         ctx.writeAndFlush(packet);
     }
 
+    public void sendResponse(NetPacket response, long sequence) {
+        response.setSequence(sequence);
+        ctx.writeAndFlush(response);
+    }
 }

@@ -3,7 +3,6 @@ package com.susu.dfs.common.netty.msg;
 import com.susu.dfs.common.eum.PacketType;
 import lombok.extern.slf4j.Slf4j;
 
-
 /**
  * <p>Description: 网络同步请求获取结果</p>
  * <p>Description: network Sync Request</p>
@@ -66,9 +65,22 @@ public class NetSyncRequestPromise {
      */
     public void setResult(NetPacket nettyPacket) {
         synchronized (this) {
-            this.response = nettyPacket;
-            this.receiveResponseCompleted = true;
-            notifyAll();
+            if (nettyPacket.isSupportChunked()) {
+                if (nettyPacket.getBody().length == 0) {
+                    this.receiveResponseCompleted = true;
+                    notifyAll();
+                } else {
+                    if (this.response == null) {
+                        this.response = nettyPacket;
+                    } else {
+                        this.response.mergeChunkedBody(nettyPacket);
+                    }
+                }
+            } else {
+                this.response = nettyPacket;
+                this.receiveResponseCompleted = true;
+                notifyAll();
+            }
         }
     }
 

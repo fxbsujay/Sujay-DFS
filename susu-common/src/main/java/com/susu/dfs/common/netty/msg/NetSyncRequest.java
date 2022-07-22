@@ -25,13 +25,13 @@ public class NetSyncRequest {
      */
     private Map<Long, NetSyncRequestPromise> promises = new ConcurrentHashMap<>();
 
-    private ChannelHandlerContext socketChannel;
+    private SocketChannel socketChannel;
 
     public NetSyncRequest(TaskScheduler taskScheduler) {
         taskScheduler.schedule("NetSyncRequest", this::checkRequestTimeout, 0, 1000, TimeUnit.MILLISECONDS);
     }
 
-    public void setSocketChannel(ChannelHandlerContext socketChannel) {
+    public void setSocketChannel(SocketChannel socketChannel) {
         this.socketChannel = socketChannel;
     }
 

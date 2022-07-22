@@ -55,7 +55,7 @@ public class StorageChannelHandle extends AbstractChannelHandler {
         FilePacket filePacket = FilePacket.parseFrom(request.getRequest().getBody());
 
         if (filePacket.getType() == FilePacket.HEAD) {
-            log.info("上传文件请求头部信息！！");
+            log.info("Received the uploaded file from the client.....");
         }
         fileReceiveHandler.handleRequest(filePacket);
     }

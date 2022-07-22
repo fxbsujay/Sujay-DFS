@@ -47,7 +47,7 @@ public class MsgCodec extends ByteToMessageCodec<NetPacket> {
         byte[] body = new byte[length];
         if (MsgType.getEnum(msgType) == MsgType.PACKET) {
             NetPacket packet = NetPacket.read(in);
-            length = packet.getLength();
+            // length = packet.getLength();
             type = packet.getType();
             body = packet.getBody();
         }

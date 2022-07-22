@@ -203,7 +203,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
     private void clientUploadFileComplete(NetRequest request) throws InvalidProtocolBufferException{
         NetPacket packet = request.getRequest();
         UploadCompletionRequest uploadCompletionRequest = UploadCompletionRequest.parseFrom(packet.getBody());
-        log.info("收到增量上报的存储信息：[clientId={}, filename={}]", uploadCompletionRequest.getClientId(), uploadCompletionRequest.getFilename());
+        log.info("Receive the Storage information reported by the client：[clientId={}, filename={}]", uploadCompletionRequest.getClientId(), uploadCompletionRequest.getFilename());
         FileInfo fileInfo = new FileInfo(uploadCompletionRequest.getClientId(), uploadCompletionRequest.getFilename(), uploadCompletionRequest.getFileSize());
         clientManager.addFile(fileInfo);
         ClientInfo client = clientManager.getClientById(uploadCompletionRequest.getClientId());

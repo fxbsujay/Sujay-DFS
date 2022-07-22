@@ -1,7 +1,5 @@
 package com.susu.dfs.common.netty.msg;
 
-import com.susu.dfs.common.eum.MsgType;
-import com.susu.dfs.common.utils.HexConvertUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
@@ -11,12 +9,10 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * <p>Description: 消息编码器</p>
  *
- *  请求头为 16 byte
- *  +------------------------+---------------------+-------------------------+----------------------+-----------------------+---------------------------+-------------------+
- *  | Author Magic (4byte)   |  Version (1byte)    |   Message Type (1byte)  |   Sequence (8byte)   |  Packet Type (1byte)  |  Content Length (1byte)   |   Actual Content  |
- *  |       授权码            |       版本号         |       M类型              |       请求号          |       数据包类型        |          内容体长度         |      真实的数据     |
- *  +------------------------+---------------------+-------------------------+----------------------*-----------------------+---------------------------+-------------------+
- *
+ *  +--------+-------------------------------+---------------+-----------------------------+
+ *  | HeaderLength | Actual Header (18byte)  | ContentLength | Actual Content (25byte)     |
+ *  | 0x0012       | Header Serialization    | 0x0019        | Body  Serialization         |
+ *  +--------------+-------------------------+---------------+-----------------------------+
  *
  * @author sujay
  * @version 16:11 2022/7/6
@@ -25,22 +21,17 @@ import lombok.extern.slf4j.Slf4j;
 public class NetPacketDecoder extends LengthFieldBasedFrameDecoder {
 
     public NetPacketDecoder(int maxFrameLength) {
-        super(maxFrameLength, 15, 4,0,0);
+        super(maxFrameLength, 0, 3, 0, 3);
     }
 
     @Override
     protected Object decode(ChannelHandlerContext ctx, ByteBuf byteBuf) throws Exception {
         ByteBuf in = (ByteBuf) super.decode(ctx, byteBuf);
-        if (byteBuf != null) {
-            int author = in.readInt();
-            byte version = in.readByte();
-            byte msgType = in.readByte();
-            if (MsgType.getEnum(msgType) == MsgType.PACKET) {
-              try {
-                  return NetPacket.read(in);
-              } finally {
-                  ReferenceCountUtil.release(byteBuf);
-              }
+        if (in != null) {
+            try {
+                return NetPacket.read(in);
+            } finally {
+                ReferenceCountUtil.release(in);
             }
         }
         return null;

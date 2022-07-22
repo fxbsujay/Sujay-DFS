@@ -93,7 +93,7 @@ public class FileTransportClient {
     public void sendFile(String filename, String absolutePath, OnProgressListener listener, boolean force) throws Exception {
         File file = new File(absolutePath);
         if (!file.exists()) {
-            throw new FileNotFoundException("文件不存在：" + absolutePath);
+            throw new FileNotFoundException("file does not exist !!：" + absolutePath);
         }
         DefaultFileSendTask fileSender = new DefaultFileSendTask(file, filename, netClient.socketChannel(), listener);
         fileSender.execute(force);

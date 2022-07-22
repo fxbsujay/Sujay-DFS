@@ -95,7 +95,7 @@ public class NetClient {
 
     }
 
-    public ChannelHandlerContext socketChannel() {
+    public SocketChannel socketChannel() {
         return clientChannelHandle.getSocketChannel();
     }
 

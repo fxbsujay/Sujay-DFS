@@ -28,7 +28,7 @@ public class StorageTransportCallback implements FileTransportCallback {
     @Override
     public String getPath(String filename) {
         String localFileName = storageManager.getAbsolutePathByFileName(filename);
-        log.info("获取文件路径文件：[filename={}, location={}]", filename, localFileName);
+        log.info("Get path of save file：[filename={}, location={}]", filename, localFileName);
         return localFileName;
     }
 

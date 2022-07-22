@@ -288,7 +288,7 @@ public class ClientManager {
             List<ClientInfo> clientInfoList = fileOfClients.computeIfAbsent(file.getFileName(), k -> new ArrayList<>());
             FileNode fileNode = isInTrash(file.getFileName());
             if (fileNode == null) {
-                log.warn("收到Storage上报信息，但未查询到该文件,下令删除文件: [clientId={}, filename={}]", file.getClientId(), file.getFileName());
+                log.warn("Receive file submission by Storage, But the file was not found,must delete file: [clientId={}, filename={}]", file.getClientId(), file.getFileName());
                 RemoveReplicaTask task = new RemoveReplicaTask(file.getClientId(),file.getFileName());
                 clientInfo.addRemoveReplicaTask(task);
                 return;
@@ -296,7 +296,7 @@ public class ClientManager {
             int replicaNum = Integer.parseInt(fileNode.getAttr().getOrDefault(Constants.ATTR_REPLICA_NUM, "1"));
             if (clientInfoList.size() > replicaNum) {
                 RemoveReplicaTask task = new RemoveReplicaTask(clientInfo.getClientId(), file.getFileName());
-                log.info("下发副本删除任务：[clientId={}, filename={}]", clientInfo.getHostname(), file.getFileName());
+                log.info("Delete replica command：[clientId={}, filename={}]", clientInfo.getHostname(), file.getFileName());
                 clientInfo.addRemoveReplicaTask(task);
                 return;
             }
@@ -304,7 +304,7 @@ public class ClientManager {
             Map<String, FileInfo> files = clientOfFiles.computeIfAbsent(file.getClientId(), k -> new HashMap<>(Constants.MAP_SIZE));
             files.put(file.getFileName(), file);
             if (log.isDebugEnabled()) {
-                log.debug("收到DataNode文件上报：[clientId={}, filename={}]", file.getClientId(), file.getFileName());
+                log.debug("Receive file submission by Storage：[clientId={}, filename={}]", file.getClientId(), file.getFileName());
             }
         }finally {
             replicaLock.writeLock().unlock();

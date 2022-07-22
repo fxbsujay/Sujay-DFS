@@ -1,12 +1,20 @@
 package com.susu.dfs.common.netty.msg;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.susu.common.model.NetPacketHeader;
+import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.eum.MsgType;
 import com.susu.dfs.common.eum.PacketType;
 import com.susu.dfs.common.utils.HexConvertUtils;
+import com.susu.dfs.common.utils.StringUtils;
 import io.netty.buffer.ByteBuf;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.*;
 
 /**
  * <p>Description: 统一的网络数据包</p>
@@ -18,27 +26,14 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @Builder
 @Slf4j
+@NoArgsConstructor
+@AllArgsConstructor
 public class NetPacket {
 
     /**
-     * 请求序列号 ( 0 - 2147483647 )
+     * 请求头
      */
-    private long sequence;
-
-    /**
-     * 消息类型 1位
-     */
-    private static final int MSG_TYPE = MsgType.PACKET.value;
-
-    /**
-     * 数据包类型 1位
-     */
-    private int type;
-
-    /**
-     * 数据包内容长度
-     */
-    private int length;
+    private Map<String, String> header;
 
     /**
      * 数据包
@@ -53,11 +48,57 @@ public class NetPacket {
      * @return              数据包
      */
     public static NetPacket buildPacket(byte[] body, PacketType packetType){
-        NetPacketBuilder packet = NetPacket.builder();
-        packet.length = body.length;
-        packet.body = body;
-        packet.type = packetType.getValue();
-        return packet.build();
+        NetPacketBuilder builder = NetPacket.builder();
+        builder.body = body;
+        builder.header = new HashMap<>(Constants.MAP_SIZE);
+        NetPacket nettyPacket = builder.build();
+        nettyPacket.setType(packetType.value);
+        return nettyPacket;
+    }
+
+    /**
+     * 设置请求序列号
+     *
+     * @param sequence 请求序列号
+     */
+    public void setSequence(long sequence) {
+        header.put("sequence", String.valueOf(sequence));
+    }
+
+    /**
+     * 设置请求序列号
+     */
+    public long getSequence() {
+        return StringUtils.isNotBlank(header.get("sequence")) ? Long.parseLong(header.get("sequence")) : 0;
+    }
+
+    /**
+     * 请求包类型
+     *
+     * @return 请求包类型
+     */
+    public int getType() {
+        return Integer.parseInt(header.getOrDefault("type","0"));
+    }
+
+    /**
+     * 设置请求包类型
+     *
+     * @param packetType 请求包类型
+     */
+    public void setType(int packetType) {
+        header.put("type", String.valueOf(packetType));
+    }
+
+    /**
+     * 是否为消息体的最后一个包
+     */
+    public boolean isSupportChunked() {
+        return Boolean.parseBoolean(header.getOrDefault("supportChunked", "false"));
+    }
+
+    public void setSupportChunked(boolean chunkedFinish) {
+        header.put("supportChunked", String.valueOf(chunkedFinish));
     }
 
     /**
@@ -66,10 +107,13 @@ public class NetPacket {
      * @param out 输出
      */
     public void write(ByteBuf out) {
-        out.writeByte(MSG_TYPE);
-        out.writeBytes(HexConvertUtils.longToBytes(sequence));
-        out.writeByte(type);
-        out.writeInt(length);
+        NetPacketHeader netPacketHeader = NetPacketHeader.newBuilder()
+                .putAllHeaders(header)
+                .build();
+        byte[] headerBytes = netPacketHeader.toByteArray();
+        out.writeInt(headerBytes.length);
+        out.writeBytes(headerBytes);
+        out.writeInt(body.length);
         out.writeBytes(body);
     }
 
@@ -78,17 +122,76 @@ public class NetPacket {
      * @param in 输入
      * @return 数据包
      */
-    public static NetPacket read(ByteBuf in) {
-        byte[] sequence = new byte[8];
-        in.readBytes(sequence, 0, 8);
-        int type = in.readByte();
-        int length = in.readInt();
-        byte[] body = new byte[length];
-        in.readBytes(body, 0, length);
+    public static NetPacket read(ByteBuf in) throws InvalidProtocolBufferException {
+        int headerLength = in.readInt();
+        byte[] headerBytes = new byte[headerLength];
+        in.readBytes(headerBytes);
+        NetPacketHeader nettyPackageHeader = NetPacketHeader.parseFrom(headerBytes);
+        int bodyLength = in.readInt();
+        byte[] bodyBytes = new byte[bodyLength];
+        in.readBytes(bodyBytes);
         return NetPacket.builder()
-                .sequence(HexConvertUtils.bytesToLong(sequence,0))
-                .type(type)
-                .length(length)
-                .body(body).build();
+                .header(new HashMap<>(nettyPackageHeader.getHeadersMap()))
+                .body(bodyBytes)
+                .build();
     }
+
+    /**
+     * 拆分消息体
+     *
+     * @param supportChunked 是否支持chunked特性
+     * @param maxPackageSize 拆分包后每个包的消息体最大的数量
+     * @return 拆分后的消息集合
+     */
+    public List<NetPacket> partitionChunk(boolean supportChunked, int maxPackageSize) {
+        if (!supportChunked) {
+            return Collections.singletonList(this);
+        }
+        int bodyLength = body.length;
+        if (bodyLength <= maxPackageSize) {
+            return Collections.singletonList(this);
+        }
+        int packageCount = bodyLength / maxPackageSize;
+        if (bodyLength % maxPackageSize > 0) {
+            packageCount++;
+        }
+        List<NetPacket> results = new LinkedList<>();
+        int remainLength = bodyLength;
+        for (int i = 0; i < packageCount; i++) {
+            int partitionBodyLength = Math.min(maxPackageSize, remainLength);
+            byte[] partitionBody = new byte[partitionBodyLength];
+            System.arraycopy(body, bodyLength - remainLength, partitionBody, 0, partitionBodyLength);
+            remainLength -= partitionBodyLength;
+            NetPacket partitionPackage = new NetPacket();
+            partitionPackage.body = partitionBody;
+            partitionPackage.header = this.header;
+            partitionPackage.setSupportChunked(true);
+            results.add(partitionPackage);
+        }
+        NetPacket tailPackage = new NetPacket();
+        tailPackage.body = new byte[0];
+        tailPackage.header = this.header;
+        tailPackage.setSupportChunked(true);
+        results.add(tailPackage);
+        return results;
+    }
+
+    /**
+     * 合并消息体
+     *
+     * @param otherPackage 网络包
+     */
+    public void mergeChunkedBody(NetPacket otherPackage) {
+        int newBodyLength = body.length + otherPackage.getBody().length;
+        byte[] newBody = new byte[newBodyLength];
+        System.arraycopy(body, 0, newBody, 0, body.length);
+        System.arraycopy(otherPackage.getBody(), 0, newBody, body.length, otherPackage.getBody().length);
+        this.body = newBody;
+    }
+
+
+
+
+
+
 }

@@ -28,10 +28,13 @@ public class BaseChannelHandler extends ChannelInitializer<Channel> {
 
     @Override
     protected void initChannel(Channel ch) {
-        ch.pipeline().addLast(new NetPacketDecoder(Constants.MAX_BYTES));
-        ch.pipeline().addLast(new NetPacketEncoder());
+        ch.pipeline().addLast(
+                new NetPacketDecoder(Constants.MAX_BYTES),
+                new LengthFieldPrepender(3),
+                new NetPacketEncoder()
+        );
         for (AbstractChannelHandler handler : handlerList) {
-            ch.pipeline().addLast("myHandle",handler);
+            ch.pipeline().addLast(handler);
         }
     }
 

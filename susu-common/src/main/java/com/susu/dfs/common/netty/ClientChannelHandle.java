@@ -5,7 +5,9 @@ import com.susu.dfs.common.netty.msg.NetRequest;
 import com.susu.dfs.common.netty.msg.NetSyncRequest;
 import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.common.utils.SnowFlakeUtils;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.socket.SocketChannel;
 import lombok.extern.slf4j.Slf4j;
 import java.util.Collections;
 import java.util.List;
@@ -25,7 +27,7 @@ public class ClientChannelHandle extends AbstractChannelHandler {
     /**
      *  Channel Handler Context
      */
-    public volatile ChannelHandlerContext socketChannel;
+    public volatile SocketChannel socketChannel;
 
     /**
      * 是否有其他处理器
@@ -57,7 +59,7 @@ public class ClientChannelHandle extends AbstractChannelHandler {
         netSyncRequest = new NetSyncRequest(taskScheduler);
     }
 
-    public ChannelHandlerContext getSocketChannel() {
+    public SocketChannel getSocketChannel() {
         return socketChannel;
     }
 
@@ -67,7 +69,7 @@ public class ClientChannelHandle extends AbstractChannelHandler {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
-        socketChannel = ctx;
+        socketChannel = (SocketChannel) ctx.channel();
         netSyncRequest.setSocketChannel(socketChannel);
         invokeConnectListener(true);
         log.info("Socket channel is connected. {}", socketChannel);
