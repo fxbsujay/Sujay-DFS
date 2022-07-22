@@ -59,7 +59,6 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
         this.serverManager = serverManager;
         this.trackerFileService = trackerFileService;
         this.trackerClusterService = trackerClusterService;
-
     }
 
     @Override
