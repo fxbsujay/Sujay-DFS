@@ -1,6 +1,5 @@
 package com.susu.dfs.tracker.client;
 
-import com.susu.common.model.Client;
 import com.susu.common.model.RegisterRequest;
 import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.FileInfo;
@@ -10,7 +9,6 @@ import com.susu.dfs.common.utils.DateUtils;
 import com.susu.dfs.common.utils.StringUtils;
 import com.susu.dfs.tracker.rebalance.RemoveReplicaTask;
 import com.susu.dfs.tracker.service.TrackerFileService;
-import jdk.internal.org.objectweb.asm.tree.FieldNode;
 import lombok.extern.slf4j.Slf4j;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -279,7 +277,7 @@ public class ClientManager {
     }
 
     /**
-     * 添加文件
+     * <p>Description: 添加文件</p>
      */
     public void addFile(FileInfo file) {
         replicaLock.writeLock().lock();

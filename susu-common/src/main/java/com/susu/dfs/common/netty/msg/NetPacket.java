@@ -102,7 +102,7 @@ public class NetPacket {
     }
 
     /**
-     * 将数据写入ByteBuf
+     * <p>Description: 写入数据</p>
      *
      * @param out 输出
      */
@@ -118,7 +118,8 @@ public class NetPacket {
     }
 
     /**
-     * 读取ByteBuf，转成NetPacket
+     * <p>Description: 读取ByteBuf，转成NetPacket</p>
+     *
      * @param in 输入
      * @return 数据包
      */
@@ -137,7 +138,8 @@ public class NetPacket {
     }
 
     /**
-     * 拆分消息体
+     * <p>Description: 拆分消息体</p>
+     * <p>Description: Split message body</p>
      *
      * @param supportChunked 是否支持chunked特性
      * @param maxPackageSize 拆分包后每个包的消息体最大的数量
@@ -177,7 +179,8 @@ public class NetPacket {
     }
 
     /**
-     * 合并消息体
+     * <p>Description: Merge message body</p>
+     * <p>Description: 合并消息体</p>
      *
      * @param otherPackage 网络包
      */
@@ -188,10 +191,5 @@ public class NetPacket {
         System.arraycopy(otherPackage.getBody(), 0, newBody, body.length, otherPackage.getBody().length);
         this.body = newBody;
     }
-
-
-
-
-
 
 }

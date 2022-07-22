@@ -1,6 +1,7 @@
 package com.susu.dfs.common;
 
 import lombok.Data;
+import java.util.List;
 
 /**
  * <p>Description: 启动的节点信息</p>
@@ -33,7 +34,7 @@ public class Node {
     /**
      * 是否为主节点
      */
-    private Boolean isMaster;
+    private boolean isMaster;
 
     /**
      * 调度器端口
@@ -44,6 +45,21 @@ public class Node {
      * 调度器地址
      */
     private String trackerHost;
+
+    /**
+     * 是否为集群模式
+     */
+    private boolean isCluster;
+
+    /**
+     * 当前节点所在集群下标
+     */
+    private Integer index;
+
+    /**
+     * 集群配置，key为数组的index
+     */
+    private List<String> servers;
 
 
 }
