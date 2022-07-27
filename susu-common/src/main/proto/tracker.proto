@@ -24,3 +24,13 @@ message TrackerAwareRequest {
   repeated TrackerNode nodes = 4;
   bool isClient = 5;
 }
+
+/**
+ *  槽位用于分片
+ */
+message TrackerSlots {
+  map<int32, int32> oldSlots = 1;
+  map<int32, int32> newSlots = 2;
+  bool rebalanced = 3;
+  int32 rebalancedNodeId = 4;
+}

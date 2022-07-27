@@ -158,7 +158,6 @@ public class TrackerClusterService {
         return broadcast(packet, -1);
     }
 
-
     /**
      * <p>Description: 广播消息给所有的Tracker节点</p>
      *
@@ -191,18 +190,6 @@ public class TrackerClusterService {
         } catch (Exception e) {
             log.error("Tracker Cluster Service broadcast has interrupted. ", e);
             return new ArrayList<>();
-        }
-    }
-
-    public int getConnectedCount() {
-        synchronized (this) {
-            int count = 0;
-            for (TrackerCluster trackerInfo : clusterServerMap.values()) {
-                if (trackerInfo.isConnected()) {
-                    count++;
-                }
-            }
-            return count;
         }
     }
 }
