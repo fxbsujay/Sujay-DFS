@@ -47,6 +47,7 @@ public class TrackerClusterServer extends AbstractTrackerCluster{
                 }
             }
         }
+        socketChannel.writeAndFlush(packet);
     }
 
     @Override

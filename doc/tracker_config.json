@@ -1,6 +1,6 @@
 {
   "name": "Netty-Tracker",
-  "port": 8090,
+  "port": 8080,
   "isMaster": true,
   "isCluster": true,
   "servers": ["master:localhost:8090","slave:localhost:8080"]

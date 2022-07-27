@@ -1,5 +1,6 @@
 package com.susu.dfs.common;
 
+import com.susu.common.model.TrackerNode;
 import lombok.Data;
 
 /**
@@ -44,5 +45,11 @@ public class TrackerInfo {
             return;
         }
         this.role = ROLE_SLAVE;
+    }
+
+    public TrackerInfo(TrackerNode node) {
+        this.index = node.getIndex();
+        this.hostname = node.getHostname();
+        this.port = node.getPort();
     }
 }

@@ -4,6 +4,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.susu.common.model.*;
 import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.FileInfo;
+import com.susu.dfs.common.TrackerInfo;
 import com.susu.dfs.common.file.FileNode;
 import com.susu.dfs.common.netty.msg.NetRequest;
 import com.susu.dfs.common.task.TaskScheduler;
@@ -14,9 +15,11 @@ import com.susu.dfs.tracker.client.ClientManager;
 import com.susu.dfs.common.netty.AbstractChannelHandler;
 import com.susu.dfs.common.netty.msg.NetPacket;
 import com.susu.dfs.common.eum.PacketType;
+import com.susu.dfs.tracker.cluster.TrackerCluster;
 import com.susu.dfs.tracker.service.TrackerClusterService;
 import com.susu.dfs.tracker.service.TrackerFileService;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.socket.SocketChannel;
 import lombok.extern.slf4j.Slf4j;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -33,6 +36,8 @@ import java.util.concurrent.TimeUnit;
 public class TrackerChannelHandle extends AbstractChannelHandler {
 
     private final ThreadPoolExecutor executor;
+
+    private final TaskScheduler taskScheduler;
 
     /**
      *  Tracker 客户端管理器 保存注册进来的客户端信息
@@ -53,6 +58,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
     public TrackerChannelHandle(TaskScheduler taskScheduler,
                                 ClientManager clientManager, ServerManager serverManager,
                                 TrackerFileService trackerFileService, TrackerClusterService trackerClusterService) {
+        this.taskScheduler = taskScheduler;
         this.executor = new ThreadPoolExecutor(8,20,
                 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(8));
         this.clientManager = clientManager;
@@ -84,11 +90,15 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
             case UPLOAD_FILE_CONFIRM:
                 clientUploadFileConfirm(request);
                 break;
+            case TRACKER_SERVER_AWARE:
+                trackerServerAware(request);
+                break;
             default:
                 break;
         }
         return false;
     }
+
 
     @Override
     protected Set<Integer> interestPackageTypes() {
@@ -217,4 +227,37 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
         client.addStoredDataSize(uploadCompletionRequest.getFileSize());
         request.sendResponse();
     }
+
+    /**
+     * <p>Description: Tracker 服务集群之间的感知请求</p>
+     * <p>
+     *     只有作为服务端的时候，才会保存新增的链接
+     * </p>
+     * <p>For example: tracker-01 -> tracker-02 </p>
+     * <ul>
+     *     <li>当 tracker-01 建立好连接之后，会主动发送一个  {@link PacketType } TRACKER_SERVER_AWARE 请求 </li>
+     *     <li>当 tracker-02 收到后保存连接，并发送一个 {@link PacketType } TRACKER_SERVER_AWARE 请求给 tracker-01 </li>
+     *     <li>当 tracker-01 收到 tracker-02 的返回消息后就不再保存连接了 </li>
+     * </ul>
+     *
+     * @param request NetWork Request 网络请求
+     * @throws Exception protobuf error || 发送异常
+     */
+    private void trackerServerAware(NetRequest request) throws Exception {
+        NetPacket packet = request.getRequest();
+        ChannelHandlerContext ctx = request.getCtx();
+        TrackerAwareRequest awareRequest = TrackerAwareRequest.parseFrom(packet.getBody());
+        log.info("收到 Track信息:[index={},isClient={}]",awareRequest.getIndex(),awareRequest.getIsClient());
+        if (awareRequest.getIsClient()) {
+            TrackerCluster trackerCluster = trackerClusterService.addTrackerCluster(
+                    awareRequest.getIndex(),
+                    (SocketChannel) ctx.channel(),
+                    new TrackerInfo(awareRequest.getNode()),
+                    taskScheduler);
+            if (trackerCluster != null) {
+                serverManager.reportSelfInfo(trackerCluster,false);
+            }
+        }
+    }
+
 }

@@ -70,7 +70,7 @@ public class NetClient {
      * @param taskScheduler 调度器
      */
     public NetClient(String name, TaskScheduler taskScheduler) {
-        this(name,taskScheduler,1);
+        this(name,taskScheduler,-1);
     }
 
     /**

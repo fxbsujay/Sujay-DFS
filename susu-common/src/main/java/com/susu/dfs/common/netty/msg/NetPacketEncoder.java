@@ -8,7 +8,7 @@ import io.netty.handler.codec.MessageToByteEncoder;
 /**
  * <p>Description: 消息解码器</p>
  *
- *  +--------+-------------------------------+---------------+-----------------------------+
+ *  +--------------+-------------------------+---------------+-----------------------------+
  *  | HeaderLength | Actual Header (18byte)  | ContentLength | Actual Content (25byte)     |
  *  | 0x0012       | Header Serialization    | 0x0019        | Body  Serialization         |
  *  +--------------+-------------------------+---------------+-----------------------------+

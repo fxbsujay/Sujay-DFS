@@ -33,15 +33,18 @@ public class ServerManager {
 
     private List<TrackerInfo> nodes;
 
+    private AtomicInteger trackerCount = new AtomicInteger(0);
+
     public ServerManager(Node node, List<TrackerInfo> nodes, TrackerClusterService trackerClusterService) {
         this.node = node;
         this.nodes = nodes;
         this.trackerClusterService = trackerClusterService;
         this.trackerClusterService.setServerManager(this);
+        this.numOfNode = new AtomicInteger(nodes.size());
     }
 
     /**
-     * <p>Description: 上报信息给其他Tracker节点</p>
+     * <p>Description: 上报自身信息给其他 Tracker节点</p>
      *
      * @param trackerCluster        Tracker
      * @throws InterruptedException 发送异常
@@ -69,11 +72,8 @@ public class ServerManager {
                 .setIsClient(isClient)
                 .build();
         NetPacket packet = NetPacket.buildPacket(awareRequest.toByteArray(), PacketType.TRACKER_SERVER_AWARE);
+
         trackerCluster.send(packet);
-        log.info("建立了Tracker的连接, 发送自身信息：[index={}, targetIndex={}]",node.getIndex(), trackerCluster.getTargetIndex());
+        log.info("发送自身信息：[index={}, targetIndex={},isClient={}]",node.getIndex(), trackerCluster.getTargetIndex(),isClient);
     }
-
-
-
-
 }

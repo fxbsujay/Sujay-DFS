@@ -51,6 +51,11 @@ public class TrackerClusterService {
 
     /**
      * 启动服务，连接Tracker
+     *
+     * 当当前节点为master 是需要同为master节点的服务互相建立连接，但如果是slave则slave只需要连接master
+     *   +----------+                +----------+                +----------+
+     *   |  master  |  <------->     |  master  |   <---------   |  slave   |
+     *   +----------+                +----------+                +----------+
      */
     public void start() {
         log.info("Tracker is cluster：[mode={}]", node.getIsCluster());
@@ -74,6 +79,15 @@ public class TrackerClusterService {
     }
 
     /**
+     * 作为客户端添加Tracker: 主动连接Tracker节点
+     *
+     * @param tracker 节点信息
+     */
+    public void connect(TrackerInfo tracker) {
+        connect(tracker, false);
+    }
+
+    /**
      * <p>Description: 连接Tracker节点</p>
      *
      * @param tracker   Tracker节点
@@ -83,6 +97,7 @@ public class TrackerClusterService {
         if (Objects.equals(node.getIndex(), tracker.getIndex())) {
             return;
         }
+        log.info("建立连接：[hostname={},port={}]",tracker.getHostname(),tracker.getPort());
         synchronized (this) {
             TrackerCluster trackerCluster = clusterServerMap.get(tracker.getIndex());
             if (force || trackerCluster == null) {
@@ -106,20 +121,19 @@ public class TrackerClusterService {
 
     /**
      * <p>Description: 收到其他Tracker节点发来的请求，添加tracker节点</p>
+     * TODO 目前最好先启动 index 小的
      *
      * @param index         来源的tracker下标
-     * @param selfIndex     自己的下标
      * @param channel       通道
      * @param tracker       节点信息
      * @param taskScheduler 任务调度器
      * @return              是否产生新的连接
      */
-    public TrackerCluster addTrackerCluster(int index,int selfIndex, SocketChannel channel,TrackerInfo tracker,TaskScheduler taskScheduler) {
+    public TrackerCluster addTrackerCluster(int index, SocketChannel channel,TrackerInfo tracker,TaskScheduler taskScheduler) {
         synchronized (this) {
             TrackerCluster oldCluster = clusterServerMap.get(index);
             TrackerCluster newCluster = new TrackerClusterServer(tracker,channel,node.getIndex(),index,taskScheduler);
             if (oldCluster == null) {
-                log.info("收到新的Tracker的通知网络包, 保存连接以便下一次使用: [index={}]", index);
                 clusterServerMap.put(index, newCluster);
                 return newCluster;
             }
@@ -127,23 +141,14 @@ public class TrackerClusterService {
             if (oldCluster instanceof TrackerClusterServer && newCluster.getTargetIndex() == oldCluster.getTargetIndex()) {
                 TrackerClusterServer peerNameNodeServer = (TrackerClusterServer) oldCluster;
                 peerNameNodeServer.setSocketChannel(channel);
-                log.info("TrackerCluster断线重连，更新channel: [index={}]", oldCluster.getTargetIndex());
+                log.info("Tracker Cluster reconnect, update channel: [index={}]", oldCluster.getTargetIndex());
                 return oldCluster;
             }
-
-            if (selfIndex > index) {
-                newCluster.close();
-                connect(tracker, true);
-                log.info("新的连接Tracker比较小，关闭新的连接, 并主动往小index的节点发起连接: [index={}]", newCluster.getTargetIndex());
-                return null;
-            }
-
             clusterServerMap.put(index, newCluster);
-            oldCluster.close();
-            log.info("新的连接Tracker index比较大，则关闭旧的连接, 并替换链接: [index={}]", oldCluster.getTargetIndex());
-            return newCluster;
+            return oldCluster;
         }
     }
+
     /**
      * <p>Description: 广播消息给所有的Tracker节点</p>
      *
@@ -186,6 +191,18 @@ public class TrackerClusterService {
         } catch (Exception e) {
             log.error("Tracker Cluster Service broadcast has interrupted. ", e);
             return new ArrayList<>();
+        }
+    }
+
+    public int getConnectedCount() {
+        synchronized (this) {
+            int count = 0;
+            for (TrackerCluster trackerInfo : clusterServerMap.values()) {
+                if (trackerInfo.isConnected()) {
+                    count++;
+                }
+            }
+            return count;
         }
     }
 }
