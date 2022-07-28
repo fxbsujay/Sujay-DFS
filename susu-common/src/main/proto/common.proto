@@ -5,6 +5,19 @@ package com.susu.common.proto;
 option java_multiple_files = true;
 option java_package = "com.susu.common.model";
 
+/**
+ *  请求头
+ */
 message NetPacketHeader {
   map<string, string> headers = 1;
+}
+
+/**
+ *  下方命令
+ */
+message NetPacketCommand {
+  string filename = 1;
+  string hostname = 2;
+  int32 port = 3;
+  int32 command = 4;
 }

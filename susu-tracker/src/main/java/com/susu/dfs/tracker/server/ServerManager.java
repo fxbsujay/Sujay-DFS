@@ -8,9 +8,9 @@ import com.susu.dfs.common.eum.PacketType;
 import com.susu.dfs.common.netty.msg.NetPacket;
 import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.tracker.cluster.TrackerCluster;
+import com.susu.dfs.tracker.controller.Controller;
 import com.susu.dfs.tracker.service.TrackerClusterService;
 import lombok.extern.slf4j.Slf4j;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -32,6 +32,8 @@ public class ServerManager {
     private Node node;
 
     private List<TrackerInfo> nodes;
+
+    private Controller controller;
 
     private AtomicInteger trackerCount = new AtomicInteger(0);
 

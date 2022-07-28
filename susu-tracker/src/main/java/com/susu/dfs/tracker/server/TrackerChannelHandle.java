@@ -5,6 +5,7 @@ import com.susu.common.model.*;
 import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.FileInfo;
 import com.susu.dfs.common.TrackerInfo;
+import com.susu.dfs.common.eum.CommandType;
 import com.susu.dfs.common.file.FileNode;
 import com.susu.dfs.common.netty.msg.NetRequest;
 import com.susu.dfs.common.task.TaskScheduler;
@@ -16,6 +17,8 @@ import com.susu.dfs.common.netty.AbstractChannelHandler;
 import com.susu.dfs.common.netty.msg.NetPacket;
 import com.susu.dfs.common.eum.PacketType;
 import com.susu.dfs.tracker.cluster.TrackerCluster;
+import com.susu.dfs.tracker.rebalance.RemoveReplicaTask;
+import com.susu.dfs.tracker.rebalance.ReplicaTask;
 import com.susu.dfs.tracker.service.TrackerClusterService;
 import com.susu.dfs.tracker.service.TrackerFileService;
 import io.netty.channel.ChannelHandlerContext;
@@ -25,6 +28,7 @@ import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * <p>Description: Tracker 的 通讯服务</p>
@@ -136,11 +140,48 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
     private void storageHeartbeatHandel(NetRequest request) throws InvalidProtocolBufferException {
         HeartbeatRequest heartbeatRequest = HeartbeatRequest.parseFrom(request.getRequest().getBody());
         Boolean isSuccess = clientManager.heartbeat(heartbeatRequest.getClientId());
-        HeartbeatResponse response = HeartbeatResponse.newBuilder().setIsSuccess(isSuccess).build();
-        request.sendResponse(response);
         if (!isSuccess) {
             throw new RuntimeException("Client heartbeat update failed");
         }
+        ClientInfo client = clientManager.getClientById(heartbeatRequest.getClientId());
+        List<ReplicaTask> replicaTask = client.pollReplicaTask(100);
+        List<NetPacketCommand> commandList = new LinkedList<>();
+        if (!replicaTask.isEmpty()) {
+            List<NetPacketCommand> commands = replicaTask.stream()
+                    .map(item -> {
+                        ClientInfo clientInfo = clientManager.getClientById(item.getClientId());
+                        return NetPacketCommand.newBuilder()
+                                .setFilename(item.getFilename())
+                                .setHostname(clientInfo.getHostname())
+                                .setPort(clientInfo.getPort())
+                                .setCommand(CommandType.FILE_COPY.getValue())
+                                .build();
+                    })
+                    .collect(Collectors.toList());
+            commandList.addAll(commands);
+        }
+        List<RemoveReplicaTask> removeReplicaTasks = client.pollRemoveReplicaTask(100);
+
+        if (!removeReplicaTasks.isEmpty()) {
+            List<NetPacketCommand> commands = removeReplicaTasks.stream()
+                    .map(item -> {
+                        ClientInfo clientInfo = clientManager.getClientById(item.getClientId());
+                        return NetPacketCommand.newBuilder()
+                                .setFilename(item.getFilename())
+                                .setHostname(clientInfo.getHostname())
+                                .setPort(clientInfo.getPort())
+                                .setCommand(CommandType.FILE_REMOVE.getValue())
+                                .build();
+                    })
+                    .collect(Collectors.toList());
+            commandList.addAll(commands);
+        }
+
+        HeartbeatResponse response = HeartbeatResponse.newBuilder()
+                .setIsSuccess(isSuccess)
+                .addAllCommands(commandList)
+                .build();
+        request.sendResponse(response);
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.susu.dfs.tracker.controller;
 
+import lombok.Data;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.Condition;
@@ -10,6 +11,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * <p>Description: 重平衡Slots信息</p>
  * @version 17:51 2022/7/27
  */
+@Data
 public class RebalancedSlotInfo {
 
     /**
@@ -39,14 +41,23 @@ public class RebalancedSlotInfo {
 
     private ReentrantLock lock;
 
+    /**
+     * 需要等待数据同步的节点
+     */
     private Set<Integer> fetchMetadataWaitTrackerSet;
 
+    /**
+     * 数据同步完成的节点
+     */
     private Set<Integer> fetchMetadataCompletedTrackerSet;
 
     private Condition fetchMetadataCompletedCondition;
 
     private CountDownLatch removeMetadataCompleteCountDownLatch;
 
+    /**
+     * 删除数据完成的节点
+     */
     private Set<Integer> removeMetadataCompletedTrackerSet = new HashSet<>();
 
     public RebalancedSlotInfo() {
@@ -96,4 +107,76 @@ public class RebalancedSlotInfo {
         this.removeMetadataCompleteCountDownLatch.await();
     }
 
+    public boolean onFetchSlotMetadataCompleted(int rebalancedTrackerIndex) {
+        synchronized (this) {
+            removeMetadataCompletedTrackerSet.add(rebalancedTrackerIndex);
+            return isAllCompleted(trackerIdSet, removeMetadataCompletedTrackerSet);
+        }
+    }
+
+    /**
+     * 某个节点完成所有的元数据删除
+     */
+    public boolean onCompletedRemoveMetadata() {
+        removeMetadataCompleteCountDownLatch.countDown();
+        return removeMetadataCompleteCountDownLatch.getCount() == 0;
+    }
+
+
+    /**
+     * <p>Description: 是否全部完成 </p>
+     *
+     * @param waitSet           等待完成的id
+     * @param completedSet      已经完成的
+     * @return                  是否全部完成
+     */
+    private boolean isAllCompleted(Set<Integer> waitSet, Set<Integer> completedSet) {
+        boolean allCompleted = true;
+        for (Integer nodeId : waitSet) {
+            if (!completedSet.contains(nodeId)) {
+                allCompleted = false;
+                break;
+            }
+        }
+        return allCompleted;
+    }
+
+
+    /**
+     * <p>Description: 作为新加入的节点等待其他 tracker 所有的元数据发送过来 </p>
+     *
+     * @param waitMetadataNodeSet 目标列表
+     * @throws InterruptedException 异常
+     */
+    public void waitFetchMetadataCompleted(Set<Integer> waitMetadataNodeSet) throws InterruptedException {
+        this.fetchMetadataCompletedTrackerSet = new HashSet<>();
+        this.fetchMetadataWaitTrackerSet = waitMetadataNodeSet;
+        ReentrantLock lock = this.lock;
+        lock.lock();
+        try {
+            fetchMetadataCompletedCondition.await();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * <p>Description: 在这个节点完成数据同步 </p>
+     *
+     * @param trackerIndex  节点标记
+     */
+    public void onCompletedFetchMetadata(int trackerIndex) {
+        synchronized (this) {
+            fetchMetadataCompletedTrackerSet.add(trackerIndex);
+            boolean allCompleted = isAllCompleted(fetchMetadataWaitTrackerSet, fetchMetadataCompletedTrackerSet);
+            if (allCompleted) {
+                lock.lock();
+                try {
+                    fetchMetadataCompletedCondition.signal();
+                } finally {
+                    lock.unlock();
+                }
+            }
+        }
+    }
 }

@@ -1,7 +1,11 @@
 package com.susu.dfs.tracker.controller;
 
+import com.google.common.collect.Sets;
+import com.susu.common.model.Metadata;
 import com.susu.common.model.TrackerSlots;
 import com.susu.dfs.common.utils.FileUtils;
+import com.susu.dfs.tracker.client.ClientManager;
+import com.susu.dfs.tracker.service.TrackerFileService;
 import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.io.FileInputStream;
@@ -10,6 +14,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author sujay
@@ -19,37 +25,43 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 public abstract class AbstractController implements Controller{
 
-
     protected int trackerIndex;
 
-    /**
-     * Slots持久化文件的存储路径
-     */
-    private final String baseDir;
+    protected ClientManager clientManager;
+
+    protected TrackerFileService fileService;
 
     protected Map<Integer, Integer> slotsOfTracker;
 
     protected Map<Integer, Set<Integer>> trackerOfSlots;
 
+    /**
+     * 数据平衡组件
+     */
+    protected RebalancedSlotInfo rebalancedSlotInfo;
+
     protected AtomicBoolean initCompleted;
 
+    protected ReentrantLock lock;
+
+    protected Condition initCompletedCondition;
 
     /**
      * 数据槽位分配成功监听调用
      */
     private final List<OnSlotAllocateCompletedListener> slotAllocateCompletedListeners = new ArrayList<>();
 
-
-    public AbstractController(String baseDir, int trackerIndex) {
-        this.baseDir = baseDir;
+    public AbstractController(int trackerIndex) {
         this.trackerIndex = trackerIndex;
         this.initCompleted = new AtomicBoolean(false);
+        this.lock = new ReentrantLock();
+        this.initCompletedCondition = lock.newCondition();
         loadReadySlots();
     }
 
     /**
      * <p>Description: Persist to local disk </p>
-     * <p>Description: 持久化到本地磁盘 </p>
+     * <p>Description: 应用新的槽位配置，持久化到本地磁盘 </p>
      *
      * @param slotOfTracker     槽位对应节点
      * @param trackerOfSlots    节点对应槽位
@@ -64,7 +76,7 @@ public abstract class AbstractController implements Controller{
                 .build();
 
         ByteBuffer buffer = ByteBuffer.wrap(slots.toByteArray());
-        FileUtils.writeFile(baseDir, true, buffer);
+        FileUtils.writeFile(fileService.getBaseDir(), true, buffer);
         invokeSlotAllocateCompleted();
 
         log.info("保存槽位信息到磁盘中：[TrackerIndex={}]", trackerIndex);
@@ -73,11 +85,11 @@ public abstract class AbstractController implements Controller{
 
     /**
      * <p>Description: Load all slots file information from disk </p>
-     * <p>Description: 从磁盘中加载所有的slots文件信息 </p>
+     * <p>Description: 从磁盘中加载所有的slots文件信息，恢复槽位 </p>
      */
     protected void loadReadySlots() {
         try {
-
+            String baseDir = fileService.getBaseDir();
             File file = new File(baseDir);
             if (!file.exists()) {
                 return;
@@ -124,6 +136,30 @@ public abstract class AbstractController implements Controller{
         Map<Integer, Integer> slotsMap = Collections.unmodifiableMap(slotsOfTracker);
         for (OnSlotAllocateCompletedListener listener : slotAllocateCompletedListeners) {
             listener.onCompleted(slotsMap);
+        }
+    }
+
+    /**
+     *  为该节点应用新快照，并删除老的节点信息中有，新的节点信息中没有的文件
+     */
+    public void removeMetadata(int rebalancedTrackerIndex) throws Exception {
+        log.info("开始执行内存元数据删除. [rebalancedTrackerIndex={}]", rebalancedTrackerIndex);
+        Map<Integer, Set<Integer>> oldSlotNodeMap = trackerOfSlots;
+        writeSlots(rebalancedSlotInfo.getSlotsOfTrackerSnapshot(), rebalancedSlotInfo.getTrackerOfSlotsSnapshot());
+        Map<Integer, Set<Integer>> newSlotNodeMap = trackerOfSlots;
+
+        Set<Integer> oldCurrentSlots = oldSlotNodeMap.get(this.trackerIndex);
+        Set<Integer> newCurrentSlots = newSlotNodeMap.get(this.trackerIndex);
+        Set<Integer> toRemoveMetadataSlots = Sets.difference(oldCurrentSlots, newCurrentSlots);
+
+        for (Integer toRemoveSlot : toRemoveMetadataSlots) {
+            Set<Metadata> metadataSet = fileService.getFilesBySlot(toRemoveSlot);
+            if (metadataSet == null) {
+                continue;
+            }
+            for (Metadata metadata : metadataSet) {
+                clientManager.removeFileStorage(metadata.getFileName(), false);
+            }
         }
     }
 

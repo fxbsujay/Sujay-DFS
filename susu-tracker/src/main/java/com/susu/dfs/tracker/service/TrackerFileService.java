@@ -126,4 +126,8 @@ public class TrackerFileService extends AbstractFileService {
     public DoubleBuffer getEditLog() {
         return doubleBuffer;
     }
+
+    public String getBaseDir() {
+        return baseDir;
+    }
 }

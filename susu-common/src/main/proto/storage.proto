@@ -5,6 +5,8 @@ package com.susu.common.proto;
 option java_multiple_files = true;
 option java_package = "com.susu.common.model";
 
+import "common.proto";
+
 /**
  *  节点信息
  */
@@ -37,6 +39,7 @@ message HeartbeatRequest {
 
 message HeartbeatResponse {
   bool isSuccess = 1;
+  repeated NetPacketCommand commands = 2;
 }
 
 /**

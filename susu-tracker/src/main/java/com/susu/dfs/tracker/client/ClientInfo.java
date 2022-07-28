@@ -1,6 +1,7 @@
 package com.susu.dfs.tracker.client;
 
 import com.susu.dfs.tracker.rebalance.RemoveReplicaTask;
+import com.susu.dfs.tracker.rebalance.ReplicaTask;
 import lombok.Data;
 
 import java.util.LinkedList;
@@ -63,6 +64,8 @@ public class ClientInfo {
 
     private volatile long freeSpace;
 
+    private ConcurrentLinkedQueue<ReplicaTask> replicaTasks = new ConcurrentLinkedQueue<>();
+
     /**
      * 删除副本的任务
      */
@@ -77,6 +80,26 @@ public class ClientInfo {
         this.status = STATUS_INIT;
     }
 
+
+    /**
+     * 获取副本复制任务
+     */
+    public List<ReplicaTask> pollReplicaTask(int maxNum) {
+        List<ReplicaTask> result = new LinkedList<>();
+
+        for (int i = 0; i < maxNum; i++) {
+            ReplicaTask task = replicaTasks.poll();
+            if (task == null) {
+                break;
+            }
+            result.add(task);
+        }
+        return result;
+    }
+
+    /**
+     *  删除副本任务
+     */
     public List<RemoveReplicaTask> pollRemoveReplicaTask(int maxNum) {
         List<RemoveReplicaTask> result = new LinkedList<>();
 
@@ -100,6 +123,10 @@ public class ClientInfo {
             this.storedSize += fileSize;
             this.freeSpace -= fileSize;
         }
+    }
+
+    public void addReplicaTask(ReplicaTask task) {
+        replicaTasks.add(task);
     }
 
     public void addRemoveReplicaTask(RemoveReplicaTask task) {

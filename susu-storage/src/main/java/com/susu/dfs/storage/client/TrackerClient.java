@@ -1,10 +1,7 @@
 package com.susu.dfs.storage.client;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.susu.common.model.HeartbeatResponse;
-import com.susu.common.model.RegisterRequest;
-import com.susu.common.model.RegisterResponse;
-import com.susu.common.model.UploadCompletionRequest;
+import com.susu.common.model.*;
 import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.Node;
 import com.susu.dfs.common.eum.PacketType;
@@ -14,9 +11,11 @@ import com.susu.dfs.common.netty.msg.NetRequest;
 import com.susu.dfs.common.task.HeartbeatTask;
 import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.storage.server.StorageManager;
+import com.susu.dfs.storage.task.CommandTask;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.concurrent.ScheduledFuture;
 import lombok.extern.slf4j.Slf4j;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -34,6 +33,8 @@ public class TrackerClient {
 
     private final TaskScheduler taskScheduler;
 
+    private final CommandTask commandTask;
+
     /**
      * 用来客户端发送心跳
      */
@@ -46,6 +47,7 @@ public class TrackerClient {
         this.netClient = new NetClient(node.getName(), taskScheduler);
         this.taskScheduler = taskScheduler;
         this.storageManager = storageManager;
+        this.commandTask = new CommandTask(taskScheduler,this,storageManager);
     }
 
     /**
@@ -141,6 +143,11 @@ public class TrackerClient {
             log.warn("Client heartbeat fail!! ReRegister");
             register();
         }
+        if (response.getCommandsList().isEmpty()) {
+            return;
+        }
+        List<NetPacketCommand> commands = response.getCommandsList();
+        commandTask.addCommand(commands);
     }
 
 

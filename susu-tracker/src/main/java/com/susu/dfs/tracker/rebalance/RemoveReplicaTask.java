@@ -18,11 +18,11 @@ public class RemoveReplicaTask {
     /**
      * 文件名称
      */
-    private String fileName;
+    private String filename;
 
-    public RemoveReplicaTask(Long clientId, String fileName) {
+    public RemoveReplicaTask(Long clientId, String filename) {
         this.clientId = clientId;
-        this.fileName = fileName;
+        this.filename = filename;
     }
 }
 
