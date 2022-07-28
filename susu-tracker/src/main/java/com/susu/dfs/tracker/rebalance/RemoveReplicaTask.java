@@ -11,17 +11,17 @@ import lombok.Data;
 public class RemoveReplicaTask {
 
     /**
-     * 客户端ID
+     * 客户端
      */
-    private Long clientId;
+    private String hostname;
 
     /**
      * 文件名称
      */
     private String filename;
 
-    public RemoveReplicaTask(Long clientId, String filename) {
-        this.clientId = clientId;
+    public RemoveReplicaTask(String hostname, String filename) {
+        this.hostname = hostname;
         this.filename = filename;
     }
 }

@@ -215,6 +215,10 @@ public class FileUtils {
         return true;
     }
 
+    public static boolean del(String path) {
+        return del(new File(path));
+    }
+
     /**
      * <p>Description: delete file</p>
      * <p>删除文件</p>

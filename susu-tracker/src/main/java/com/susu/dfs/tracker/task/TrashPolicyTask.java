@@ -54,7 +54,7 @@ public class TrashPolicyTask implements Runnable {
                     String dataNodeFilename = filename.replaceAll(File.separator + Constants.TRASH_DIR, "");
                     FileInfo fileInfo = clientManager.removeFileStorage(dataNodeFilename, true);
                     if (fileInfo == null) {
-                        log.error("找不到文件的DataNode信息，等待下一次定时任务扫描再删除文件：[filename={}]", dataNodeFilename);
+                        log.error("找不到文件信息，等待下一次定时任务扫描再删除文件：[filename={}]", dataNodeFilename);
                         continue;
                     }
                     log.debug("删除内存目录树：[filename={}]", filename);

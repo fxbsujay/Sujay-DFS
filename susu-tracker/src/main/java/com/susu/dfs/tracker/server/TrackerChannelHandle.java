@@ -139,17 +139,17 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      */
     private void storageHeartbeatHandel(NetRequest request) throws InvalidProtocolBufferException {
         HeartbeatRequest heartbeatRequest = HeartbeatRequest.parseFrom(request.getRequest().getBody());
-        Boolean isSuccess = clientManager.heartbeat(heartbeatRequest.getClientId());
+        Boolean isSuccess = clientManager.heartbeat(heartbeatRequest.getHostname());
         if (!isSuccess) {
             throw new RuntimeException("Client heartbeat update failed");
         }
-        ClientInfo client = clientManager.getClientById(heartbeatRequest.getClientId());
+        ClientInfo client = clientManager.getClientByHost(heartbeatRequest.getHostname());
         List<ReplicaTask> replicaTask = client.pollReplicaTask(100);
         List<NetPacketCommand> commandList = new LinkedList<>();
         if (!replicaTask.isEmpty()) {
             List<NetPacketCommand> commands = replicaTask.stream()
                     .map(item -> {
-                        ClientInfo clientInfo = clientManager.getClientById(item.getClientId());
+                        ClientInfo clientInfo = clientManager.getClientByHost(item.getHostname());
                         return NetPacketCommand.newBuilder()
                                 .setFilename(item.getFilename())
                                 .setHostname(clientInfo.getHostname())
@@ -165,7 +165,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
         if (!removeReplicaTasks.isEmpty()) {
             List<NetPacketCommand> commands = removeReplicaTasks.stream()
                     .map(item -> {
-                        ClientInfo clientInfo = clientManager.getClientById(item.getClientId());
+                        ClientInfo clientInfo = clientManager.getClientByHost(item.getHostname());
                         return NetPacketCommand.newBuilder()
                                 .setFilename(item.getFilename())
                                 .setHostname(clientInfo.getHostname())
@@ -261,10 +261,10 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
     private void clientUploadFileComplete(NetRequest request) throws InvalidProtocolBufferException{
         NetPacket packet = request.getRequest();
         UploadCompletionRequest uploadCompletionRequest = UploadCompletionRequest.parseFrom(packet.getBody());
-        log.info("Receive the Storage information reported by the client：[clientId={}, filename={}]", uploadCompletionRequest.getClientId(), uploadCompletionRequest.getFilename());
-        FileInfo fileInfo = new FileInfo(uploadCompletionRequest.getClientId(), uploadCompletionRequest.getFilename(), uploadCompletionRequest.getFileSize());
+        log.info("Receive the Storage information reported by the client：[hostname={}, filename={}]", uploadCompletionRequest.getHostname(), uploadCompletionRequest.getFilename());
+        FileInfo fileInfo = new FileInfo(uploadCompletionRequest.getHostname(), uploadCompletionRequest.getFilename(), uploadCompletionRequest.getFileSize());
         clientManager.addFile(fileInfo);
-        ClientInfo client = clientManager.getClientById(uploadCompletionRequest.getClientId());
+        ClientInfo client = clientManager.getClientByHost(uploadCompletionRequest.getHostname());
         client.addStoredDataSize(uploadCompletionRequest.getFileSize());
         request.sendResponse();
     }

@@ -31,7 +31,7 @@ public class ClientManager {
      *                      value:  clientInfo
      *                  }
      */
-    private final Map<Long, ClientInfo> clients = new ConcurrentHashMap<>();
+    private final Map<String, ClientInfo> clients = new ConcurrentHashMap<>();
 
     /**
      * 每个文件对应存储的Datanode信息
@@ -45,11 +45,11 @@ public class ClientManager {
     /**
      * 每个DataNode 存储的文件列表
      *      Example:    {
-     *                      key:    clientId
+     *                      key:    hostname
      *                      value:  FileInfo
      *                  }
      */
-    private final Map<Long, Map<String, FileInfo>> clientOfFiles = new ConcurrentHashMap<>();
+    private final Map<String, Map<String, FileInfo>> clientOfFiles = new ConcurrentHashMap<>();
 
     private TrackerFileService trackerFileService;
 
@@ -65,8 +65,8 @@ public class ClientManager {
         this.trackerFileService = trackerFileService;
     }
 
-    public ClientInfo getClientById(long clientId) {
-        return clients.get(clientId);
+    public ClientInfo getClientByHost(String hostname) {
+        return clients.get(hostname);
     }
 
     /**
@@ -76,6 +76,7 @@ public class ClientManager {
      * @return 是否注册成功 【 true / false 】
      */
     public boolean register(RegisterRequest request,Long clientId) {
+
         if (StringUtils.isBlank(request.getHostname())) {
             return false;
         }
@@ -83,7 +84,7 @@ public class ClientManager {
         client.setName(request.getName());
         client.setClientId(clientId);
         log.info("Client register request : [hostname:{}]",request.getHostname());
-        clients.put(clientId,client);
+        clients.put(request.getHostname(),client);
         return true;
     }
 
@@ -91,17 +92,17 @@ public class ClientManager {
      * <p>Description: 客户端心跳</p>
      * <p>Description: Client Heartbeat</p>
      *
-     * @param clientId 客户端Id
+     * @param hostname 客户端地址
      * @return 是否更新成功 【 true / false 】
      */
-    public Boolean heartbeat(Long clientId) {
-        ClientInfo dataNode = clients.get(clientId);
+    public Boolean heartbeat(String hostname) {
+        ClientInfo dataNode = clients.get(hostname);
         if (dataNode == null) {
             return false;
         }
         long latestHeartbeatTime = System.currentTimeMillis();
         if (log.isDebugEnabled()) {
-            log.debug("Heartbeat received from client：[clientId={}, latestHeartbeatTime={}]", clientId, DateUtils.getTime(new Date(latestHeartbeatTime)));
+            log.debug("Heartbeat received from client：[hostname={}, latestHeartbeatTime={}]", hostname, DateUtils.getTime(new Date(latestHeartbeatTime)));
         }
         dataNode.setLatestHeartbeatTime(latestHeartbeatTime);
         return true;
@@ -141,10 +142,10 @@ public class ClientManager {
     /**
      * <p>Description: 判断存储节点是否包含该文件</p>
      */
-    private boolean isClientContainsFile(Long clientId, String filename) {
+    private boolean isClientContainsFile(String hostname, String filename) {
         replicaLock.readLock().lock();
         try {
-            Map<String, FileInfo> files = clientOfFiles.getOrDefault(clientId, new HashMap<>(Constants.MAP_SIZE));
+            Map<String, FileInfo> files = clientOfFiles.getOrDefault(hostname, new HashMap<>(Constants.MAP_SIZE));
             return files.containsKey(filename);
         } finally {
             replicaLock.readLock().unlock();
@@ -197,7 +198,7 @@ public class ClientManager {
         List<ClientInfo> clientList = new ArrayList<>(10);
 
         for (ClientInfo client: clientInfos) {
-            if (isClientContainsFile(client.getClientId(),filename)) {
+            if (isClientContainsFile(client.getHostname(),filename)) {
                 continue;
             }
 
@@ -214,7 +215,7 @@ public class ClientManager {
         } else if (clientList.size() < size){
             int raminStoreSize = size - clientList.size();
             for (ClientInfo client: clientInfos) {
-                if (clientList.contains(client) || isClientContainsFile(client.getClientId(),filename)) {
+                if (clientList.contains(client) || isClientContainsFile(client.getHostname(),filename)) {
                     continue;
                 }
                 clientList.add(client);
@@ -229,7 +230,7 @@ public class ClientManager {
             for (int i = 0; i < size; i++) {
                 int index = random.nextInt(clientList.size());
                 ClientInfo client = clientList.get(index);
-                if (selectedClients.contains(client) || isClientContainsFile(client.getClientId(),filename)) {
+                if (selectedClients.contains(client) || isClientContainsFile(client.getHostname(),filename)) {
                     continue;
                 }
                 selectedClients.add(client);
@@ -264,9 +265,9 @@ public class ClientManager {
             }
             if (delReplica) {
                 for (ClientInfo client : clientInfoList) {
-                    ClientInfo dataNode = clients.get(client.getClientId());
-                    RemoveReplicaTask task = new RemoveReplicaTask(dataNode.getClientId(), filename);
-                    log.info("下发副本删除任务：[clientId={}, filename={}]", dataNode.getClientId(), filename);
+                    ClientInfo dataNode = clients.get(client.getHostname());
+                    RemoveReplicaTask task = new RemoveReplicaTask(dataNode.getHostname(), filename);
+                    log.info("下发副本删除任务：[hostname={}, filename={}]", dataNode.getHostname(), filename);
                     dataNode.addRemoveReplicaTask(task);
                 }
             }
@@ -282,27 +283,27 @@ public class ClientManager {
     public void addFile(FileInfo file) {
         replicaLock.writeLock().lock();
         try {
-            ClientInfo clientInfo = clients.get(file.getClientId());
+            ClientInfo clientInfo = clients.get(file.getHostname());
             List<ClientInfo> clientInfoList = fileOfClients.computeIfAbsent(file.getFileName(), k -> new ArrayList<>());
             FileNode fileNode = isInTrash(file.getFileName());
             if (fileNode == null) {
-                log.warn("Receive file submission by Storage, But the file was not found,must delete file: [clientId={}, filename={}]", file.getClientId(), file.getFileName());
-                RemoveReplicaTask task = new RemoveReplicaTask(file.getClientId(),file.getFileName());
+                log.warn("Receive file submission by Storage, But the file was not found,must delete file: [hostname={}, filename={}]", file.getHostname(), file.getFileName());
+                RemoveReplicaTask task = new RemoveReplicaTask(file.getHostname(),file.getFileName());
                 clientInfo.addRemoveReplicaTask(task);
                 return;
             }
             int replicaNum = Integer.parseInt(fileNode.getAttr().getOrDefault(Constants.ATTR_REPLICA_NUM, "1"));
             if (clientInfoList.size() > replicaNum) {
-                RemoveReplicaTask task = new RemoveReplicaTask(clientInfo.getClientId(), file.getFileName());
-                log.info("Delete replica command：[clientId={}, filename={}]", clientInfo.getHostname(), file.getFileName());
+                RemoveReplicaTask task = new RemoveReplicaTask(clientInfo.getHostname(), file.getFileName());
+                log.info("Delete replica command：[hostname={}, filename={}]", clientInfo.getHostname(), file.getFileName());
                 clientInfo.addRemoveReplicaTask(task);
                 return;
             }
             clientInfoList.add(clientInfo);
-            Map<String, FileInfo> files = clientOfFiles.computeIfAbsent(file.getClientId(), k -> new HashMap<>(Constants.MAP_SIZE));
+            Map<String, FileInfo> files = clientOfFiles.computeIfAbsent(file.getHostname(), k -> new HashMap<>(Constants.MAP_SIZE));
             files.put(file.getFileName(), file);
             if (log.isDebugEnabled()) {
-                log.debug("Receive file submission by Storage：[clientId={}, filename={}]", file.getClientId(), file.getFileName());
+                log.debug("Receive file submission by Storage：[hostname={}, filename={}]", file.getHostname(), file.getFileName());
             }
         }finally {
             replicaLock.writeLock().unlock();

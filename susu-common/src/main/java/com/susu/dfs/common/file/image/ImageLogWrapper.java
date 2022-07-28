@@ -112,6 +112,33 @@ public class ImageLogWrapper {
         }
     }
 
+    /**
+     * 验证FsImage文件
+     *
+     * @param channel File Channel
+     * @param path    文件路径
+     * @param length  文件长度
+     * @return 如果合法返回MaxTxId, 如果不合法返回-1
+     * @throws IOException 文件不存在
+     */
+    public static long validate(FileChannel channel, String path, int length) throws IOException {
+        ByteBuffer buffer = ByteBuffer.allocate(12);
+        channel.read(buffer);
+        buffer.flip();
+        if (buffer.remaining() < LENGTH_OF_FILE_LENGTH_FIELD) {
+            log.warn("FsImage文件不完整: [file={}]", path);
+            return -1;
+        }
+        int fileLength = buffer.getInt();
+        if (fileLength != length) {
+            log.warn("FsImage文件不完整: [file={}]", path);
+            return -1;
+        } else {
+            return buffer.getLong();
+        }
+
+    }
+
 
 
 }

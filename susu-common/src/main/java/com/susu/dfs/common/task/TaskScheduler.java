@@ -123,13 +123,4 @@ public class TaskScheduler {
             executor.shutdown();
         }
     }
-
-    public static void main(String[] args) {
-        TaskScheduler taskScheduler = new TaskScheduler("DataNode-Scheduler");
-        taskScheduler.scheduleOnce("Test Task",() -> {
-            log.info("==============test==============");
-        });
-
-    }
-
 }

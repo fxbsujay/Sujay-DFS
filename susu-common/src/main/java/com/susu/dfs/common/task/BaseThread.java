@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * <p>Description: Base Thread</p>
  * <p>Description: 一个最基础的任务线程，只负责打印一些日志</p>
+ *
  * @author sujay
  * @version 14:52 2022/7/5
  */

@@ -18,16 +18,16 @@ public class ReplicaTask {
     /**
      * 客户端Id
      */
-    private Long clientId;
+    private String hostname;
 
     /**
      * 端口
      */
     private int port;
 
-    public ReplicaTask(String filename, Long clientId, int port) {
+    public ReplicaTask(String filename, String hostname, int port) {
         this.filename = filename;
-        this.clientId = clientId;
+        this.hostname = hostname;
         this.port = port;
     }
 }

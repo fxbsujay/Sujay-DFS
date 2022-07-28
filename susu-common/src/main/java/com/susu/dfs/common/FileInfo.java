@@ -11,7 +11,7 @@ import lombok.Data;
 @Data
 public class FileInfo {
 
-    private Long clientId;
+    private String hostname;
 
     private String fileName;
 
@@ -20,8 +20,8 @@ public class FileInfo {
     public FileInfo() {
     }
 
-    public FileInfo(Long clientId, String fileName, long fileSize) {
-        this.clientId = clientId;
+    public FileInfo(String hostname, String fileName, long fileSize) {
+        this.hostname = hostname;
         this.fileName = fileName;
         this.fileSize = fileSize;
     }

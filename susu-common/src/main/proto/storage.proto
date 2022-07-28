@@ -27,6 +27,8 @@ message RegisterRequest {
 
 message RegisterResponse {
   int64 clientId = 1;
+  bool isSuccess = 2;
+  string hostname = 3;
 }
 
 /**
@@ -34,7 +36,7 @@ message RegisterResponse {
  *  @param isSuccess 心跳是否发送成功
  */
 message HeartbeatRequest {
-  int64 clientId = 1;
+  string hostname = 1;
 }
 
 message HeartbeatResponse {
@@ -46,7 +48,7 @@ message HeartbeatResponse {
  *  Client 上传文件完成，向Tracker上报信息
  */
 message UploadCompletionRequest {
-  int64 clientId = 1;
+  string hostname = 1;
   string filename = 2;
   int64 fileSize = 3;
 }

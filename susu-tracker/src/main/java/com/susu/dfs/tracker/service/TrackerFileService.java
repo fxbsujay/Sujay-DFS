@@ -7,6 +7,7 @@ import com.susu.dfs.common.file.AbstractFileService;
 import com.susu.dfs.common.file.image.ImageLogWrapper;
 import com.susu.dfs.common.file.log.DoubleBuffer;
 import com.susu.dfs.common.file.log.ReadyLogWrapper;
+import com.susu.dfs.common.task.ClearImageTask;
 import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.tracker.client.ClientManager;
 import com.susu.dfs.tracker.task.TrashPolicyTask;
@@ -28,18 +29,40 @@ public class TrackerFileService extends AbstractFileService {
      */
     private DoubleBuffer doubleBuffer;
 
+    private TaskScheduler taskScheduler;
+
+    private TrashPolicyTask trashPolicyTask;
+
+    private ClearImageTask clearImageTask;
+
     /**
      * ReadyLog和ImageLog文件的存储路径
      */
     private final String baseDir;
 
+    private volatile long maxTxId = 0L;
+
     public TrackerFileService(TaskScheduler taskScheduler, ClientManager clientManager) {
         super(Constants.DEFAULT_BASE_DIR);
+        this.taskScheduler = taskScheduler;
         this.baseDir = Constants.DEFAULT_BASE_DIR;
         this.doubleBuffer = new DoubleBuffer(baseDir);
-        TrashPolicyTask trashPolicyTask = new TrashPolicyTask(this,clientManager);
-        taskScheduler.schedule("定时扫描物理删除文件",trashPolicyTask, Constants.TRASH_CLEAR_INTERVAL, Constants.TRASH_CLEAR_INTERVAL, TimeUnit.MILLISECONDS);
         clientManager.setTrackerFileService(this);
+        this.trashPolicyTask =  new TrashPolicyTask(this,clientManager);
+        this.clearImageTask = new ClearImageTask(baseDir,this,doubleBuffer);
+    }
+
+    public long getMaxTxId() {
+        return maxTxId;
+    }
+
+    /**
+     * 设置当前最大的TxId
+     *
+     * @param maxTxId TxId
+     */
+    public void setMaxTxId(Long maxTxId) {
+        this.maxTxId = maxTxId;
     }
 
     @Override
@@ -61,6 +84,7 @@ public class TrackerFileService extends AbstractFileService {
                 } else if (type == ReadyLogType.DELETE.getValue()) {
                     super.deleteFile(readyLog.getPath());
                 }
+                setMaxTxId(readyLog.getTxId());
             });
         } catch (Exception e) {
             log.info("Recover directory tree exception according to imageLog !!：", e);
@@ -98,6 +122,8 @@ public class TrackerFileService extends AbstractFileService {
         log.info("Start TrackerFileService.");
         try {
             recoveryNamespace();
+            taskScheduler.schedule("定时扫描物理删除文件", trashPolicyTask, Constants.TRASH_CLEAR_INTERVAL, Constants.TRASH_CLEAR_INTERVAL, TimeUnit.MILLISECONDS);
+            taskScheduler.schedule("清理本地Image文件任务", clearImageTask, Constants.TRASH_CLEAR_INTERVAL, Constants.TRASH_CLEAR_INTERVAL, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             log.info("RecoveryNamespace error of Start Tracker File Service!!.");
             throw e;
@@ -112,6 +138,7 @@ public class TrackerFileService extends AbstractFileService {
         log.info("Shutdown TrackerFileService.");
         try {
             doubleBuffer.flushBuffer();
+
             writImage();
         } catch (Exception e) {
             log.error("Failed to save operation log !!");

@@ -69,6 +69,18 @@ public abstract class AbstractFileService implements FileService{
     /**
      * 保存镜像
      */
+    protected void writImage(long maxTxId) throws Exception {
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+        log.info("Staring apply FsImage file ...");
+        directory.writImage();
+        stopWatch.stop();
+        log.info("Apply FsImage File cost {} ms", stopWatch.getTime());
+    }
+
+    /**
+     * 保存镜像
+     */
     protected void writImage() throws Exception {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
@@ -109,17 +121,24 @@ public abstract class AbstractFileService implements FileService{
      * @return 最新并合法的ImageLog
      */
     protected ImageLogWrapper scanLatestValidImageLog(String baseDir) throws IOException {
+
         Map<Long, String> timeFsImageMap = scanImageLogMap(baseDir);
         List<Long> sortedList = new ArrayList<>(timeFsImageMap.keySet());
         sortedList.sort((o1, o2) -> o1.equals(o2) ? 0 : (int) (o2 - o1));
+
         for (Long time : sortedList) {
             String path = timeFsImageMap.get(time);
-            try (RandomAccessFile raf = new RandomAccessFile(path, "r"); FileInputStream fis = new FileInputStream(raf.getFD()); FileChannel channel = fis.getChannel()) {
+
+            try (RandomAccessFile raf = new RandomAccessFile(path, "r");
+                 FileInputStream fis = new FileInputStream(raf.getFD());
+                 FileChannel channel = fis.getChannel()) {
+
                 ImageLogWrapper fsImage = ImageLogWrapper.parse(channel, path, (int) raf.length());
                 if (fsImage != null) {
                     return fsImage;
                 }
             }
+
         }
         return null;
     }

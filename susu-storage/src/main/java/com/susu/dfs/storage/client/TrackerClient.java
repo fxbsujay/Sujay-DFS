@@ -129,6 +129,7 @@ public class TrackerClient {
             scheduledFuture = ctx.executor().scheduleAtFixedRate(new HeartbeatTask(ctx, node),
                     0, Constants.HEARTBEAT_INTERVAL, TimeUnit.MILLISECONDS);
         }
+
     }
 
     /**
@@ -150,7 +151,6 @@ public class TrackerClient {
         commandTask.addCommand(commands);
     }
 
-
     /**
      * <p>Description: 客户端上传文件完成，Storage将信息上报给 Tracker</p>
      * <p>Description: Processing messages returned from heartbeat</p>
@@ -160,7 +160,7 @@ public class TrackerClient {
      */
     public void clientUploadCompletionRequest(String filename, long fileSize) throws InterruptedException {
         UploadCompletionRequest uploadCompletionRequest = UploadCompletionRequest.newBuilder()
-                .setClientId(node.getId())
+                .setHostname(node.getHost())
                 .setFilename(filename)
                 .setFileSize(fileSize)
                 .build();

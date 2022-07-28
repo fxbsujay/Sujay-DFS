@@ -215,7 +215,7 @@ public class DoubleBuffer {
             return;
         }
         for (File file : files) {
-            if (!file.getName().contains("edits")) {
+            if (!file.getName().contains(Constants.READY_LOG_NAME)) {
                 continue;
             }
             long[] index = getIndexFromFileName(file.getName());

@@ -8,9 +8,7 @@ import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 往NameNode发送心跳的请求
- *
- * @author Sun Dasheng
+ * 发送心跳的请求
  */
 @Slf4j
 public class HeartbeatTask implements Runnable {
@@ -27,7 +25,7 @@ public class HeartbeatTask implements Runnable {
     @Override
     public void run() {
         HeartbeatRequest request = HeartbeatRequest.newBuilder()
-                .setClientId(node.getId())
+                .setHostname(node.getHost())
                 .build();
         // 发送心跳请求
         NetPacket nettyPacket = NetPacket.buildPacket(request.toByteArray(), PacketType.STORAGE_HEART_BEAT);
