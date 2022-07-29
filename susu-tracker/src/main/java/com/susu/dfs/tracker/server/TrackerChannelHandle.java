@@ -299,6 +299,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
                 serverManager.reportSelfInfo(trackerCluster,false);
             }
         }
+        serverManager.receiveSelfInf(awareRequest);
     }
 
 }

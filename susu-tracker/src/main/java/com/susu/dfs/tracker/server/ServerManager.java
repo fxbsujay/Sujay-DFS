@@ -8,11 +8,15 @@ import com.susu.dfs.common.eum.PacketType;
 import com.susu.dfs.common.netty.msg.NetPacket;
 import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.tracker.cluster.TrackerCluster;
-import com.susu.dfs.tracker.controller.Controller;
+import com.susu.dfs.tracker.slot.OnSlotCompletedListener;
+import com.susu.dfs.tracker.slot.TrackerSlot;
 import com.susu.dfs.tracker.service.TrackerClusterService;
+import com.susu.dfs.tracker.slot.TrackerSlotLocal;
 import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -27,22 +31,27 @@ public class ServerManager {
 
     private TrackerClusterService trackerClusterService;
 
-    private AtomicInteger numOfNode;
+    private AtomicInteger trackerSize;
 
     private Node node;
 
     private List<TrackerInfo> nodes;
 
-    private Controller controller;
+    private TrackerSlot trackerSlot;
 
     private AtomicInteger trackerCount = new AtomicInteger(0);
+
+    private AtomicBoolean startSlotElection = new AtomicBoolean(false);
+
+    private List<OnSlotCompletedListener> slotCompletedListeners = new ArrayList<>();
 
     public ServerManager(Node node, List<TrackerInfo> nodes, TrackerClusterService trackerClusterService) {
         this.node = node;
         this.nodes = nodes;
         this.trackerClusterService = trackerClusterService;
         this.trackerClusterService.setServerManager(this);
-        this.numOfNode = new AtomicInteger(nodes.size());
+        this.trackerSize = new AtomicInteger(nodes.size());
+        this.trackerSlot = new TrackerSlotLocal(node.getIndex(),trackerClusterService);
     }
 
     /**
@@ -78,4 +87,24 @@ public class ServerManager {
         trackerCluster.send(packet);
         log.info("发送自身信息：[index={}, targetIndex={},isClient={}]",node.getIndex(), trackerCluster.getTargetIndex(),isClient);
     }
+
+    public void receiveSelfInf(TrackerAwareRequest request) throws Exception {
+        trackerCount.incrementAndGet();
+        trackerSize.set(Math.max(trackerSize.get(),request.getTrackerSize()));
+        initSlots();
+
+    }
+
+    private void initSlots() throws Exception {
+        Map<Integer, Integer> slots = trackerSlot.initSlots();
+        for (OnSlotCompletedListener listener : slotCompletedListeners) {
+            listener.onCompleted(slots);
+            trackerSlot.addOnSlotCompletedListener(listener);
+        }
+    }
+
+    public void addOnSlotCompletedListener(OnSlotCompletedListener listener) {
+        this.slotCompletedListeners.add(listener);
+    }
+
 }

@@ -1,4 +1,4 @@
-package com.susu.dfs.tracker.controller;
+package com.susu.dfs.tracker.slot;
 
 import com.google.common.collect.Sets;
 import com.susu.common.model.Metadata;
@@ -23,7 +23,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @version 17:12 2022/7/27
  */
 @Slf4j
-public abstract class AbstractController implements Controller{
+public abstract class AbstractTrackerSlot implements TrackerSlot {
 
     protected int trackerIndex;
 
@@ -49,9 +49,9 @@ public abstract class AbstractController implements Controller{
     /**
      * 数据槽位分配成功监听调用
      */
-    private final List<OnSlotAllocateCompletedListener> slotAllocateCompletedListeners = new ArrayList<>();
+    private final List<OnSlotCompletedListener> slotCompletedListeners = new ArrayList<>();
 
-    public AbstractController(int trackerIndex) {
+    public AbstractTrackerSlot(int trackerIndex) {
         this.trackerIndex = trackerIndex;
         this.initCompleted = new AtomicBoolean(false);
         this.lock = new ReentrantLock();
@@ -77,11 +77,10 @@ public abstract class AbstractController implements Controller{
 
         ByteBuffer buffer = ByteBuffer.wrap(slots.toByteArray());
         FileUtils.writeFile(fileService.getBaseDir(), true, buffer);
-        invokeSlotAllocateCompleted();
+        invokeSlotCompleted();
 
         log.info("保存槽位信息到磁盘中：[TrackerIndex={}]", trackerIndex);
     }
-
 
     /**
      * <p>Description: Load all slots file information from disk </p>
@@ -110,7 +109,7 @@ public abstract class AbstractController implements Controller{
                 this.slotsOfTracker = slotNodeMap;
                 this.trackerOfSlots = nodeSlotsMap;
                 this.initCompleted.set(true);
-                invokeSlotAllocateCompleted();
+                invokeSlotCompleted();
 
                 log.info("从磁盘中恢复槽位信息：[trackerIndex={}]", trackerIndex);
             }
@@ -132,9 +131,9 @@ public abstract class AbstractController implements Controller{
     /**
      * 触发监听器
      */
-    private void invokeSlotAllocateCompleted() {
+    private void invokeSlotCompleted() {
         Map<Integer, Integer> slotsMap = Collections.unmodifiableMap(slotsOfTracker);
-        for (OnSlotAllocateCompletedListener listener : slotAllocateCompletedListeners) {
+        for (OnSlotCompletedListener listener : slotCompletedListeners) {
             listener.onCompleted(slotsMap);
         }
     }
@@ -169,8 +168,8 @@ public abstract class AbstractController implements Controller{
     }
 
     @Override
-    public void addOnSlotAllocateCompletedListener(OnSlotAllocateCompletedListener listener) {
-        slotAllocateCompletedListeners.add(listener);
+    public void addOnSlotCompletedListener(OnSlotCompletedListener listener) {
+        slotCompletedListeners.add(listener);
     }
 
     @Override

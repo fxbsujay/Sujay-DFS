@@ -144,14 +144,12 @@ public class DoubleBuffer {
      * 异步刷磁盘
      */
     private void logSync() {
+
         synchronized (this) {
+
             long txId = localTxId.get();
             localTxId.remove();
-            /*
-             * 在这种情况下需要等待：
-             * 1. 有其他线程正在刷磁盘，但是其他线程刷的磁盘的最大txid比当前需要刷磁盘的线程id少。
-             * 这通常表示：正在刷磁盘的线程不会把当前线程需要刷的数据刷到磁盘中
-             */
+
             while (txId > syncTxId && isSyncRunning) {
                 try {
                     wait(1000);
@@ -159,28 +157,19 @@ public class DoubleBuffer {
                     e.printStackTrace();
                 }
             }
-            /*
-             * 多个线程在上面等待，当前一个线程刷磁盘操作完成后，唤醒了一堆线程，此时只有一个线程获取到锁。
-             * 这个线程会进行刷磁盘操作，当这个线程释放锁之后，其他被唤醒的线程会依次获取到锁。
-             * 此时每个被唤醒的线程需要重新判断一次，自己要做的事情是不是被其他线程干完了
-             */
+
             if (txId <= syncTxId) {
                 return;
             }
 
-            // 交换两块缓冲区
             regularToSync();
 
-            // 记录最大的txId
             syncTxId = txId;
 
-            // 设置当前正在同步到磁盘的标志位
             isSchedulingSync = false;
 
-            // 唤醒哪些正在wait的线程
             notifyAll();
 
-            // 正在刷磁盘
             isSyncRunning = true;
         }
 
@@ -190,11 +179,10 @@ public class DoubleBuffer {
                 readyLogs.add(readyLog);
             }
         } catch (IOException e) {
-            log.info("ReadyLog 刷磁盘失败：", e);
+            log.info("ReadyLog flush fail !!：", e);
         }
 
         synchronized (this) {
-            // 同步完了磁盘之后，就会将标志位复位，再释放锁
             isSyncRunning = false;
             notifyAll();
         }

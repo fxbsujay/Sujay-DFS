@@ -1,4 +1,4 @@
-package com.susu.dfs.tracker.controller;
+package com.susu.dfs.tracker.slot;
 
 import com.susu.common.model.TrackerSlots;
 import com.susu.dfs.common.netty.msg.NetPacket;
@@ -9,7 +9,7 @@ import java.util.Map;
  * <p>Description: 数据分片的控制器服务组件</p>
  * @version 16:57 2022/7/27
  */
-public interface Controller {
+public interface TrackerSlot {
 
 
     /**
@@ -55,6 +55,6 @@ public interface Controller {
      *
      * @param listener 监听器
      */
-    void addOnSlotAllocateCompletedListener(OnSlotAllocateCompletedListener listener);
+    void addOnSlotCompletedListener(OnSlotCompletedListener listener);
 
 }

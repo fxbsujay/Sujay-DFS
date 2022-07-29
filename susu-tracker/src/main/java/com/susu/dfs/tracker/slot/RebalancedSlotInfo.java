@@ -1,4 +1,4 @@
-package com.susu.dfs.tracker.controller;
+package com.susu.dfs.tracker.slot;
 
 import lombok.Data;
 import java.util.*;

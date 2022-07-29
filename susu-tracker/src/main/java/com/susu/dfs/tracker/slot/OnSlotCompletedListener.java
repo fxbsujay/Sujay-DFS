@@ -1,4 +1,4 @@
-package com.susu.dfs.tracker.controller;
+package com.susu.dfs.tracker.slot;
 
 import java.util.Map;
 
@@ -7,7 +7,7 @@ import java.util.Map;
  * <p>Description: 数据分配成功监听器</p>
  * @version 17:23 2022/7/27
  */
-public interface OnSlotAllocateCompletedListener {
+public interface OnSlotCompletedListener {
 
     /**
      *  分配成功

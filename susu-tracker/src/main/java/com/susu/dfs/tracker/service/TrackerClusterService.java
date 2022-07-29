@@ -192,4 +192,16 @@ public class TrackerClusterService {
             return new ArrayList<>();
         }
     }
+
+    public List<TrackerInfo> getAllTracker() {
+        List<TrackerInfo> result = new ArrayList<>(clusterServerMap.size());
+        for (TrackerCluster peerNameNode : clusterServerMap.values()) {
+            result.add(peerNameNode.getServer());
+        }
+        return result;
+    }
+
+    public List<Integer> getAllTrackerIndex() {
+        return new ArrayList<>(clusterServerMap.keySet());
+    }
 }
