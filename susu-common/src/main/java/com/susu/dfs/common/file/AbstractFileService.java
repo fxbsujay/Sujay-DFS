@@ -73,7 +73,7 @@ public abstract class AbstractFileService implements FileService{
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         log.info("Staring apply FsImage file ...");
-        directory.writImage();
+        directory.writImage(maxTxId);
         stopWatch.stop();
         log.info("Apply FsImage File cost {} ms", stopWatch.getTime());
     }
@@ -82,12 +82,7 @@ public abstract class AbstractFileService implements FileService{
      * 保存镜像
      */
     protected void writImage() throws Exception {
-        StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
-        log.info("Staring apply FsImage file ...");
-        directory.writImage();
-        stopWatch.stop();
-        log.info("Apply FsImage File cost {} ms", stopWatch.getTime());
+        writImage(0);
     }
 
     @Override

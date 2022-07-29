@@ -52,8 +52,10 @@ public class TrackerFileService extends AbstractFileService {
         this.clearImageTask = new ClearImageTask(baseDir,this,doubleBuffer);
     }
 
-    public long getMaxTxId() {
-        return maxTxId;
+    private void txIdIncrement() {
+        synchronized (this) {
+            maxTxId++;
+        }
     }
 
     /**
@@ -95,6 +97,7 @@ public class TrackerFileService extends AbstractFileService {
     @Override
     public void mkdir(String path, Map<String, String> attr) {
         super.mkdir(path, attr);
+        txIdIncrement();
         doubleBuffer.writeLog(new ReadyLogWrapper(ReadyLogType.MKDIR,path,attr));
     }
 
@@ -104,6 +107,7 @@ public class TrackerFileService extends AbstractFileService {
         if (!result) {
             return false;
         }
+        txIdIncrement();
         doubleBuffer.writeLog(new ReadyLogWrapper(ReadyLogType.CREATE,filename,attr));
         return true;
     }
@@ -114,6 +118,7 @@ public class TrackerFileService extends AbstractFileService {
         if (!result) {
             return false;
         }
+        txIdIncrement();
         doubleBuffer.writeLog(new ReadyLogWrapper(ReadyLogType.DELETE,filename));
         return true;
     }
@@ -122,8 +127,8 @@ public class TrackerFileService extends AbstractFileService {
         log.info("Start TrackerFileService.");
         try {
             recoveryNamespace();
-            taskScheduler.schedule("定时扫描物理删除文件", trashPolicyTask, Constants.TRASH_CLEAR_INTERVAL, Constants.TRASH_CLEAR_INTERVAL, TimeUnit.MILLISECONDS);
-            taskScheduler.schedule("清理本地Image文件任务", clearImageTask, Constants.TRASH_CLEAR_INTERVAL, Constants.TRASH_CLEAR_INTERVAL, TimeUnit.MILLISECONDS);
+            taskScheduler.schedule("Trash Policy Task Start", trashPolicyTask, Constants.TRASH_CLEAR_INTERVAL, Constants.TRASH_CLEAR_INTERVAL, TimeUnit.MILLISECONDS);
+            taskScheduler.schedule("Clear Image Task Start", clearImageTask, Constants.TRASH_CLEAR_INTERVAL, Constants.TRASH_CLEAR_INTERVAL, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             log.info("RecoveryNamespace error of Start Tracker File Service!!.");
             throw e;
@@ -138,8 +143,7 @@ public class TrackerFileService extends AbstractFileService {
         log.info("Shutdown TrackerFileService.");
         try {
             doubleBuffer.flushBuffer();
-
-            writImage();
+            writImage(maxTxId);
         } catch (Exception e) {
             log.error("Failed to save operation log !!");
         }

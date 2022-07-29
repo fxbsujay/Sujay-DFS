@@ -54,7 +54,7 @@ public class ClearImageTask implements Runnable{
             String path = images.get(time);
             if (verify) {
                 FileUtils.del(path);
-                log.info("删除 Image: [file={}]", path);
+                log.info("remove Image: [file={}]", path);
                 continue;
             }
 
@@ -66,16 +66,17 @@ public class ClearImageTask implements Runnable{
 
                 if (maxTxId > 0) {
                     verify = true;
-                    log.info("清除FSImage任务，找到最新的合法的FsImage: [file={}]", path);
+                    log.info("Find Legal Image: [file={}]", path);
                 } else {
                     raf.close();
                     FileUtils.del(path);
-                    log.info("删除FSImage: [file={}]", path);
+                    log.info("Delete Unlawful Image: [file={}]", path);
                 }
             }
         }
 
         if (verify && doubleBuffer != null) {
+            log.info("clean ReadyLog: [txId={}]",maxTxId);
             doubleBuffer.cleanReadyLogByTxId(maxTxId);
         }
     }

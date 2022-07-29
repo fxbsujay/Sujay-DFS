@@ -185,10 +185,15 @@ public class FileDirectory {
     /**
      * <p>Description: 保存ImageLog文件/p>
      */
-    public void writImage() throws Exception {
+    public void writImage(long maxTxId) throws Exception {
         String fileName = baseDir + File.separator + Constants.IMAGE_LOG_NAME + System.currentTimeMillis();
         ImageLogWrapper image = getImage();
+        image.setMaxTxId(maxTxId);
         image.writeFile(fileName);
+    }
+
+    public void writImage() throws Exception {
+        writImage(0);
     }
 
 

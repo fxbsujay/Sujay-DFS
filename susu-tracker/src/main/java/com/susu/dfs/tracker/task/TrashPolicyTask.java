@@ -50,7 +50,6 @@ public class TrashPolicyTask implements Runnable {
                 List<String> toRemoveFilename = new LinkedList<>();
                 scan(File.separator + user, userTrashNode, currentTime, toRemoveFilename);
                 for (String filename : toRemoveFilename) {
-                    // 下发任务给DataNode删除文件
                     String dataNodeFilename = filename.replaceAll(File.separator + Constants.TRASH_DIR, "");
                     FileInfo fileInfo = clientManager.removeFileStorage(dataNodeFilename, true);
                     if (fileInfo == null) {

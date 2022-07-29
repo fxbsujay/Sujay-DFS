@@ -76,12 +76,12 @@ public class ImageLogWrapper {
         channel.read(buffer);
         buffer.flip();
         if (buffer.remaining() < 4) {
-            log.warn("ImageLog文件不完整: [file={}]", path);
+            log.warn("ImageLog file is incomplete !!: [file={}]", path);
             return null;
         }
         int fileLength = buffer.getInt();
         if (fileLength != length) {
-            log.warn("ImageLog文件不完整: [file={}]", path);
+            log.warn("ImageLog file is incomplete !!: [file={}]", path);
             return null;
         } else {
             StopWatch stopWatch = new StopWatch();
@@ -104,7 +104,7 @@ public class ImageLogWrapper {
 
             ImageLogWrapper wrapper = new ImageLogWrapper(maxTxId, imageLog);
             stopWatch.stop();
-            log.info("加载FSImage: [file={}, size={}, maxTxId={}, cost={} s]",
+            log.info("Load FSImage...: [file={}, size={}, maxTxId={}, cost={} s]",
                     path, FileUtils.formatSize(length),
                     wrapper.getMaxTxId(), stopWatch.getTime() / 1000.0D);
             stopWatch.reset();
@@ -126,12 +126,12 @@ public class ImageLogWrapper {
         channel.read(buffer);
         buffer.flip();
         if (buffer.remaining() < LENGTH_OF_FILE_LENGTH_FIELD) {
-            log.warn("FsImage文件不完整: [file={}]", path);
+            log.warn("ImageLog file is incomplete !!: [file={}]", path);
             return -1;
         }
         int fileLength = buffer.getInt();
         if (fileLength != length) {
-            log.warn("FsImage文件不完整: [file={}]", path);
+            log.warn("ImageLog file is incomplete !!: [file={}]", path);
             return -1;
         } else {
             return buffer.getLong();
