@@ -2,11 +2,13 @@ package com.susu.dfs.tracker.server;
 
 import com.susu.common.model.TrackerAwareRequest;
 import com.susu.common.model.TrackerNode;
+import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.Node;
 import com.susu.dfs.common.TrackerInfo;
 import com.susu.dfs.common.eum.PacketType;
 import com.susu.dfs.common.netty.msg.NetPacket;
 import com.susu.dfs.common.task.TaskScheduler;
+import com.susu.dfs.common.utils.StringUtils;
 import com.susu.dfs.tracker.cluster.TrackerCluster;
 import com.susu.dfs.tracker.slot.OnSlotCompletedListener;
 import com.susu.dfs.tracker.slot.TrackerSlot;
@@ -88,13 +90,22 @@ public class ServerManager {
         log.info("发送自身信息：[index={}, targetIndex={},isClient={}]",node.getIndex(), trackerCluster.getTargetIndex(),isClient);
     }
 
+    /**
+     * <p>Description: 接收其他 Tracker节点 信息</p>
+     *
+     * @param request       请求包
+     * @throws Exception    slot初始化异常
+     */
     public void receiveSelfInf(TrackerAwareRequest request) throws Exception {
         trackerCount.incrementAndGet();
         trackerSize.set(Math.max(trackerSize.get(),request.getTrackerSize()));
         initSlots();
-
     }
 
+    /**
+     * <p>Description: Slot初始化操作</p>
+     * @throws Exception    slot初始化异常
+     */
     private void initSlots() throws Exception {
         Map<Integer, Integer> slots = trackerSlot.initSlots();
         for (OnSlotCompletedListener listener : slotCompletedListeners) {
@@ -103,6 +114,23 @@ public class ServerManager {
         }
     }
 
+    /**
+     * <p>Description: 根据文件名来分配又哪里 Tracker 节点处理请求</p>
+     *
+     * @param filename  文件名
+     * @return          Tracker 节点
+     */
+    public int getTrackerIndexByFilename(String filename) {
+        if (node.getIsCluster()) {
+            int slot = StringUtils.hash(filename, Constants.SLOTS_COUNT);
+            return trackerSlot.getTrackerIndexBySlot(slot);
+        }
+        return node.getIndex();
+    }
+
+    /**
+     * <p>Description: 添加Slot分配成功监听器</p>
+     */
     public void addOnSlotCompletedListener(OnSlotCompletedListener listener) {
         this.slotCompletedListeners.add(listener);
     }

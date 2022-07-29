@@ -67,8 +67,12 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
                 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(8));
         this.clientManager = clientManager;
         this.serverManager = serverManager;
+
         this.trackerFileService = trackerFileService;
         this.trackerClusterService = trackerClusterService;
+        this.serverManager.addOnSlotCompletedListener(slots -> {
+            log.info("slot 初始化已经完成了");
+        });
     }
 
     @Override
