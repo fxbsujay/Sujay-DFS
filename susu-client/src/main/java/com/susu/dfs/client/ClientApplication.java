@@ -39,4 +39,12 @@ public class ClientApplication {
     public void start() throws Exception {
         this.trackerClient.start();
     }
+
+    /**
+     * 关机
+     */
+    public void shutdown() {
+        this.taskScheduler.shutdown();
+        this.trackerClient.shutdown();
+    }
 }

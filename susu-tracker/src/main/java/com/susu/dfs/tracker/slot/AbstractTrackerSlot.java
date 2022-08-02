@@ -10,6 +10,7 @@ import com.susu.dfs.tracker.service.TrackerFileService;
 import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -72,14 +73,20 @@ public abstract class AbstractTrackerSlot implements TrackerSlot {
      * @param trackerOfSlots    节点对应槽位
      * @throws Exception        IO异常
      */
-    protected void writeSlots(Map<Integer, Integer> slotOfTracker, Map<Integer, Set<Integer>> trackerOfSlots) throws Exception {
+    protected void replaceSlots(Map<Integer, Integer> slotOfTracker, Map<Integer, Set<Integer>> trackerOfSlots) throws Exception {
         this.slotsOfTracker = slotOfTracker;
         this.trackerOfSlots = trackerOfSlots;
 
+        loadWriteSlots();
+    }
+
+    /**
+     * 保存信息
+     */
+    protected void loadWriteSlots() throws IOException {
         TrackerSlots slots = TrackerSlots.newBuilder()
                 .putAllNewSlots(this.slotsOfTracker)
                 .build();
-
         ByteBuffer buffer = ByteBuffer.wrap(slots.toByteArray());
         FileUtils.writeFile(SLOTS_FILE_BASE_DIR, true, buffer);
         invokeSlotCompleted();
@@ -149,7 +156,7 @@ public abstract class AbstractTrackerSlot implements TrackerSlot {
     public void removeMetadata(int rebalancedTrackerIndex) throws Exception {
         log.info("开始执行内存元数据删除. [rebalancedTrackerIndex={}]", rebalancedTrackerIndex);
         Map<Integer, Set<Integer>> oldSlotNodeMap = trackerOfSlots;
-        writeSlots(rebalancedSlotInfo.getSlotsOfTrackerSnapshot(), rebalancedSlotInfo.getTrackerOfSlotsSnapshot());
+        replaceSlots(rebalancedSlotInfo.getSlotsOfTrackerSnapshot(), rebalancedSlotInfo.getTrackerOfSlotsSnapshot());
         Map<Integer, Set<Integer>> newSlotNodeMap = trackerOfSlots;
 
         Set<Integer> oldCurrentSlots = oldSlotNodeMap.get(this.trackerIndex);

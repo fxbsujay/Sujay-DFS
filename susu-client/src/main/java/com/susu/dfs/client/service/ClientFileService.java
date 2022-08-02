@@ -80,6 +80,16 @@ public interface ClientFileService{
     void put(String filename, File file, int numOfReplica, Map<String, String> attr, OnProgressListener listener) throws Exception;
 
     /**
+     * <p>Description: 读取文件属性</p>
+     * <p>Description: Read file properties</p>
+     *
+     * @param filename      文件名
+     * @return              文件属性
+     * @throws Exception    file does not exist
+     */
+    Map<String, String> readAttr(String filename) throws Exception;
+
+    /**
      * <p>Description: Download files</p>
      * <p>Description: 下载文件</p>
      *

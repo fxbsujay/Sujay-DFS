@@ -210,5 +210,18 @@ public abstract class AbstractFileService implements FileService{
     }
 
 
+    /**
+     * <p>Description: 获取文件属性/p>
+     *
+     * @param filename 文件名称
+     * @return 文件属性
+     */
+    public Map<String, String> getAttr(String filename) {
+        FileNode node = directory.listFiles(filename);
+        if (node == null) {
+            return null;
+        }
+        return Collections.unmodifiableMap(node.getAttr());
+    }
 
 }

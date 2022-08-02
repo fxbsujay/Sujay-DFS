@@ -15,16 +15,19 @@ public enum PacketType {
     /**
      * 请求类型
      */
-    EMPTY(0, "空的的包类型"),
-    STORAGE_REGISTER(1,"Storage注册"),
-    STORAGE_HEART_BEAT(2,"Storage心跳"),
-    MKDIR(3, "Client往Tracker发送Mkdir请求"),
-    CREATE_FILE(4, "Client往Tracker发送创建文件请求"),
-    UPLOAD_FILE(5, "Client向Storage进行文件传输的二进制包"),
-    UPLOAD_FILE_CONFIRM(6, "Client往Storage上传完文件之后，再发请求往Tracker确认"),
-    UPLOAD_FILE_COMPLETE(7, "Storage保存完文件之后，再发请求往Tracker上报信息"),
-    GET_FILE(8, "Client从Storage下载文件，或Storage之间相互同步副本请求"),
-    TRACKER_SERVER_AWARE(9, "Tracker 服务端 相互之间发起连接时的感知请求"),
+    EMPTY(1001, "空的的包类型"),
+    STORAGE_REGISTER(1002,"Storage注册"),
+    STORAGE_HEART_BEAT(1003,"Storage心跳"),
+
+    MKDIR(2001, "Client往Tracker发送Mkdir请求"),
+    CREATE_FILE(2002, "Client往Tracker发送创建文件请求"),
+    UPLOAD_FILE(2003, "Client向Storage进行文件传输的二进制包"),
+    UPLOAD_FILE_CONFIRM(2004, "Client往Storage上传完文件之后，再发请求往Tracker确认"),
+    UPLOAD_FILE_COMPLETE(2005, "Storage保存完文件之后，再发请求往Tracker上报信息"),
+    READ_ATTR(2006,"Client从Tracker读取文件属性"),
+    GET_FILE(2007, "Client从Storage下载文件，或Storage之间相互同步副本请求"),
+
+    TRACKER_SERVER_AWARE(3001, "Tracker 服务端 相互之间发起连接时的感知请求"),
     ;
 
     public int value;

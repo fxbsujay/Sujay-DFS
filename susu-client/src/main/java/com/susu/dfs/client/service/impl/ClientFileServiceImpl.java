@@ -1,9 +1,6 @@
 package com.susu.dfs.client.service.impl;
 
-import com.susu.common.model.CreateFileRequest;
-import com.susu.common.model.CreateFileResponse;
-import com.susu.common.model.MkdirRequest;
-import com.susu.common.model.StorageNode;
+import com.susu.common.model.*;
 import com.susu.dfs.client.OnMultiFileProgressListener;
 import com.susu.dfs.client.TrackerClient;
 import com.susu.dfs.common.Constants;
@@ -72,6 +69,39 @@ public class ClientFileServiceImpl implements ClientFileService {
         put(filename, file, replicaNum, attr, null);
     }
 
+    /**
+     *  File upload is to upload to the Storage {@link com.susu.dfs.common.StorageInfo} node.
+     *  After the client uploads to Storage, Storage will report to the Tracker node. There is a time difference.
+     *
+     *  In order to achieve strong consistency and ensure that the file can be read immediately after uploading,
+     *  it is considered successful to upload the file only after the Tracker{@link com.susu.dfs.common.TrackerInfo}
+     *  receives the information reported by Storage.
+     *
+     *  But this will reduce the throughput of uploading files.
+     *  Because where do the threads that will occupy a thread pool of Tracker wait for 3 seconds.
+     *  It is possible to keep the requests reported by Storage waiting in the queue, and eventually a timeout error occurs.
+     *
+     *  <pre>
+     *      For Example:
+     *
+     *           1.The client can be configured to let the Tracker confirm whether to wait.
+     *             If confirmation waiting is enabled, the throughput will decrease,
+     *             but strong consistency is guaranteed.
+     *             If confirmation waiting is not enabled, the throughput is relatively high.
+     *             However, consistency cannot be guaranteed,
+     *             which means that the file may not be read immediately after uploading
+     *
+     *           2.In the process of waiting in the Tracker,
+     *             don't wait directly in the thread.
+     *             Instead, create a task, save it in the collection,
+     *             start a thread in the background,
+     *             and judge whether the task is completed indefinitely.
+     *             If it is completed, write back the response.
+     *             This method can ensure strong consistency
+     *             and will not block threads in the thread pool.
+     *
+     *  </pre>
+     */
     @Override
     public void put(String filename, File file, int replicaNum, Map<String, String> attr, OnProgressListener listener) throws Exception {
        validate(filename);
@@ -108,23 +138,21 @@ public class ClientFileServiceImpl implements ClientFileService {
             fileTransportClient.shutdown();
             log.debug("Finish uploading files to：[node={}:{}, filename={}]", hostname, port, filename);
         }
-        /*
-         * 文件上传是上传到 Storage 节点，客户端上传到 Storage 之后，Storage 再上报给 Tracker 节点中间有一个时间差
-         * 为了达到强一致性，保证文件上传后，立马是可以读取文件的，需要等待 Tracker 收到 Storage 上报的信息，才认为是上传成功的。
-         * 但是这样一来会降低上传文件的吞吐量。 因为会占用 Tracker 一个线程池的线程在哪里hang住等待3秒，
-         * 有可能让 Storage 上报的请求在队列里面一直等待，最终出现超时错误。这里有两种方案可以选择：
-         *
-         * 1、 客户端可以配置让 Tracker 确认是否等待，如果开启确认等待，则吞吐量会下降，但是保证强一致性。如果不开启确认等待，则吞吐量比较高，
-         *     但是一致性不能保证，就是说上传完毕后有可能立即读文件读不到
-         *
-         * 2、 在 Tracker 那边等待的过程，不要直接在线程里面等待，而是建立一个任务Task，保存在集合中，后台起一个线程，就无限循环的去判断
-         *     这个Task是否完成，如果完成才写回响应。这种方式可以保证强一致性，并且不会阻塞线程池中的线程。
-         *
-         * 目前我们先采用第一种方式实现，第二种后面可以考虑优化实现。
-         *
-         */
+
         NetPacket confirmRequest = NetPacket.buildPacket(request.toByteArray(), PacketType.UPLOAD_FILE_CONFIRM);
         trackerClient.authSendSync(confirmRequest);
+    }
+
+    @Override
+    public Map<String, String> readAttr(String filename) throws Exception {
+        validate(filename);
+        ReadAttrRequest request = ReadAttrRequest.newBuilder()
+                .setFilename(filename)
+                .build();
+        NetPacket packet = NetPacket.buildPacket(request.toByteArray(), PacketType.READ_ATTR);
+        NetPacket resp = trackerClient.authSendSync(packet);
+        ReadAttrResponse response = ReadAttrResponse.parseFrom(resp.getBody());
+        return response.getAttrMap();
     }
 
     @Override
@@ -139,6 +167,7 @@ public class ClientFileServiceImpl implements ClientFileService {
 
     @Override
     public void remove(String filename) throws Exception {
+        validate(filename);
 
     }
 

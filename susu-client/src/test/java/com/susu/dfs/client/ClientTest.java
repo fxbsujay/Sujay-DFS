@@ -20,7 +20,7 @@ public class ClientTest {
             application.start();
             ClientFileService fileService = application.getFileService();
             Map<String, String> attr = new HashMap<>(Constants.MAP_SIZE);
-            int multiCount = 20;
+            int multiCount = 50;
             CountDownLatch latch = new CountDownLatch(multiCount);
             for (int i = 0; i < multiCount; i++) {
                 new Thread(() -> {

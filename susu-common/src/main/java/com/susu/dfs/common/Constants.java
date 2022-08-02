@@ -37,6 +37,21 @@ public class Constants {
     public static final int MAP_SIZE = 32;
 
     /**
+     * 请求处理器核心线程数
+     */
+    public static final int HANDLE_THREAD_EXECUTOR_CORE_SIZE = 200;
+
+    /**
+     * 请求处理器最大线程数
+     */
+    public static final int HANDLE_THREAD_EXECUTOR_CORE_SIZE_MAX = 200;
+
+    /**
+     * 请求处理器队列数
+     */
+    public static final int HANDLE_THREAD_EXECUTOR_QUEUE_SIZE_MAX = 2000;
+
+    /**
      * 客户端心跳间隔
      */
     public static final int HEARTBEAT_INTERVAL = 30000;
@@ -109,7 +124,7 @@ public class Constants {
     public static final String READY_LOG_NAME = "ready_log_";
 
     /**
-     * 磁盘操作日志文件名称
+     *  槽位分配持久化文件名称
      */
     public static final String SLOTS_FILE_NAME = "slots.info";
 

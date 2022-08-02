@@ -39,6 +39,16 @@ public class TrackerClient {
         this.netClient.ensureStart();
     }
 
+    /**
+     * 停止服务
+     */
+    public void shutdown() {
+        log.info("Shutdown Tracker Client");
+        if (netClient != null) {
+            netClient.shutdown();
+        }
+    }
+
     public NetPacket authSendSync(NetPacket packet) throws InterruptedException {
         return netClient.sendSync(packet);
     }
@@ -52,7 +62,7 @@ public class TrackerClient {
     private void onTrackerResponse(NetRequest request) throws Exception {
         PacketType packetType = PacketType.getEnum(request.getRequest().getType());
 
-        log.info("建立连接成功");
+        log.info("Tracker 处理成功");
     }
 
 }

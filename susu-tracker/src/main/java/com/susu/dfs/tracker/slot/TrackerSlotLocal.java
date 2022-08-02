@@ -15,7 +15,7 @@ import java.util.*;
  * @version 15:37 2022/7/27
  */
 @Slf4j
-public class TrackerSlotLocal extends AbstractTrackerSlot{
+public class TrackerSlotLocal extends AbstractTrackerSlot {
 
     private TrackerClusterService trackerClusterService;
 
@@ -38,7 +38,7 @@ public class TrackerSlotLocal extends AbstractTrackerSlot{
                 Set<Integer> slots = trackerSlotMap.computeIfAbsent(trackerIndex, k -> new HashSet<>());
                 slots.add(i);
             }
-            writeSlots(slotTrackerMap,trackerSlotMap);
+            replaceSlots(slotTrackerMap,trackerSlotMap);
         }
         Set<Integer> slots = trackerOfSlots.get(trackerIndex);
         log.info("初始化slot信息: [trackerIndex={},slots size={}]",trackerIndex,slots.size());

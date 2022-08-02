@@ -24,6 +24,8 @@ import com.susu.dfs.tracker.service.TrackerFileService;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.SocketChannel;
 import lombok.extern.slf4j.Slf4j;
+
+import java.io.File;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -63,8 +65,8 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
                                 ClientManager clientManager, ServerManager serverManager,
                                 TrackerFileService trackerFileService, TrackerClusterService trackerClusterService) {
         this.taskScheduler = taskScheduler;
-        this.executor = new ThreadPoolExecutor(200,200,
-                60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(2000));
+        this.executor = new ThreadPoolExecutor(Constants.HANDLE_THREAD_EXECUTOR_CORE_SIZE,Constants.HANDLE_THREAD_EXECUTOR_CORE_SIZE_MAX,
+                60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(Constants.HANDLE_THREAD_EXECUTOR_QUEUE_SIZE_MAX));
         this.clientManager = clientManager;
         this.serverManager = serverManager;
 
@@ -97,6 +99,9 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
                 break;
             case UPLOAD_FILE_CONFIRM:
                 clientUploadFileConfirm(request);
+                break;
+            case READ_ATTR:
+                clientReadAttrHandel(request);
                 break;
             case TRACKER_SERVER_AWARE:
                 trackerServerAware(request);
@@ -310,6 +315,31 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
             }
         }
         serverManager.receiveSelfInf(awareRequest);
+    }
+
+    /**
+     * <p>Description: Client 读取文件属性请求</p>
+     *
+     * @param request   网络包
+     */
+    private void clientReadAttrHandel(NetRequest request) throws InvalidProtocolBufferException, InterruptedException {
+        NetPacket packet = request.getRequest();
+        ReadAttrRequest readAttrRequest = ReadAttrRequest.parseFrom(packet.getBody());
+        String readFilename = "/susu" + readAttrRequest.getFilename();
+        int trackerIndex = serverManager.getTrackerIndexByFilename(readFilename);
+        if (serverManager.isCurrentTracker(trackerIndex)) {
+            Map<String, String> attr = trackerFileService.getAttr(readFilename);
+            if (attr == null) {
+                throw new RuntimeException("文件不存在：" + readFilename);
+            }
+            ReadAttrResponse response = ReadAttrResponse.newBuilder()
+                    .putAllAttr(attr)
+                    .build();
+            request.sendResponse(response);
+        }else {
+            trackerClusterService.relay(trackerIndex,request);
+        }
+
     }
 
 }

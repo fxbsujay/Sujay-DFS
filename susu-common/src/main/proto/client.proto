@@ -27,3 +27,14 @@ message CreateFileResponse {
   repeated StorageNode storages = 1;
   string filename = 2;
 }
+
+/**
+ *  读取文件属性
+ */
+message ReadAttrRequest {
+  string filename = 1;
+}
+
+message ReadAttrResponse {
+  map<string, string> attr = 1;
+}
