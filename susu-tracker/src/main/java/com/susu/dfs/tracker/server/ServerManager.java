@@ -10,6 +10,7 @@ import com.susu.dfs.common.netty.msg.NetPacket;
 import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.common.utils.StringUtils;
 import com.susu.dfs.tracker.cluster.TrackerCluster;
+import com.susu.dfs.tracker.service.TrackerFileService;
 import com.susu.dfs.tracker.slot.OnSlotCompletedListener;
 import com.susu.dfs.tracker.slot.TrackerSlot;
 import com.susu.dfs.tracker.service.TrackerClusterService;
@@ -47,13 +48,13 @@ public class ServerManager {
 
     private List<OnSlotCompletedListener> slotCompletedListeners = new ArrayList<>();
 
-    public ServerManager(Node node, List<TrackerInfo> nodes, TrackerClusterService trackerClusterService) {
+    public ServerManager(Node node, List<TrackerInfo> nodes, TrackerClusterService trackerClusterService, TrackerFileService trackerFileService) {
         this.node = node;
         this.nodes = nodes;
         this.trackerClusterService = trackerClusterService;
         this.trackerClusterService.setServerManager(this);
         this.trackerSize = new AtomicInteger(nodes.size());
-        this.trackerSlot = new TrackerSlotLocal(node.getIndex(),trackerClusterService);
+        this.trackerSlot = new TrackerSlotLocal(node.getIndex(),trackerClusterService,trackerFileService);
     }
 
     /**
@@ -126,6 +127,13 @@ public class ServerManager {
             return trackerSlot.getTrackerIndexBySlot(slot);
         }
         return node.getIndex();
+    }
+
+    /**
+     * 是否上传文件在当前节点
+     */
+    public boolean isCurrentTracker(int index) {
+        return index == node.getIndex();
     }
 
     /**

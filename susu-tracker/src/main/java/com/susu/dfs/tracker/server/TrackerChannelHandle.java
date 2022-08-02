@@ -63,8 +63,8 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
                                 ClientManager clientManager, ServerManager serverManager,
                                 TrackerFileService trackerFileService, TrackerClusterService trackerClusterService) {
         this.taskScheduler = taskScheduler;
-        this.executor = new ThreadPoolExecutor(8,20,
-                60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(8));
+        this.executor = new ThreadPoolExecutor(200,200,
+                60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(2000));
         this.clientManager = clientManager;
         this.serverManager = serverManager;
 
@@ -194,13 +194,19 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      *
      * @param request NetWork Request 网络请求
      * @throws InvalidProtocolBufferException protobuf error
+     * @throws InterruptedException           消息转发异常
      */
-    private void clientMkdirHandel(NetRequest request) throws InvalidProtocolBufferException {
+    private void clientMkdirHandel(NetRequest request) throws InvalidProtocolBufferException, InterruptedException {
         NetPacket packet = request.getRequest();
         MkdirRequest mkdirRequest = MkdirRequest.parseFrom(packet.getBody());
         String realFilename =  "/susu" + mkdirRequest.getPath();
-        trackerFileService.mkdir(realFilename, mkdirRequest.getAttrMap());
-        request.sendResponse();
+        int trackerIndex = serverManager.getTrackerIndexByFilename(realFilename);
+        if (serverManager.isCurrentTracker(trackerIndex)) {
+            trackerFileService.mkdir(realFilename, mkdirRequest.getAttrMap());
+            request.sendResponse();
+        }else {
+            trackerClusterService.relay(trackerIndex,request);
+        }
     }
 
     /**

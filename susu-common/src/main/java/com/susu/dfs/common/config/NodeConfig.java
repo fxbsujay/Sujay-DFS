@@ -50,7 +50,8 @@ public class NodeConfig {
                     }
                     trackers.add(trackerInfo);
                 }
-
+            }else {
+                node.setIndex(0);
             }
         } catch (IOException e) {
             log.error("exception for read file");

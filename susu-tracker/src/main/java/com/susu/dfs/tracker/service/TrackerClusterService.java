@@ -4,6 +4,7 @@ import com.susu.dfs.common.Node;
 import com.susu.dfs.common.TrackerInfo;
 import com.susu.dfs.common.netty.NetClient;
 import com.susu.dfs.common.netty.msg.NetPacket;
+import com.susu.dfs.common.netty.msg.NetRequest;
 import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.tracker.cluster.TrackerCluster;
 import com.susu.dfs.tracker.cluster.TrackerClusterClient;
@@ -191,6 +192,45 @@ public class TrackerClusterService {
             log.error("Tracker Cluster Service broadcast has interrupted. ", e);
             return new ArrayList<>();
         }
+    }
+
+    /**
+     * <p>Description: 往其他节点发送请求</p>
+     *
+     * @param trackerIndex          节点标记
+     * @param packet                网络包
+     * @throws InterruptedException 消息发送异常
+     */
+    public void send(int trackerIndex,NetPacket packet) throws InterruptedException {
+        TrackerCluster trackerCluster = clusterServerMap.get(trackerIndex);
+        if (trackerCluster != null) {
+            trackerCluster.send(packet);
+        } else {
+            log.warn("No tracker found by index");
+        }
+    }
+
+    /**
+     * 转发
+     */
+    public void relay(int trackerIndex, NetRequest request) throws InterruptedException {
+        NetPacket packet = request.getRequest();
+        long sequence = packet.getSequence();
+        NetPacket response = sendSync(trackerIndex, packet);
+        request.sendResponse(response,sequence);
+    }
+
+    /**
+     * 同步发送
+     */
+    public NetPacket sendSync(int trackerIndex,NetPacket packet) throws InterruptedException {
+        TrackerCluster trackerCluster = clusterServerMap.get(trackerIndex);
+        if (trackerCluster != null) {
+            return trackerCluster.sendSync(packet);
+        } else {
+            log.warn("No tracker found by index");
+        }
+        throw new IllegalArgumentException("Invalid TrackerIndex: " + trackerIndex);
     }
 
     public List<TrackerInfo> getAllTracker() {

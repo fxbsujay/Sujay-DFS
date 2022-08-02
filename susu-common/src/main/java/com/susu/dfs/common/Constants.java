@@ -109,6 +109,11 @@ public class Constants {
     public static final String READY_LOG_NAME = "ready_log_";
 
     /**
+     * 磁盘操作日志文件名称
+     */
+    public static final String SLOTS_FILE_NAME = "slots.info";
+
+    /**
      * 文件副本最大数量
      */
     public static final int MAX_REPLICA_NUM = 5;

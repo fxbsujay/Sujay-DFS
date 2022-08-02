@@ -7,6 +7,8 @@ import com.susu.dfs.common.config.NodeConfig;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.CountDownLatch;
 
 public class ClientTest {
 
@@ -18,8 +20,21 @@ public class ClientTest {
             application.start();
             ClientFileService fileService = application.getFileService();
             Map<String, String> attr = new HashMap<>(Constants.MAP_SIZE);
-            attr.put("aaa", "1222");
-            fileService.put("/aaa/bbb/susu.jpg",new File(UPLOAD_LOCAL_PATH),-1,attr);
+            int multiCount = 20;
+            CountDownLatch latch = new CountDownLatch(multiCount);
+            for (int i = 0; i < multiCount; i++) {
+                new Thread(() -> {
+                    Random random = new Random();
+                    try {
+                        fileService.put("/aaa/bbb/test-" + random.nextInt(10000000),new File(UPLOAD_LOCAL_PATH),-1,attr );
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        latch.countDown();
+                    }
+                }).start();
+            }
+            latch.await();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

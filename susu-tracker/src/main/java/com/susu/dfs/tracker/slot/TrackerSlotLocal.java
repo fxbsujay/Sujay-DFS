@@ -4,6 +4,7 @@ package com.susu.dfs.tracker.slot;
 import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.netty.msg.NetPacket;
 import com.susu.dfs.tracker.service.TrackerClusterService;
+import com.susu.dfs.tracker.service.TrackerFileService;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
@@ -18,8 +19,8 @@ public class TrackerSlotLocal extends AbstractTrackerSlot{
 
     private TrackerClusterService trackerClusterService;
 
-    public TrackerSlotLocal(int trackerIndex, TrackerClusterService trackerClusterService) {
-        super(trackerIndex);
+    public TrackerSlotLocal(int trackerIndex, TrackerClusterService trackerClusterService, TrackerFileService trackerFileService) {
+        super(trackerIndex,trackerFileService);
         this.trackerClusterService = trackerClusterService;
     }
 

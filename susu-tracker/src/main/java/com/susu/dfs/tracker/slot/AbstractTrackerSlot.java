@@ -3,6 +3,7 @@ package com.susu.dfs.tracker.slot;
 import com.google.common.collect.Sets;
 import com.susu.common.model.Metadata;
 import com.susu.common.model.TrackerSlots;
+import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.utils.FileUtils;
 import com.susu.dfs.tracker.client.ClientManager;
 import com.susu.dfs.tracker.service.TrackerFileService;
@@ -26,6 +27,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public abstract class AbstractTrackerSlot implements TrackerSlot {
 
     protected int trackerIndex;
+
+    private final String SLOTS_FILE_BASE_DIR;
 
     protected ClientManager clientManager;
 
@@ -51,11 +54,13 @@ public abstract class AbstractTrackerSlot implements TrackerSlot {
      */
     private final List<OnSlotCompletedListener> slotCompletedListeners = new ArrayList<>();
 
-    public AbstractTrackerSlot(int trackerIndex) {
+    public AbstractTrackerSlot(int trackerIndex, TrackerFileService trackerFileService) {
+        this.fileService = trackerFileService;
         this.trackerIndex = trackerIndex;
         this.initCompleted = new AtomicBoolean(false);
         this.lock = new ReentrantLock();
         this.initCompletedCondition = lock.newCondition();
+        this.SLOTS_FILE_BASE_DIR = fileService.getBaseDir() + File.separator + Constants.SLOTS_FILE_NAME;
         loadReadySlots();
     }
 
@@ -76,7 +81,7 @@ public abstract class AbstractTrackerSlot implements TrackerSlot {
                 .build();
 
         ByteBuffer buffer = ByteBuffer.wrap(slots.toByteArray());
-        FileUtils.writeFile(fileService.getBaseDir(), true, buffer);
+        FileUtils.writeFile(SLOTS_FILE_BASE_DIR, true, buffer);
         invokeSlotCompleted();
 
         log.info("保存槽位信息到磁盘中：[TrackerIndex={}]", trackerIndex);
@@ -88,13 +93,12 @@ public abstract class AbstractTrackerSlot implements TrackerSlot {
      */
     protected void loadReadySlots() {
         try {
-            String baseDir = fileService.getBaseDir();
-            File file = new File(baseDir);
+            File file = new File(SLOTS_FILE_BASE_DIR);
             if (!file.exists()) {
                 return;
             }
 
-            try ( RandomAccessFile raf = new RandomAccessFile(baseDir, "r");
+            try ( RandomAccessFile raf = new RandomAccessFile(SLOTS_FILE_BASE_DIR, "r");
                   FileInputStream fis = new FileInputStream(raf.getFD());
                   FileChannel channel = fis.getChannel()) {
 
@@ -115,6 +119,7 @@ public abstract class AbstractTrackerSlot implements TrackerSlot {
             }
 
         } catch (Exception e) {
+            e.printStackTrace();
             log.info("read slots file fail!!");
         }
     }
