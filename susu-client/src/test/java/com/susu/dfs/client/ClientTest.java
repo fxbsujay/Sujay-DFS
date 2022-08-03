@@ -19,22 +19,9 @@ public class ClientTest {
         try {
             application.start();
             ClientFileService fileService = application.getFileService();
-            Map<String, String> attr = new HashMap<>(Constants.MAP_SIZE);
-            int multiCount = 50;
-            CountDownLatch latch = new CountDownLatch(multiCount);
-            for (int i = 0; i < multiCount; i++) {
-                new Thread(() -> {
-                    Random random = new Random();
-                    try {
-                        fileService.put("/aaa/bbb/test-" + random.nextInt(10000000),new File(UPLOAD_LOCAL_PATH),-1,attr );
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    } finally {
-                        latch.countDown();
-                    }
-                }).start();
-            }
-            latch.await();
+            Map<String, String> stringStringMap = fileService.readAttr("/aaa/bbb/test.jpg");
+            System.out.println(stringStringMap.get("aaa"));
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

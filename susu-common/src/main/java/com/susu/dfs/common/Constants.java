@@ -96,7 +96,7 @@ public class Constants {
     /**
      *  垃圾清理任务的时间间隔
      */
-    public static final int TRASH_CLEAR_INTERVAL = 3600000;
+    public static final int TRASH_CLEAR_INTERVAL = 3600;
 
     /**
      * 文件属性之删除时间

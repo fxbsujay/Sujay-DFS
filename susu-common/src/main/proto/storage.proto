@@ -52,3 +52,12 @@ message UploadCompletionRequest {
   string filename = 2;
   int64 fileSize = 3;
 }
+
+/**
+ *  Client 删除文件完成，向Tracker上报信息
+ */
+message RemoveCompletionRequest {
+  string hostname = 1;
+  string filename = 2;
+  int64 fileSize = 3;
+}

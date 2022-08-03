@@ -26,8 +26,9 @@ public enum PacketType {
     UPLOAD_FILE_COMPLETE(2005, "Storage保存完文件之后，再发请求往Tracker上报信息"),
     READ_ATTR(2006,"Client从Tracker读取文件属性"),
     REMOVE_FILE(2007,"Client从Tracker删除文件"),
-    GET_STORAGE_FOR_FILE(2008,"Client从Storage下载文件前先获取文件所在Storage节点"),
-    GET_FILE(2009, "Client从Storage下载文件，或Storage之间相互同步副本请求"),
+    REMOVE_FILE_COMPLETE(2008,"Storage删除文件成功上报Tracker"),
+    GET_STORAGE_FOR_FILE(2009,"Client从Storage下载文件前先获取文件所在Storage节点"),
+    GET_FILE(2010, "Client从Storage下载文件，或Storage之间相互同步副本请求"),
 
     TRACKER_SERVER_AWARE(3001, "Tracker 服务端 相互之间发起连接时的感知请求"),
     ;

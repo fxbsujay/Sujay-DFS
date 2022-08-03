@@ -33,7 +33,7 @@ public class CommandTask {
     public CommandTask(TaskScheduler taskScheduler, TrackerClient trackerClient, StorageManager storageManager) {
         this.trackerClient = trackerClient;
         this.storageManager = storageManager;
-        taskScheduler.schedule("CommandTask", new CommandWorker(),1000,1000, TimeUnit.MILLISECONDS);
+        taskScheduler.schedule("Command Task", new CommandWorker(),1000,1000, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -74,7 +74,7 @@ public class CommandTask {
      *
      * @param filename  文件名
      */
-    private void fileRemoveTaskHandel(String filename) {
+    private void fileRemoveTaskHandel(String filename) throws InterruptedException {
         log.info("收到一个删除文件的命令");
         String absolutePathByFileName = storageManager.getAbsolutePathByFileName(filename);
         File file = new File(absolutePathByFileName);
@@ -84,7 +84,7 @@ public class CommandTask {
         }
         FileUtils.del(file);
         if (length > 0) {
-            // TODO 上报 Tracker
+            trackerClient.clientRemoveCompletionRequest(filename,length);
         }
     }
 

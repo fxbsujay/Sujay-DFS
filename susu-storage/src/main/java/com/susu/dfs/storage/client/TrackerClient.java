@@ -168,4 +168,14 @@ public class TrackerClient {
         netClient.send(packet);
     }
 
+    public void clientRemoveCompletionRequest(String filename, long fileSize) throws InterruptedException {
+        RemoveCompletionRequest removeCompletionRequest = RemoveCompletionRequest.newBuilder()
+                .setHostname(node.getHost())
+                .setFilename(filename)
+                .setFileSize(fileSize)
+                .build();
+        NetPacket packet = NetPacket.buildPacket(removeCompletionRequest.toByteArray(), PacketType.REMOVE_FILE_COMPLETE);
+        netClient.send(packet);
+    }
+
 }
