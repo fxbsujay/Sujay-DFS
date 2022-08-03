@@ -29,6 +29,19 @@ message CreateFileResponse {
 }
 
 /**
+ *  下载文件请求获取文件所在节点
+ */
+message GetStorageForFileRequest {
+  string filename = 1;
+}
+
+message GetStorageForFileResponse {
+  StorageNode storage = 1;
+  string realFileName = 2;
+}
+
+
+/**
  *  读取文件属性
  */
 message ReadAttrRequest {
@@ -37,4 +50,11 @@ message ReadAttrRequest {
 
 message ReadAttrResponse {
   map<string, string> attr = 1;
+}
+
+/**
+ *  删除文件
+ */
+message RemoveFileRequest {
+  string filename = 1;
 }

@@ -17,7 +17,5 @@ public interface OnProgressListener {
     /**
      * 完成 上传 / 下载
      */
-    default void onCompleted() {
-        // TODO 完成下载
-    }
+    default void onCompleted() {}
 }

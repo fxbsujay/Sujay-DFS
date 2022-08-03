@@ -157,18 +157,49 @@ public class ClientFileServiceImpl implements ClientFileService {
 
     @Override
     public void get(String filename, String absolutePath) throws Exception {
-
+        get(filename, absolutePath, null);
     }
 
     @Override
     public void get(String filename, String absolutePath, OnProgressListener listener) throws Exception {
+        validate(filename);
+        GetStorageForFileRequest request = GetStorageForFileRequest.newBuilder()
+                .setFilename(filename)
+                .build();
+        NetPacket packet = NetPacket.buildPacket(request.toByteArray(), PacketType.GET_STORAGE_FOR_FILE);
+        NetPacket resp = trackerClient.authSendSync(packet);
+        GetStorageForFileResponse response = GetStorageForFileResponse.parseFrom(resp.getBody());
+        StorageNode storage = response.getStorage();
+        NetClient netClient = new NetClient("SUSU-Client-" + storage.getHostname(), taskScheduler);
+        FileTransportClient fileTransportClient = new FileTransportClient(netClient);
+        netClient.start(storage.getHostname(), storage.getPort());
+        netClient.ensureStart();
+        fileTransportClient.readFile(response.getRealFileName(), absolutePath, new OnProgressListener() {
+            @Override
+            public void onProgress(long total, long current, float progress, int currentReadBytes) {
+                if (listener != null) {
+                    listener.onProgress(total, current, progress, currentReadBytes);
+                }
+            }
 
+            @Override
+            public void onCompleted() {
+                if (listener != null) {
+                    listener.onCompleted();
+                }
+                fileTransportClient.shutdown();
+            }
+        });
     }
 
     @Override
     public void remove(String filename) throws Exception {
         validate(filename);
-
+        RemoveFileRequest request = RemoveFileRequest.newBuilder()
+                .setFilename(filename)
+                .build();
+        NetPacket packet = NetPacket.buildPacket(request.toByteArray(), PacketType.REMOVE_FILE);
+        trackerClient.authSendSync(packet);
     }
 
     /**

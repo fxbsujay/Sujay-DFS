@@ -103,6 +103,8 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
             case READ_ATTR:
                 clientReadAttrHandel(request);
                 break;
+            case REMOVE_FILE:
+                clientRemoveFile(request);
             case TRACKER_SERVER_AWARE:
                 trackerServerAware(request);
                 break;
@@ -330,7 +332,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
         if (serverManager.isCurrentTracker(trackerIndex)) {
             Map<String, String> attr = trackerFileService.getAttr(readFilename);
             if (attr == null) {
-                throw new RuntimeException("文件不存在：" + readFilename);
+                throw new RuntimeException("file does not exist !!：" + readFilename);
             }
             ReadAttrResponse response = ReadAttrResponse.newBuilder()
                     .putAllAttr(attr)
@@ -339,7 +341,38 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
         }else {
             trackerClusterService.relay(trackerIndex,request);
         }
+    }
 
+    /**
+     * <p>Description: Client 删除文件的请求处理</p>
+     *
+     * @param request   网络包
+     */
+    private void clientRemoveFile(NetRequest request) throws InvalidProtocolBufferException, InterruptedException {
+        NetPacket packet = request.getRequest();
+        RemoveFileRequest removeFileRequest = RemoveFileRequest.parseFrom(packet.getBody());
+        String filename =  "/susu" + removeFileRequest.getFilename();
+        int trackerIndex = serverManager.getTrackerIndexByFilename(filename);
+        if (serverManager.isCurrentTracker(trackerIndex)) {
+            FileNode fileNode = trackerFileService.listFiles(filename);
+            if (fileNode == null) {
+                throw new RuntimeException("file does not exist !!：" + filename);
+            }
+            Map<String, String> attr = new HashMap<>(Constants.MAP_SIZE);
+            attr.put(Constants.ATTR_FILE_DEL_TIME, String.valueOf(System.currentTimeMillis()));
+            if (fileNode.getChildren().isEmpty()) {
+                trackerFileService.deleteFile(filename);
+                String destFilename = "/susu" + File.separator + Constants.TRASH_DIR + filename;
+                Map<String, String> currentAttr = fileNode.getAttr();
+                currentAttr.putAll(attr);
+                trackerFileService.createFile(destFilename,currentAttr);
+                log.debug("删除文件，并移动到垃圾箱：[src={}, target={}]", filename, destFilename);
+            } else {
+                throw new RuntimeException("file does not exist !!：" + filename);
+            }
+        } else {
+            trackerClusterService.relay(trackerIndex,request);
+        }
     }
 
 }
