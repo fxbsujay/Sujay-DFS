@@ -70,6 +70,7 @@ public class ClientFileServiceImpl implements ClientFileService {
     }
 
     /**
+     *
      *  File upload is to upload to the Storage {@link com.susu.dfs.common.StorageInfo} node.
      *  After the client uploads to Storage, Storage will report to the Tracker node. There is a time difference.
      *
@@ -101,6 +102,12 @@ public class ClientFileServiceImpl implements ClientFileService {
      *             and will not block threads in the thread pool.
      *
      *  </pre>
+     *
+     * @author fxbsujay.gmail.com
+     * @since project Sujay-DFS
+     * @param filename file name
+     *
+     * @throws Exception send message error
      */
     @Override
     public void put(String filename, File file, int replicaNum, Map<String, String> attr, OnProgressListener listener) throws Exception {
