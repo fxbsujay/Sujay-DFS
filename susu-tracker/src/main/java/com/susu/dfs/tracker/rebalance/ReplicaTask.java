@@ -4,8 +4,6 @@ import lombok.Data;
 
 /**
  * 副本复制任务
- *
- * @author Sun Dasheng
  */
 @Data
 public class ReplicaTask {

@@ -14,9 +14,10 @@ import java.util.List;
 import java.util.TreeMap;
 
 /**
- * 默认的垃圾清除机制
+ * @author sujay
  *
- * @author Sun Dasheng
+ * <p>Description: 垃圾清理</p>
+ * @version 15:37 2022/7/27
  */
 @Slf4j
 public class TrashPolicyTask implements Runnable {

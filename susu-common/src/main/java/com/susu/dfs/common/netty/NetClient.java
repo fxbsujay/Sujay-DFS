@@ -92,7 +92,6 @@ public class NetClient {
 
         this.baseChannelHandler = new BaseChannelHandler();
         this.baseChannelHandler.addHandler(clientChannelHandle);
-
     }
 
     public SocketChannel socketChannel() {

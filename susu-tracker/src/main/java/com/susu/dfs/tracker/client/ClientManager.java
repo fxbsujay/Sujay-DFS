@@ -76,7 +76,6 @@ public class ClientManager {
      * @return 是否注册成功 【 true / false 】
      */
     public boolean register(RegisterRequest request,Long clientId) {
-
         if (StringUtils.isBlank(request.getHostname())) {
             return false;
         }
