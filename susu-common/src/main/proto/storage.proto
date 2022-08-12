@@ -13,6 +13,7 @@ import "common.proto";
 message StorageNode {
   string hostname = 1;
   int32 port = 2;
+  int32 httpPort = 3;
 }
 
 

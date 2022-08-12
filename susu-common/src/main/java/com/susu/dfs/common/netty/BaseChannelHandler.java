@@ -6,6 +6,7 @@ import com.susu.dfs.common.netty.msg.NetPacketEncoder;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.FixedLengthFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.handler.logging.LogLevel;
@@ -19,7 +20,7 @@ import java.util.List;
  * @version 16:02 2022/7/1
  */
 @ChannelHandler.Sharable
-public class BaseChannelHandler extends ChannelInitializer<Channel> {
+public class BaseChannelHandler extends ChannelInitializer<SocketChannel> {
 
     /**
      * 添加其他处理器的数组
@@ -27,7 +28,7 @@ public class BaseChannelHandler extends ChannelInitializer<Channel> {
     private List<AbstractChannelHandler> handlerList = new LinkedList<>();
 
     @Override
-    protected void initChannel(Channel ch) {
+    protected void initChannel(SocketChannel ch) {
         ch.pipeline().addLast(
                 new NetPacketDecoder(Constants.MAX_BYTES),
                 new LengthFieldPrepender(3),

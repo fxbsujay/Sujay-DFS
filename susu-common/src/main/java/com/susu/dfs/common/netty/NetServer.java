@@ -117,8 +117,11 @@ public class NetServer {
      * 添加自定义的handler
      */
     public void addHandler(AbstractChannelHandler handlers) {
-
         baseChannelHandler.addHandler(handlers);
+    }
+
+    public void setBaseChannelHandler(BaseChannelHandler baseChannelHandler) {
+        this.baseChannelHandler = baseChannelHandler;
     }
 
     /**

@@ -24,7 +24,12 @@ public class Node {
     /**
      * 默认启动端口
      */
-    private Integer port = 8090;
+    private Integer port = 8091;
+
+    /**
+     * 默认启动端口
+     */
+    private Integer httpPort = 8092;
 
     /**
      * 服务端地址

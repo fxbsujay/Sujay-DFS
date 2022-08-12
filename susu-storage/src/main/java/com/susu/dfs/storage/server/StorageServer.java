@@ -6,6 +6,8 @@ import com.susu.dfs.common.netty.NetServer;
 import com.susu.dfs.common.task.TaskScheduler;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Arrays;
+
 /**
  * <p>Description: Storage 的 通讯服务端</p>
  *
@@ -32,8 +34,10 @@ public class StorageServer {
 
     public void start() throws InterruptedException {
         log.info("Shutdown Storage Server");
-        netServer.addHandler(storageChannelHandle);
-        netServer.start(node.getPort());
+        MultiPortBaseChannelHandle baseChannelHandle = new MultiPortBaseChannelHandle(node,storageManager);
+        baseChannelHandle.addHandler(storageChannelHandle);
+        netServer.setBaseChannelHandler(baseChannelHandle);
+        netServer.start(Arrays.asList(node.getPort(),node.getHttpPort()));
     }
 
     public void shutdown() {

@@ -1,6 +1,5 @@
 package com.susu.dfs.storage.server;
 
-import com.google.protobuf.InvalidProtocolBufferException;
 import com.susu.common.model.GetFileRequest;
 import com.susu.dfs.common.eum.PacketType;
 import com.susu.dfs.common.file.transfer.DefaultFileSendTask;
@@ -12,7 +11,6 @@ import com.susu.dfs.common.netty.msg.NetRequest;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.SocketChannel;
 import lombok.extern.slf4j.Slf4j;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;

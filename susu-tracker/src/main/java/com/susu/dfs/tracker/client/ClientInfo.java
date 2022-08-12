@@ -48,6 +48,11 @@ public class ClientInfo {
     private int port;
 
     /**
+     * 客户端端口号
+     */
+    private int httpPort;
+
+    /**
      * 客户端状态
      */
     private int status;

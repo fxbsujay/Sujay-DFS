@@ -21,6 +21,9 @@ public class ClientTest {
         try {
             application.start();
             ClientFileService fileService = application.getFileService();
+            fileService.put("/aaa/bbb/test.jpg",new File(UPLOAD_LOCAL_PATH));
+            Map<String, String> stringStringMap = fileService.readAttr("/aaa/bbb/test.jpg");
+            System.out.println(stringStringMap.get("aaa"));
             fileService.get("/aaa/bbb/test.jpg",DOWNLOAD_PATH);
         } catch (Exception e) {
             throw new RuntimeException(e);
