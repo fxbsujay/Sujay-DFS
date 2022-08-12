@@ -17,6 +17,9 @@ import java.util.*;
 @Slf4j
 public class TrackerSlotLocal extends AbstractTrackerSlot {
 
+    /**
+     * 集群服务
+     */
     private TrackerClusterService trackerClusterService;
 
     public TrackerSlotLocal(int trackerIndex, TrackerClusterService trackerClusterService, TrackerFileService trackerFileService) {
@@ -41,7 +44,7 @@ public class TrackerSlotLocal extends AbstractTrackerSlot {
             replaceSlots(slotTrackerMap,trackerSlotMap);
         }
         Set<Integer> slots = trackerOfSlots.get(trackerIndex);
-        log.info("初始化slot信息: [trackerIndex={},slots size={}]",trackerIndex,slots.size());
+        log.info("Initialize slot information: [trackerIndex={},slots size={}]",trackerIndex,slots.size());
         return Collections.unmodifiableMap(slotsOfTracker);
 
     }

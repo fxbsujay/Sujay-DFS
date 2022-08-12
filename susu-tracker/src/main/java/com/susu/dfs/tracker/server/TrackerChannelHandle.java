@@ -85,14 +85,17 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
             case STORAGE_REGISTER:
                 storageRegisterHandle(request);
                 break;
+            case STORAGE_REPORT_INFO:
+                storageReportInfoHandle(request);
+                break;
             case STORAGE_HEART_BEAT:
-                storageHeartbeatHandel(request);
+                storageHeartbeatHandle(request);
                 break;
             case MKDIR:
                 clientMkdirHandel(request);
                 break;
             case CREATE_FILE:
-                clientCreateFileHandel(request);
+                clientCreateFileHandle(request);
                 break;
             case UPLOAD_FILE_COMPLETE:
                 storageUploadFileComplete(request);
@@ -101,7 +104,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
                 clientUploadFileConfirm(request);
                 break;
             case READ_ATTR:
-                clientReadAttrHandel(request);
+                clientReadAttrHandle(request);
                 break;
             case REMOVE_FILE:
                 clientRemoveFile(request);
@@ -148,13 +151,41 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
     }
 
     /**
+     * <p>Description: Storage上报自身的存储信息</p>
+     * <p>Description: Storage reports its own storage information </p>
+     *
+     * @param request NetWork Request 网络请求
+     */
+    private void storageReportInfoHandle(NetRequest request) throws InvalidProtocolBufferException {
+        NetPacket packet = request.getRequest();
+        ReportStorageInfoRequest reportStorageInfoRequest = ReportStorageInfoRequest.parseFrom(packet.getBody());
+        log.info("全量上报存储信息：[hostname={}, files={}]", reportStorageInfoRequest.getHostname(), reportStorageInfoRequest.getFileInfosCount());
+        for (FileMetaInfo file : reportStorageInfoRequest.getFileInfosList()) {
+            int trackerIndex = serverManager.getTrackerIndexByFilename(file.getFilename());
+            if (serverManager.isCurrentTracker(trackerIndex)) {
+                // 只有属于自己Slot的文件信息才进行保存
+                // TODO 考虑和内存目录树进行对比，看看是否存在内存目录树不存在的文件，下发命令让DataNode清除
+                FileInfo fileInfo = new FileInfo();
+                fileInfo.setFileName(file.getFilename());
+                fileInfo.setFileSize(file.getFileSize());
+                fileInfo.setHostname(reportStorageInfoRequest.getHostname());
+                clientManager.addFile(fileInfo);
+            }
+        }
+        if (reportStorageInfoRequest.getFinished()) {
+            clientManager.setStorageReady(reportStorageInfoRequest.getHostname());
+            log.info("全量上报存储信息完成：[hostname={}]", reportStorageInfoRequest.getHostname());
+        }
+    }
+
+    /**
      * <p>Description: Storage心跳请求处理</p>
      * <p>Description: Storage heartbeat request processing </p>
      *
      * @param request NetWork Request 网络请求
      * @throws InvalidProtocolBufferException protobuf error
      */
-    private void storageHeartbeatHandel(NetRequest request) throws InvalidProtocolBufferException {
+    private void storageHeartbeatHandle(NetRequest request) throws InvalidProtocolBufferException {
         HeartbeatRequest heartbeatRequest = HeartbeatRequest.parseFrom(request.getRequest().getBody());
         Boolean isSuccess = clientManager.heartbeat(heartbeatRequest.getHostname());
         if (!isSuccess) {
@@ -229,14 +260,13 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      * @param request NetWork Request 网络请求
      * @throws InvalidProtocolBufferException protobuf error
      */
-    private void clientCreateFileHandel(NetRequest request) throws InvalidProtocolBufferException{
+    private void clientCreateFileHandle(NetRequest request) throws InvalidProtocolBufferException{
         NetPacket packet = request.getRequest();
         CreateFileRequest createFileRequest = CreateFileRequest.parseFrom(packet.getBody());
         String filename =  "/susu" + createFileRequest.getFilename();
         Map<String, String> attrMap = new HashMap<>(createFileRequest.getAttrMap());
         String replicaNumStr = attrMap.get(Constants.ATTR_REPLICA_NUM);
         attrMap.put(Constants.ATTR_FILE_SIZE, String.valueOf(createFileRequest.getFileSize()));
-
         FileNode node = trackerFileService.listFiles(filename);
         if (node != null) {
             throw new RuntimeException("file already exist：" + createFileRequest.getFilename());
@@ -330,7 +360,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      *
      * @param request   网络包
      */
-    private void clientReadAttrHandel(NetRequest request) throws InvalidProtocolBufferException, InterruptedException {
+    private void clientReadAttrHandle(NetRequest request) throws InvalidProtocolBufferException, InterruptedException {
         NetPacket packet = request.getRequest();
         ReadAttrRequest readAttrRequest = ReadAttrRequest.parseFrom(packet.getBody());
         String readFilename = "/susu" + readAttrRequest.getFilename();

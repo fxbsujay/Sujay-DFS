@@ -37,6 +37,9 @@ public class TrashPolicyTask implements Runnable {
         this.clientManager = clientManager;
     }
 
+    /**
+     * 扫描代删除的文件，并找到该文件所在Storage节点，向该节点下发删除文件指令
+     */
     @Override
     public void run() {
         if (log.isDebugEnabled()) {

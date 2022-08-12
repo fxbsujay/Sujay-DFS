@@ -8,6 +8,7 @@ import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.common.utils.DateUtils;
 import com.susu.dfs.common.utils.StringUtils;
 import com.susu.dfs.tracker.rebalance.RemoveReplicaTask;
+import com.susu.dfs.tracker.rebalance.ReplicaTask;
 import com.susu.dfs.tracker.service.TrackerFileService;
 import lombok.extern.slf4j.Slf4j;
 import java.util.*;
@@ -88,6 +89,18 @@ public class ClientManager {
     }
 
     /**
+     * <p>Description: 客户端上报了自己自身信息，修改状态为可读</p>
+     * <p>Description: The client reported its own information, and the modification status is readable</p>
+     *
+     * @param hostname storage节点IP
+     */
+    public void setStorageReady(String hostname) {
+        ClientInfo clientInfo = clients.get(hostname);
+        if (clientInfo != null) {
+            clientInfo.setStatus(ClientInfo.STATUS_READY);
+        }
+    }
+    /**
      * <p>Description: 客户端心跳</p>
      * <p>Description: Client Heartbeat</p>
      *
@@ -108,12 +121,13 @@ public class ClientManager {
     }
 
     /**
-     * client 是否存活的监控线程
+     * client 是否存活的监控线程, 清理掉线的客户端并将该客户端中的文件复制一份
      */
     private class DataNodeAliveMonitor implements Runnable {
         @Override
         public void run() {
             Iterator<ClientInfo> iterator = clients.values().iterator();
+            List<ClientInfo> toRemoveStorage = new ArrayList<>();
             while (iterator.hasNext()) {
                 ClientInfo next = iterator.next();
                 long currentTimeMillis = System.currentTimeMillis();
@@ -123,7 +137,78 @@ public class ClientManager {
                 log.info("Client out time，remove client：[hostname={}, current={}, latestHeartbeatTime={}]",
                         next, DateUtils.getTime(new Date(currentTimeMillis)),DateUtils.getTime(new Date(next.getLatestHeartbeatTime())));
                 iterator.remove();
+                toRemoveStorage.add(next);
             }
+            for (ClientInfo client : toRemoveStorage) {
+                createLostReplicaTask(client);
+
+            }
+        }
+    }
+
+    /**
+     * 创建丢失副本任务,当Storage掉线，会导致一下文件不可读，则进行删除对应文件列表，并将文件尽量复制一份
+     * 等待storage上线后再进行删除多余的副本
+     */
+    private void createLostReplicaTask(ClientInfo clientInfo) {
+        Map<String, FileInfo> fileByClient = removeFileByStorage(clientInfo.getHostname());
+        if (fileByClient == null) {
+            return;
+        }
+        for (FileInfo fileInfo : fileByClient.values()) {
+            ClientInfo  sourceStorage = chooseReadableClientByFileName(fileInfo.getFileName(), clientInfo);
+            if (sourceStorage == null) {
+                log.warn("警告：找不到适合的Storage用来获取文件：" + fileInfo.getFileName());
+                continue;
+            }
+            ClientInfo client = allocateReplicateStorages(fileInfo, sourceStorage);
+            if (client == null) {
+                log.warn("警告：找不到适合的Storage用来Rebalance");
+                continue;
+            }
+            ReplicaTask task = new ReplicaTask(fileInfo.getFileName(), sourceStorage.getHostname(), client.getPort());
+            log.info("创建副本复制任务：[filename={}, from={}, to={}]", fileInfo.getFileName(),
+                    sourceStorage.getHostname(), client.getHostname());
+            client.addReplicaTask(task);
+        }
+    }
+
+    /**
+     * <p>Description: 删除Storage的文件列表</p>
+     * <p>Description: Delete the file list of storage</p>
+     *
+     * @param hostname  storage节点地址ip
+     * @return 该节点的文件列表
+     */
+    public Map<String, FileInfo> removeFileByStorage(String hostname) {
+        replicaLock.writeLock().lock();
+        try {
+            return clientOfFiles.remove(hostname);
+        } finally {
+            replicaLock.writeLock().unlock();
+        }
+    }
+
+    /**
+     * <p>Description: 为复制任务申请副本，申请的Storage需要排除目标Storage的</p>
+     * <p>Description: Apply for a copy for the replication task. The requested storage needs to exclude the target storage's</p>
+     *
+     * @param fileInfo          文件信息
+     * @param excludeStorage    排除的Storage节点
+     */
+    private ClientInfo allocateReplicateStorages(FileInfo fileInfo, ClientInfo excludeStorage) {
+        List<ClientInfo> dataNodeInfos = clients.values().stream()
+                .filter(dataNodeInfo -> !dataNodeInfo.equals(excludeStorage) &&
+                        dataNodeInfo.getStatus() == ClientInfo.STATUS_READY)
+                .sorted()
+                .collect(Collectors.toList());
+        try {
+            List<ClientInfo> clientInfoList = selectAllClientsByFile(dataNodeInfos,
+                    1, fileInfo.getFileName());
+            return clientInfoList.get(0);
+        } catch (Exception e) {
+            log.warn("allocateReplicateStorages select node failed.", e);
+            return null;
         }
     }
 
@@ -133,7 +218,7 @@ public class ClientManager {
      */
     private List<ClientInfo> selectAllClients() {
         return clients.values().stream()
-                .filter(clientInfo -> clientInfo.getStatus() == ClientInfo.STATUS_INIT)
+                .filter(clientInfo -> clientInfo.getStatus() == ClientInfo.STATUS_READY)
                 .sorted()
                 .collect(Collectors.toList());
     }

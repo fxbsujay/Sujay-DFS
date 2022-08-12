@@ -18,6 +18,7 @@ public enum PacketType {
     EMPTY(1001, "空的的包类型"),
     STORAGE_REGISTER(1002,"Storage注册"),
     STORAGE_HEART_BEAT(1003,"Storage心跳"),
+    STORAGE_REPORT_INFO(1004,"Storage上报自身信息"),
 
     MKDIR(2001, "Client往Tracker发送Mkdir请求"),
     CREATE_FILE(2002, "Client往Tracker发送创建文件请求"),

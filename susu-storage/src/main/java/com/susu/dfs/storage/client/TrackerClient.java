@@ -1,9 +1,12 @@
 package com.susu.dfs.storage.client;
 
+import com.google.common.collect.Lists;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.susu.common.model.*;
 import com.susu.dfs.common.Constants;
+import com.susu.dfs.common.FileInfo;
 import com.susu.dfs.common.Node;
+import com.susu.dfs.common.StorageInfo;
 import com.susu.dfs.common.eum.PacketType;
 import com.susu.dfs.common.netty.NetClient;
 import com.susu.dfs.common.netty.msg.NetPacket;
@@ -17,6 +20,7 @@ import io.netty.util.concurrent.ScheduledFuture;
 import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * <p>Description: Tracker 的 通讯客户端端</p>
@@ -129,8 +133,48 @@ public class TrackerClient {
             scheduledFuture = ctx.executor().scheduleAtFixedRate(new HeartbeatTask(ctx, node),
                     0, Constants.HEARTBEAT_INTERVAL, TimeUnit.MILLISECONDS);
         }
-
+        storageReportInfo(request.getCtx());
     }
+
+    /**
+     * <p>Description: 注册成功后上报自身存储信息,每次上报最多1 00个文件</p>
+     * <p>Description: After successful registration, report its own storage information
+     *                 Up to 100 files are reported each time
+     * </p>
+     */
+    private void storageReportInfo(ChannelHandlerContext ctx) {
+        List<FileInfo> files = storageManager.getStorageInfo().getFiles();
+
+        if (files.isEmpty()) {
+            ReportStorageInfoRequest request = ReportStorageInfoRequest.newBuilder()
+                    .setHostname(node.getHost())
+                    .setFinished(true)
+                    .build();
+            NetPacket packet = NetPacket.buildPacket(request.toByteArray(), PacketType.STORAGE_REPORT_INFO);
+            ctx.writeAndFlush(packet);
+            return;
+        }
+
+        List<List<FileInfo>> partition = Lists.partition(files, 100);
+        for (int i = 0; i < partition.size(); i++) {
+            List<FileInfo> fileInfos = partition.get(i);
+            List<FileMetaInfo> fileMetaInfos = fileInfos.stream()
+                    .map(e -> FileMetaInfo.newBuilder()
+                            .setFilename(e.getFileName())
+                            .setFileSize(e.getFileSize())
+                            .build())
+                    .collect(Collectors.toList());
+            boolean isFinish = i == partition.size() - 1;
+            ReportStorageInfoRequest.Builder builder = ReportStorageInfoRequest.newBuilder()
+                    .setHostname(node.getHost())
+                    .addAllFileInfos(fileMetaInfos)
+                    .setFinished(isFinish);
+            ReportStorageInfoRequest request = builder.build();
+            NetPacket packet = NetPacket.buildPacket(request.toByteArray(), PacketType.STORAGE_REPORT_INFO);
+            ctx.writeAndFlush(packet);
+        }
+    }
+
 
     /**
      * <p>Description: 处理 心跳请求 返回的消息</p>

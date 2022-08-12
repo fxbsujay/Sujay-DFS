@@ -18,7 +18,7 @@ message StorageNode {
 
 
 /**
-*   客户端注册信息
+ *   客户端注册信息
  */
 message RegisterRequest {
   string name = 1;
@@ -30,6 +30,19 @@ message RegisterResponse {
   int64 clientId = 1;
   bool isSuccess = 2;
   string hostname = 3;
+}
+/**
+ *  客户端上报自身存储信息
+ */
+message ReportStorageInfoRequest {
+  string hostname = 1;
+  repeated FileMetaInfo fileInfos = 2;
+  bool finished = 3;
+}
+
+message FileMetaInfo {
+  string filename = 1;
+  int64 fileSize = 2;
 }
 
 /**

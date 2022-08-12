@@ -223,6 +223,11 @@ public class NetClient {
         clientChannelHandle.send(packet);
     }
 
+    /**
+     * 同步发送请求
+     *
+     * @param packet 请求数据包
+     */
     public NetPacket sendSync(NetPacket packet) throws InterruptedException {
         ensureStart();
         return clientChannelHandle.sendSync(packet);

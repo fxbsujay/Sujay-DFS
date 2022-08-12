@@ -1,5 +1,6 @@
 package com.susu.dfs.storage.server;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
@@ -37,7 +38,7 @@ public class HttpFileServerHandler extends SimpleChannelInboundHandler<FullHttpR
             return;
         }
 
-        log.debug("收到文件下载请求：[filename={}]", filename);
+        log.debug("File download request received：[filename={}]", filename);
         String absolutePath = storageManager.getAbsolutePathByFileName(filename);
         String name = filename.substring(filename.lastIndexOf("/") + 1);
         File file = new File(absolutePath);
@@ -80,8 +81,7 @@ public class HttpFileServerHandler extends SimpleChannelInboundHandler<FullHttpR
                     } else {
                         int deltaProgress = (int) (progress - lastProgress);
                         lastProgress = progress;
-                        log.debug("datanode_disk_read_bytesDataNode瞬时写磁盘大小 : {}", deltaProgress);
-                        log.debug("file transfer progress: [filename={}, progress={}]", file.getName(), progress / total);
+                        log.debug("file transfer progress: [filename={}, progress={}, diskSize={}]", file.getName(), progress / total, deltaProgress);
                     }
                 }
             });
@@ -91,7 +91,7 @@ public class HttpFileServerHandler extends SimpleChannelInboundHandler<FullHttpR
             sendError(ctx, HttpResponseStatus.NOT_FOUND, String.format("file not found: %s", file.getPath()));
         } catch (IOException e) {
             log.warn("file has a IOException:  [filename={}, err={}]", file.getName(), e.getMessage());
-            sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, String.format("读取文件发生异常：%s", absolutePath));
+            sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, String.format("Exception reading file：%s", absolutePath));
         }
     }
 
@@ -99,9 +99,8 @@ public class HttpFileServerHandler extends SimpleChannelInboundHandler<FullHttpR
      * 请求处理失败返回
      */
     private static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status, String msg) {
-        FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1,
-                status, Unpooled.copiedBuffer("Failure: " + status.toString()
-                + "\r\n" + msg, CharsetUtil.UTF_8));
+        ByteBuf content = Unpooled.copiedBuffer("Failure: " + status + "\r\n" + msg, CharsetUtil.UTF_8);
+        FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, status,content);
         response.headers().set("Content-Type", "text/plain; charset=UTF-8");
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }

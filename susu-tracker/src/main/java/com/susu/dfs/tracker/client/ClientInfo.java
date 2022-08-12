@@ -103,7 +103,7 @@ public class ClientInfo {
     }
 
     /**
-     *  删除副本任务
+     *  获取删除副本任务
      */
     public List<RemoveReplicaTask> pollRemoveReplicaTask(int maxNum) {
         List<RemoveReplicaTask> result = new LinkedList<>();
@@ -130,10 +130,16 @@ public class ClientInfo {
         }
     }
 
+    /**
+     * 增加复制副本任务
+     */
     public void addReplicaTask(ReplicaTask task) {
         replicaTasks.add(task);
     }
 
+    /**
+     * 增加删除副本任务
+     */
     public void addRemoveReplicaTask(RemoveReplicaTask task) {
         removeReplicaTasks.add(task);
     }
