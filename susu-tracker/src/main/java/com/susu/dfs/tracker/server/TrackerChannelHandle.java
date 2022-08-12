@@ -95,7 +95,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
                 clientCreateFileHandel(request);
                 break;
             case UPLOAD_FILE_COMPLETE:
-                clientUploadFileComplete(request);
+                storageUploadFileComplete(request);
                 break;
             case UPLOAD_FILE_CONFIRM:
                 clientUploadFileConfirm(request);
@@ -107,6 +107,12 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
                 clientRemoveFile(request);
             case TRACKER_SERVER_AWARE:
                 trackerServerAware(request);
+                break;
+            case REMOVE_FILE_COMPLETE:
+                storageRemoveFileComplete(request);
+                break;
+            case GET_STORAGE_FOR_FILE:
+                clientGetStorageForFile(request);
                 break;
             default:
                 break;
@@ -275,7 +281,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      * @param request NetWork Request 网络请求
      * @throws InvalidProtocolBufferException protobuf error
      */
-    private void clientUploadFileComplete(NetRequest request) throws InvalidProtocolBufferException{
+    private void storageUploadFileComplete(NetRequest request) throws InvalidProtocolBufferException{
         NetPacket packet = request.getRequest();
         UploadCompletionRequest uploadCompletionRequest = UploadCompletionRequest.parseFrom(packet.getBody());
         log.info("Receive the Storage information reported by the client：[hostname={}, filename={}]", uploadCompletionRequest.getHostname(), uploadCompletionRequest.getFilename());
@@ -366,10 +372,59 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
                 Map<String, String> currentAttr = fileNode.getAttr();
                 currentAttr.putAll(attr);
                 trackerFileService.createFile(destFilename,currentAttr);
-                log.debug("删除文件，并移动到垃圾箱：[src={}, target={}]", filename, destFilename);
+                log.debug("Delete files and move to trash：[src={}, target={}]", filename, destFilename);
             } else {
                 throw new RuntimeException("file does not exist !!：" + filename);
             }
+        } else {
+            trackerClusterService.relay(trackerIndex,request);
+        }
+    }
+
+    /**
+     * <p>Description: Storage 删除文件完成后上报给Tracker的请求</p>
+     *
+     * @param request NetWork Request 网络请求
+     * @throws InvalidProtocolBufferException protobuf error
+     */
+    private void storageRemoveFileComplete(NetRequest request) throws InvalidProtocolBufferException {
+        NetPacket packet = request.getRequest();
+        RemoveCompletionRequest removeCompletionRequest = RemoveCompletionRequest.parseFrom(packet.getBody());
+        log.info("Receive the Storage information reported by the client：[hostname={}, filename={}]", removeCompletionRequest.getHostname(), removeCompletionRequest.getFilename());
+        ClientInfo client = clientManager.getClientByHost(removeCompletionRequest.getHostname());
+        client.addStoredDataSize(-removeCompletionRequest.getFileSize());
+        request.sendResponse();
+    }
+
+    /**
+     * <p>Description: Client 下载文件完获取文件所在的一个storage节点</p>
+     *
+     * @param request NetWork Request 网络请求
+     * @throws InvalidProtocolBufferException protobuf error
+     */
+    private void clientGetStorageForFile(NetRequest request) throws InvalidProtocolBufferException, InterruptedException {
+
+        NetPacket packet = request.getRequest();
+        GetStorageForFileRequest getStorageForFileRequest = GetStorageForFileRequest.parseFrom(packet.getBody());
+        String realFilename = "/susu" + getStorageForFileRequest.getFilename();
+
+        int trackerIndex = serverManager.getTrackerIndexByFilename(realFilename);
+        if (serverManager.isCurrentTracker(trackerIndex)) {
+
+            ClientInfo client = clientManager.chooseReadableClientByFileName(realFilename);
+
+            if (client == null)  throw new RuntimeException("file does not exist !!：" + realFilename);
+
+            StorageNode storageNode = StorageNode.newBuilder()
+                    .setHostname(client.getHostname())
+                    .setPort(client.getPort())
+                    .build();
+            GetStorageForFileResponse response = GetStorageForFileResponse.newBuilder()
+                    .setStorage(storageNode)
+                    .setRealFileName(realFilename)
+                    .build();
+
+            request.sendResponse(response);
         } else {
             trackerClusterService.relay(trackerIndex,request);
         }

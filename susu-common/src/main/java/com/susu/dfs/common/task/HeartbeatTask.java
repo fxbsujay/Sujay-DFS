@@ -27,7 +27,6 @@ public class HeartbeatTask implements Runnable {
         HeartbeatRequest request = HeartbeatRequest.newBuilder()
                 .setHostname(node.getHost())
                 .build();
-        // 发送心跳请求
         NetPacket nettyPacket = NetPacket.buildPacket(request.toByteArray(), PacketType.STORAGE_HEART_BEAT);
         ctx.writeAndFlush(nettyPacket);
     }

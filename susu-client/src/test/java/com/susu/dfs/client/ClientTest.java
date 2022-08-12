@@ -13,15 +13,15 @@ import java.util.concurrent.CountDownLatch;
 public class ClientTest {
 
     private static final String UPLOAD_LOCAL_PATH = System.getProperty("user.dir") + "/img/susu.jpg";
+
+    private static final String DOWNLOAD_PATH = System.getProperty("user.dir") + "/download/susu.jpg";
     public static void main(String[] args) {
         NodeConfig nodeConfig = new NodeConfig("E:\\fxbsuajy@gmail.com\\Sujay-DFS\\doc\\client_config.json");
         ClientApplication application = new ClientApplication(nodeConfig);
         try {
             application.start();
             ClientFileService fileService = application.getFileService();
-            Map<String, String> stringStringMap = fileService.readAttr("/aaa/bbb/test.jpg");
-            System.out.println(stringStringMap.get("aaa"));
-
+            fileService.get("/aaa/bbb/test.jpg",DOWNLOAD_PATH);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

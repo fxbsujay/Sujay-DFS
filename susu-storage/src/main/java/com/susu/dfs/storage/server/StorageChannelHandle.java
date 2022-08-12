@@ -1,13 +1,20 @@
 package com.susu.dfs.storage.server;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.susu.common.model.GetFileRequest;
 import com.susu.dfs.common.eum.PacketType;
+import com.susu.dfs.common.file.transfer.DefaultFileSendTask;
 import com.susu.dfs.common.file.transfer.FilePacket;
 import com.susu.dfs.common.file.transfer.FileReceiveHandler;
 import com.susu.dfs.common.netty.AbstractChannelHandler;
 import com.susu.dfs.common.netty.msg.NetPacket;
 import com.susu.dfs.common.netty.msg.NetRequest;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.socket.SocketChannel;
 import lombok.extern.slf4j.Slf4j;
+
+import java.io.File;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -37,6 +44,9 @@ public class StorageChannelHandle extends AbstractChannelHandler {
             case UPLOAD_FILE:
                 clientUploadFile(request);
                 break;
+            case GET_FILE:
+                clientGetFile(request);
+                break;
             default:
                 break;
         }
@@ -58,5 +68,17 @@ public class StorageChannelHandle extends AbstractChannelHandler {
             log.info("Received the uploaded file from the client.....");
         }
         fileReceiveHandler.handleRequest(filePacket);
+    }
+
+    private void clientGetFile(NetRequest request) throws IOException {
+        GetFileRequest packet = GetFileRequest.parseFrom(request.getRequest().getBody());
+        String filename = packet.getFilename();
+        String path = callback.getPath(filename);
+        File file = new File(path);
+        log.info("收到下载文件请求：{}", filename);
+        DefaultFileSendTask fileSender = new DefaultFileSendTask(file, filename,
+                (SocketChannel) request.getCtx().channel(),
+                (total, current, progress, currentReadBytes) -> log.info("正在发送文件：filename={}",filename));
+        fileSender.execute(false);
     }
 }
