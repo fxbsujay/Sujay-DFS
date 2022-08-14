@@ -16,12 +16,14 @@ public class ClientTest {
 
     private static final String DOWNLOAD_PATH = System.getProperty("user.dir") + "/download/susu.jpg";
     public static void main(String[] args) {
-        NodeConfig nodeConfig = new NodeConfig("E:\\fxbsuajy@gmail.com\\Sujay-DFS\\doc\\client_config.json");
+        NodeConfig nodeConfig = new NodeConfig("D:\\project\\卷\\Sujay-DFS\\doc\\client_config.json");
         ClientApplication application = new ClientApplication(nodeConfig);
         try {
             application.start();
             ClientFileService fileService = application.getFileService();
-            fileService.put("/aaa/bbb/test.jpg",new File(UPLOAD_LOCAL_PATH));
+            Map<String,String> attr = new HashMap<>();
+            attr.put("aaa","bbbb");
+            fileService.put("/aaa/bbb/test.jpg",new File(UPLOAD_LOCAL_PATH),-1,attr);
             Map<String, String> stringStringMap = fileService.readAttr("/aaa/bbb/test.jpg");
             System.out.println(stringStringMap.get("aaa"));
             fileService.get("/aaa/bbb/test.jpg",DOWNLOAD_PATH);

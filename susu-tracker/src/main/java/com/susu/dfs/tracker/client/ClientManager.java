@@ -212,7 +212,6 @@ public class ClientManager {
         }
     }
 
-
     /**
      * <p>Description: 获取所有已经上报节点信息的节点</p>
      */
@@ -363,6 +362,9 @@ public class ClientManager {
 
     /**
      * <p>Description: 添加文件</p>
+     * 1. 判断是否在垃圾箱中，在则发送一条删除副本指令
+     * 2. 查看副本真实存在的数量是否大于副本的本身数量，如果大于则删除这个副本，并不在添加信息
+     * 3. 不然则添加副本信息
      */
     public void addFile(FileInfo file) {
         replicaLock.writeLock().lock();
@@ -444,7 +446,6 @@ public class ClientManager {
         return chooseReadableClientByFileName(filename, null);
     }
 
-
     /**
      * <p>Description: 根据文件名查询所在的Storage客户端，删除不可用的客户端</p>
      *
@@ -473,6 +474,4 @@ public class ClientManager {
             replicaLock.readLock().unlock();
         }
     }
-
-
 }

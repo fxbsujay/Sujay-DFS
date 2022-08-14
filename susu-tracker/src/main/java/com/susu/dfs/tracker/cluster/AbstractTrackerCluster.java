@@ -5,6 +5,7 @@ import com.susu.dfs.common.TrackerInfo;
 /**
  * @author sujay
  * <p>Description: 抽象的集群管理服务API</p>
+ *
  * @version 11:52 2022/7/22
  */
 public abstract class AbstractTrackerCluster implements TrackerCluster{

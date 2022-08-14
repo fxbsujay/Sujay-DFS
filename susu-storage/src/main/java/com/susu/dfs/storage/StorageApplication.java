@@ -39,7 +39,6 @@ public class StorageApplication {
         this.trackerClient = new TrackerClient(node, taskScheduler, storageManager);
         StorageTransportCallback transportCallback = new StorageTransportCallback(storageManager,trackerClient);
         this.storageServer = new StorageServer(node,taskScheduler,storageManager,transportCallback);
-
     }
 
     /**
@@ -64,7 +63,7 @@ public class StorageApplication {
      */
     public static void main(String[] args) {
 
-        NodeConfig nodeConfig = new NodeConfig("E:\\fxbsuajy@gmail.com\\Sujay-DFS\\doc\\storage_config.json");
+        NodeConfig nodeConfig = new NodeConfig("D:\\project\\卷\\Sujay-DFS\\doc\\storage_config.json");
         StorageApplication application = new StorageApplication(nodeConfig);
         try {
             Runtime.getRuntime().addShutdownHook(new Thread(application::shutdown));

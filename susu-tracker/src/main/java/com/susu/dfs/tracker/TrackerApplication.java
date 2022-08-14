@@ -38,7 +38,7 @@ public class TrackerApplication {
     private final AtomicBoolean started = new AtomicBoolean(false);
 
     /**
-     * <h3> 服务端的启动流程 </h3>
+     * <h3>服务端的启动流程</h3>
      * <ul>
      *     <li>加载配置文件</li>
      *     <li>初始化任务执行器，一个线程池</li>
@@ -47,7 +47,7 @@ public class TrackerApplication {
      */
      public static void main(String[] args) {
 
-        NodeConfig nodeConfig = new NodeConfig("E:\\fxbsuajy@gmail.com\\Sujay-DFS\\doc\\tracker_config.json");
+        NodeConfig nodeConfig = new NodeConfig("D:\\project\\卷\\Sujay-DFS\\doc\\tracker_config.json");
         TrackerApplication application = new TrackerApplication(nodeConfig);
         try {
             Runtime.getRuntime().addShutdownHook(new Thread(application::shutdown));
