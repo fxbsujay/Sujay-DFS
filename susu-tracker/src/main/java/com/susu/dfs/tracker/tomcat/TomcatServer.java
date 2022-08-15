@@ -70,7 +70,7 @@ public class TomcatServer {
         try {
             tomcat.init();
             tomcat.start();
-            log.info("Start Tomcat Server：[port={}]", port);
+            log.info("Tomcat Server started on port：{}", port);
         } catch (Exception e) {
             log.error("Tomcat启动失败：", e);
             System.exit(0);
