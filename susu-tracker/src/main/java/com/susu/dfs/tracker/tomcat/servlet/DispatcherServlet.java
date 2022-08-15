@@ -2,6 +2,7 @@ package com.susu.dfs.tracker.tomcat.servlet;
 
 import com.alibaba.fastjson.JSONObject;
 import com.susu.dfs.tracker.tomcat.VariablePathParser;
+import com.susu.dfs.tracker.tomcat.annotation.*;
 import io.netty.handler.codec.http.HttpMethod;
 import lombok.extern.slf4j.Slf4j;
 
@@ -11,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -68,7 +70,14 @@ public class DispatcherServlet extends HttpServlet {
     private VariablePathParser variablePathParser = new VariablePathParser();
 
     public DispatcherServlet() {
-
+        try {
+            scanPackage(BASE_PACKAGE);
+            initController();
+            injectControllerComponent();
+            createRequestMapping();
+        } catch (Exception e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     @Override
@@ -268,6 +277,159 @@ public class DispatcherServlet extends HttpServlet {
             }
 
             nextEntry = jarIn.getNextJarEntry();
+        }
+    }
+
+    /**
+     * 初始化 controller
+     */
+    private void initController() throws Exception {
+        for (String className : classNames) {
+            Class<?> clazz = Class.forName(className);
+
+            if (!clazz.isAnnotationPresent(RestController.class)) {
+                continue;
+            }
+
+            RestController annotation = clazz.getAnnotation(RestController.class);
+            String beanName = annotation.value();
+
+            if ("".equals(beanName)) {
+                beanName = clazz.getSimpleName();
+            }
+
+            beanNameToInstanceMap.put(beanName, clazz.newInstance());
+            classNameToBeanNameMap.put(className, beanName);
+
+            if (log.isDebugEnabled()) {
+                log.debug("init controller: [name={}]", beanName);
+            }
+        }
+    }
+
+    /**
+     * 向controller中注入组件
+     */
+    private void injectControllerComponent() throws Exception {
+
+        for (Map.Entry<String, Object> entry : beanNameToInstanceMap.entrySet()) {
+
+            Field[] fields = entry.getValue().getClass().getDeclaredFields();
+            for (Field field : fields) {
+
+                if (!field.isAnnotationPresent(Autowired.class)) {
+                    continue;
+                }
+
+                Autowired annotation = field.getAnnotation(Autowired.class);
+                String needInjectBeanName = annotation.value();
+
+                if (needInjectBeanName.length() == 0) {
+                    needInjectBeanName = field.getType().getSimpleName();
+                }
+
+                field.setAccessible(true);
+                Object component = DispatchComponentProvider.getInstance().getComponent(needInjectBeanName);
+
+                if (component == null) {
+                    throw new IllegalArgumentException("Can not find component " + needInjectBeanName);
+                }
+
+                field.set(entry.getValue(), component);
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Inject controller components：[{}] ", entry.getValue().getClass().getSimpleName() + "#" + field.getName());
+                }
+            }
+        }
+    }
+
+    /**
+     * 创建请求URL与方法的映射
+     */
+    private void createRequestMapping() throws ClassNotFoundException {
+        for (String className : classNames) {
+            Class<?> clazz = Class.forName(className);
+
+            if (!clazz.isAnnotationPresent(RestController.class)) {
+                continue;
+            }
+
+            String baseUrl = "";
+            if (clazz.isAnnotationPresent(RequestMapping.class)) {
+                RequestMapping annotation = clazz.getAnnotation(RequestMapping.class);
+                baseUrl = annotation.value();
+            }
+
+            Method[] methods = clazz.getMethods();
+            for (Method m : methods) {
+                if (!m.isAnnotationPresent(RequestMapping.class)) {
+                    continue;
+                }
+
+                RequestMapping annotation = m.getAnnotation(RequestMapping.class);
+                String path = annotation.value();
+                String fullPath = trimUrl(baseUrl + path);
+
+                if (variablePathParser.containVariable(path)) {
+                    variablePathParser.add(fullPath);
+                    if (log.isDebugEnabled()) {
+                        log.debug("Save path variable mapping：[path={}]", fullPath);
+                    }
+                }
+
+                Mapping mapping = new Mapping();
+                String method = annotation.method();
+                mapping.setUrl(fullPath);
+                mapping.setMethod(method);
+                mapping.setInvokeMethod(m);
+
+                parseParameterMetadata(mapping, m.getParameters());
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Save URL mapping：[header={}, method={}]", method + " " + fullPath, className + "#" + m.getName());
+                }
+
+                String key = fullPath + "#" + method;
+                if (mappings.containsKey(key)) {
+                    throw new IllegalArgumentException("Duplicate interface declaration：" + key);
+                }
+
+                mappings.put(key, mapping);
+            }
+        }
+    }
+
+    private void parseParameterMetadata(Mapping mapping, Parameter[] parameters) {
+        boolean hasRequestBody = false;
+        boolean hasQueries = false;
+
+        String name = mapping.getInvokeMethod().getDeclaringClass().getSimpleName() + "#" + mapping.getInvokeMethod().getName();
+
+        for (Parameter parameter : parameters) {
+            if (parameter.isAnnotationPresent(PathVariable.class)) {
+                PathVariable annotation = parameter.getAnnotation(PathVariable.class);
+                String variableKey = annotation.value();
+                mapping.addParameterList(Mapping.Type.PATH_VARIABLE, variableKey, parameter.getType());
+            } else if (parameter.isAnnotationPresent(RequestBody.class)) {
+
+                if (hasRequestBody) {
+                    throw new IllegalArgumentException("Only one @RequestBody annotation is supported on the same interface: " + name);
+                }
+
+                hasRequestBody = true;
+                Class<?> type = parameter.getType();
+                mapping.addParameterList(Mapping.Type.REQUEST_BODY, null, type);
+            } else {
+
+                if (hasQueries) {
+                    throw new IllegalArgumentException("Only one get request entity is supported：" + name);
+                }
+
+                hasQueries = true;
+                Class<?> type = parameter.getType();
+                mapping.addParameterList(Mapping.Type.QUERY_ENTITY, null, type);
+            }
         }
     }
 
