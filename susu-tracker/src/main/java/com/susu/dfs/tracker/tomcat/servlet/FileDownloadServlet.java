@@ -51,7 +51,7 @@ public class FileDownloadServlet extends HttpServlet {
         String filename = URLDecoder.decode(requestUri, "UTF-8");
 
         if (!"true".equals(req.getHeader(REQUEST_HEADER))) {
-            log.warn("收到异常请求，拒绝：{}", requestUri);
+            log.warn("Exception request received, request rejected：{}", requestUri);
             resp.sendError(403, "Get out of here.");
             return;
         }
@@ -82,6 +82,9 @@ public class FileDownloadServlet extends HttpServlet {
         relayStorage(resp,redirectUrl,filename);
     }
 
+    /**
+     * 将请求重定向到 storage节点
+     */
     private void relayStorage(HttpServletResponse resp, String requestUri, String filename) throws IOException {
         ClientInfo client = clientManager.chooseReadableClientByFileName(filename);
         if (client == null) {
@@ -90,7 +93,7 @@ public class FileDownloadServlet extends HttpServlet {
         }
         String redirectUrl = "http://" + client.getHostname() + ":" + client.getHttpPort() + requestUri;
         if (log.isDebugEnabled()) {
-            log.debug("重定向Storage节点，进行文件下载: [url={}]", redirectUrl);
+            log.debug("Redirect the storage node for file download: [url={}]", redirectUrl);
         }
         resp.sendRedirect(redirectUrl);
     }

@@ -8,11 +8,13 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * @Author sujay
- * @Description 描述
- * @Date 21:54 2022/8/14
+ * <p>Description: 请求映射</p>
+ *
+ * @author sujay
+ * @version 21:54 2022/8/14
  */
-public class ModelAndView {
+@Data
+public class Mapping {
 
     /**
      * 请求URL
