@@ -5,6 +5,7 @@ import com.susu.dfs.tracker.client.ClientManager;
 import com.susu.dfs.tracker.server.ServerManager;
 import com.susu.dfs.tracker.service.TrackerClusterService;
 import com.susu.dfs.tracker.tomcat.servlet.CorsFilter;
+import com.susu.dfs.tracker.tomcat.servlet.DispatcherServlet;
 import com.susu.dfs.tracker.tomcat.servlet.FileDownloadServlet;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.Context;
@@ -12,6 +13,7 @@ import org.apache.catalina.startup.Tomcat;
 import org.apache.tomcat.util.descriptor.web.FilterDef;
 import org.apache.tomcat.util.descriptor.web.FilterMap;
 
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -29,17 +31,23 @@ public class TomcatServer {
 
     private FileDownloadServlet fileDownloadServlet;
 
+    private DispatcherServlet dispatcherServlet;
+
     public TomcatServer(Node node, ServerManager serverManager, ClientManager clientManager, TrackerClusterService trackerClusterService) {
         this.port = node.getHttpPort();
         this.tomcat = new Tomcat();
+        this.dispatcherServlet = new DispatcherServlet();
         this.fileDownloadServlet = new FileDownloadServlet(node,serverManager,clientManager,trackerClusterService);
     }
 
     public void start() {
         tomcat.setHostname("localhost");
         tomcat.setPort(port);
+
         Context context = tomcat.addContext("", null);
         Tomcat.addServlet(context, FileDownloadServlet.class.getSimpleName(), fileDownloadServlet);
+        Tomcat.addServlet(context, DispatcherServlet.class.getSimpleName(), dispatcherServlet);
+        context.addServletMappingDecoded("/api/*", DispatcherServlet.class.getSimpleName());
         context.addServletMappingDecoded("/*", FileDownloadServlet.class.getSimpleName());
         context.addWatchedResource("");
 
@@ -54,10 +62,15 @@ public class TomcatServer {
         context.addFilterDef(filterDef);
         context.addFilterMap(filterMap);
 
+        URL resource = this.getClass().getResource("/webapp");
+        if (resource != null) {
+            tomcat.addWebapp("/home",resource.getPath());
+        }
+
         try {
             tomcat.init();
             tomcat.start();
-            log.info("Tomcat启动成功：[port={}]", port);
+            log.info("Start Tomcat Server：[port={}]", port);
         } catch (Exception e) {
             log.error("Tomcat启动失败：", e);
             System.exit(0);
@@ -68,7 +81,7 @@ public class TomcatServer {
         try {
             tomcat.stop();
         } catch (Exception e) {
-            log.error("Tomcat停止失败：", e);
+            log.error("Shutdown Tomcat Server：", e);
         }
     }
 }

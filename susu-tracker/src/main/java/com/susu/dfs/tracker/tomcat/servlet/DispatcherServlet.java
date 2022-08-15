@@ -8,20 +8,22 @@ import lombok.extern.slf4j.Slf4j;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.jar.JarInputStream;
+import java.util.zip.ZipEntry;
 
 /**
  * <p>Description: 一个低配版的 spring-mvc</p>
@@ -90,33 +92,42 @@ public class DispatcherServlet extends HttpServlet {
             String uri = trimUrl(req.getRequestURI());
             String method = req.getMethod();
             Mapping mapping = findMapping(uri, method);
+
             if (mapping == null) {
                 sendError(resp, 404, "Unsupported request mode and path：" + req.getMethod() + " " + uri);
                 return;
             }
+
             Method invokeMethod = mapping.getInvokeMethod();
             String className = invokeMethod.getDeclaringClass().getCanonicalName();
+
             String beanName = classNameToBeanNameMap.get(className);
             Object bean = beanNameToInstanceMap.get(beanName);
+
             Object[] args = generateParameter(mapping, req);
             Object result = invokeMethod.invoke(bean, args);
             String response = JSONObject.toJSONString(result);
+
             resp.setCharacterEncoding("UTF-8");
             resp.setHeader("Content-Type", "application/json");
             resp.setStatus(HttpServletResponse.SC_OK);
             resp.setContentType("application/json;charset=UTF-8");
+
             resp.getWriter().write(response);
             resp.getWriter().flush();
 
         } catch (Exception e) {
+
             String msg = e.getMessage();
             Throwable cause = e.getCause();
+
             while (cause != null) {
                 msg = cause.getMessage();
                 cause = cause.getCause();
             }
-            sendError(resp, 500, "Request exception !!：" + msg);
-            log.error("Request exception !!：", e);
+
+            sendError(resp, 500, "Request exception：" + msg);
+            log.error("Request exception：", e);
         }
     }
 
@@ -129,39 +140,52 @@ public class DispatcherServlet extends HttpServlet {
      * @throws Exception 异常
      */
     private Object[] generateParameter(Mapping mapping, HttpServletRequest request) throws Exception {
+
         if (mapping.getParameterList().isEmpty()) {
             return new Object[0];
         }
+
         Map<String, String> pathVariableMap = null;
         List<Mapping.ParamMetadata> parameterList = mapping.getParameterList();
         Object[] params = new Object[parameterList.size()];
+
         for (int i = 0; i < parameterList.size(); i++) {
             Mapping.ParamMetadata metadata = parameterList.get(i);
+
             if (metadata.getType().equals(Mapping.Type.PATH_VARIABLE)) {
+
                 if (pathVariableMap == null) {
                     pathVariableMap = variablePathParser.extractVariable(trimUrl(request.getRequestURI()));
                 }
+
                 String pathVariableValue = pathVariableMap.get(metadata.getParamKey());
                 Class<?> classType = metadata.getParamClassType();
                 params[i] = mapValue(classType, pathVariableValue);
+
             } else if (metadata.getType().equals(Mapping.Type.REQUEST_BODY)) {
+
                 if (request.getMethod().equals(HttpMethod.GET.toString())) {
                     throw new IllegalArgumentException("@RequestBody注解不支持GET请求方式");
                 }
+
                 if (!request.getContentType().contains("application/json")) {
                     throw new IllegalArgumentException("@RequestBody注解只支持json格式数据");
                 }
+
                 String json = readInput(request.getInputStream());
                 try {
                     params[i] = JSONObject.parseObject(json, metadata.getParamClassType());
                 } catch (Exception e) {
                     throw new IllegalArgumentException("JSON格式有误： " + json);
                 }
+
             } else if (metadata.getType().equals(Mapping.Type.QUERY_ENTITY)) {
+
                 Map<String, String> queriesMap = extractQueries(request);
                 Class<?> paramClassType = metadata.getParamClassType();
                 Field[] declaredFields = paramClassType.getDeclaredFields();
                 Object param = paramClassType.newInstance();
+
                 for (Field field : declaredFields) {
                     String name = field.getName();
                     String value = queriesMap.get(name);
@@ -177,6 +201,76 @@ public class DispatcherServlet extends HttpServlet {
         return params;
     }
 
+
+    /**
+     * <p>Description: 扫描包路径下所有的类</p>
+     *
+     * @param packageName   包路径
+     */
+    private void scanPackage(String packageName) throws IOException {
+        String basePackage = packageName.replaceAll("\\.", "/");
+        URL url = this.getClass().getClassLoader().getResource(basePackage);
+
+        if (log.isDebugEnabled()) {
+            log.debug("scanClass Url={}", url);
+        }
+
+        if (url == null) return;
+
+        String rootPath = getRootPath(url);
+        if (rootPath.endsWith("jar")) {
+            readFromJarFile(rootPath, basePackage);
+            return;
+        }
+
+        File basePackageFile = new File(URLDecoder.decode(url.getPath(), StandardCharsets.UTF_8.name()));
+        File[] children = basePackageFile.listFiles();
+
+        if (children == null) {
+            return;
+        }
+
+        for (File file : children) {
+            if (file.isDirectory()) {
+                scanPackage(packageName + "." + file.getName());
+            } else {
+                String clazz = packageName + "." + file.getName().split("\\.")[0];
+                if (log.isDebugEnabled()) {
+                    log.debug("Scan to class：[class={}]", clazz);
+                }
+                classNames.add(clazz);
+            }
+        }
+    }
+
+    /**
+     * <p>Description: 扫描jar包</p>
+     * <p>Description: Scan jar package</p>
+     *
+     * @param jar           jar包路径
+     * @param basePackage   要扫描的包路径
+     * @throws IOException  IO异常
+     */
+    private void readFromJarFile(String jar, String basePackage) throws IOException {
+        JarInputStream jarIn = new JarInputStream(Files.newInputStream(Paths.get(jar)));
+        ZipEntry nextEntry = jarIn.getNextEntry();
+
+        while (nextEntry != null) {
+
+            String name = nextEntry.getName();
+
+            if (name.startsWith(basePackage) && name.endsWith(".class")) {
+                name = name.substring(0, name.indexOf(".")).replaceAll("/", ".");
+                if (log.isDebugEnabled()) {
+                    log.debug("Scan to class：[class={}]", name);
+                }
+                classNames.add(name);
+            }
+
+            nextEntry = jarIn.getNextJarEntry();
+        }
+    }
+
     /**
      * <p>Description: Failure result returned</p>
      *
@@ -189,9 +283,11 @@ public class DispatcherServlet extends HttpServlet {
         resp.setHeader("Content-Type", "application/json");
         resp.setStatus(HttpServletResponse.SC_OK);
         resp.setContentType("application/json;charset=UTF-8");
+
         JSONObject object = new JSONObject();
         object.put("code", code);
         object.put("msg", msg);
+
         resp.getWriter().write(object.toJSONString());
         resp.getWriter().flush();
     }
@@ -214,6 +310,20 @@ public class DispatcherServlet extends HttpServlet {
         }
         return uri;
     }
+
+    /**
+     * 获取根路径
+     */
+    private String getRootPath(URL url) {
+        String file = url.getFile();
+        int pos = file.indexOf("!");
+        if (pos == -1) {
+            return file;
+        } else {
+            return file.substring(5, pos);
+        }
+    }
+
 
     /**
      * <p>Description: 将参数转化为具体的类型</p>
@@ -269,36 +379,44 @@ public class DispatcherServlet extends HttpServlet {
     }
 
     /**
-     *  提取请求中的请求参数
+     * 提取请求中的请求参数
      */
     private Map<String, String> extractQueries(HttpServletRequest request) {
         if (request.getQueryString() == null) {
             return new HashMap<>(2);
         }
+
         StringTokenizer st = new StringTokenizer(request.getQueryString(), "&");
         int i;
         Map<String, String> queries = new HashMap<>(2);
+
         while (st.hasMoreTokens()) {
             String s = st.nextToken();
             i = s.indexOf("=");
+
             if (i > 0 && s.length() >= i + 1) {
                 String name = s.substring(0, i);
                 String value = s.substring(i + 1);
+
                 try {
                     name = URLDecoder.decode(name, "UTF-8");
                     value = URLDecoder.decode(value, "UTF-8");
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+
                 queries.put(name, value);
+
             } else if (i == -1) {
                 String name = s;
                 String value = "";
+
                 try {
                     name = URLDecoder.decode(name, "UTF-8");
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+
                 queries.put(name, value);
             }
         }

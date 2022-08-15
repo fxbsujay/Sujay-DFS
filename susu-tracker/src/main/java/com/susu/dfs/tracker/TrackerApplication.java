@@ -9,6 +9,7 @@ import com.susu.dfs.tracker.server.TrackerChannelHandle;
 import com.susu.dfs.tracker.server.TrackerServer;
 import com.susu.dfs.tracker.service.TrackerClusterService;
 import com.susu.dfs.tracker.service.TrackerFileService;
+import com.susu.dfs.tracker.tomcat.TomcatServer;
 import lombok.extern.slf4j.Slf4j;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -35,6 +36,8 @@ public class TrackerApplication {
 
     private final TrackerClusterService clusterService;
 
+    private final TomcatServer tomcatServer;
+
     private final AtomicBoolean started = new AtomicBoolean(false);
 
     /**
@@ -47,7 +50,7 @@ public class TrackerApplication {
      */
      public static void main(String[] args) {
 
-        NodeConfig nodeConfig = new NodeConfig("D:\\project\\卷\\Sujay-DFS\\doc\\tracker_config.json");
+        NodeConfig nodeConfig = new NodeConfig("E:\\fxbsuajy@gmail.com\\Sujay-DFS\\doc\\tracker_config.json");
         TrackerApplication application = new TrackerApplication(nodeConfig);
         try {
             Runtime.getRuntime().addShutdownHook(new Thread(application::shutdown));
@@ -61,13 +64,14 @@ public class TrackerApplication {
 
     public TrackerApplication(NodeConfig nodeConfig) {
         Node node = nodeConfig.getNode();
-        this.taskScheduler = new TaskScheduler("SUSU-DFS-TRACKER",8,false);
+        this.taskScheduler = new TaskScheduler("SUSU-DFS-TRACKER",8,true);
         this.clientManager = new ClientManager(taskScheduler);
         this.fileService = new TrackerFileService(taskScheduler,clientManager);
         this.clusterService = new TrackerClusterService(node,nodeConfig.getTrackers(),taskScheduler);
         this.serverManager = new ServerManager(node,nodeConfig.getTrackers(),clusterService, fileService);
         this.trackerChannelHandle = new TrackerChannelHandle(taskScheduler, clientManager, serverManager, fileService, clusterService);
         this.trackerServer = new TrackerServer(node,taskScheduler,trackerChannelHandle);
+        this.tomcatServer = new TomcatServer(node,serverManager,clientManager,clusterService);
     }
 
     /**
@@ -80,6 +84,7 @@ public class TrackerApplication {
             this.fileService.start();
             this.clusterService.start();
             this.trackerServer.start();
+            this.tomcatServer.start();
         }
     }
 
@@ -92,6 +97,7 @@ public class TrackerApplication {
             this.fileService.shutdown();
             this.clusterService.shutdown();
             this.trackerServer.shutdown();
+            this.tomcatServer.shutdown();
         }
     }
 }
