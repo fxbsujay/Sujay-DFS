@@ -1,0 +1,171 @@
+
+.login-container {
+  /* 初始化 */
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  /* 弹性布局 居中显示 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* 径向渐变背景 ellipse表示椭圆 */
+  background: radial-gradient(ellipse at center,#fffeea 0%,#fffeea 35%,#b7e8eb 100%);
+  /* 溢出隐藏 */
+  overflow: hidden;
+  text-align: center;
+}
+.container{
+  width: 640px;
+  height: 320px;
+  display: flex;
+  text-align: center;
+}
+.left{
+  width: 50%;
+  height: calc(100% - 40px);
+  background-color: #fff;
+  position: relative;
+  top: 20px;
+}
+.left h1{
+  color: #222225;
+  font-size: 50px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  margin: 55px 40px 40px 40px;
+}
+.left p{
+  color: #999;
+  font-size: 14px;
+  margin: 30px;
+  line-height: 22px;
+}
+.left .left-top {
+  font-size: 18px;
+}
+@media screen and (max-width:520px){
+  .container {
+    width: 600px;
+  }
+  .left {
+    width: 30%;
+    margin-left: 10%;
+  }
+  .left h1 {
+    font-size: 30px;
+    margin: 25px 20px 20px 20px;
+  }
+  .left .left-top {
+    font-size: 14px;
+  }
+  .form {
+    margin: 10px;
+    position: absolute;
+  }
+
+}
+.right{
+  width: 50%;
+  height: 100%;
+  background-color: #474a59;
+  color: #f1f1f1;
+  position: relative;
+  box-shadow: 0 0 40px 16px rgba(27, 127, 199, 0.2);
+}
+.form{
+  margin: 30px;
+  position: absolute;
+}
+.form label{
+  text-align: left;
+  color: #c2c2c2;
+  display: block;
+  font-size: 14px;
+  margin-top: 20px;
+  margin-bottom: 5px;
+}
+.form input{
+  width: 100%;
+  height: 30px;
+  line-height: 30px;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  text-indent: 2px;
+
+}
+.form .ant-input {
+  color: #e0e8f5;
+  letter-spacing: 2px;
+}
+.form .ant-input-affix-wrapper {
+  background-color: #364f67;
+  border-color: #364f67;
+}
+
+.form .ant-input-affix-wrapper:hover {
+  border-color: #1e65ce;
+
+}
+
+
+.form button{
+  width: 100%;
+  letter-spacing: 15px;
+  height: 30px;
+  font-size: 15px;
+  border: none;
+  margin-top: 60px;
+  cursor: pointer;
+  outline: none;
+}
+
+
+/* 海平面 */
+.sea{
+  width: 100%;
+  height: 5%;
+  background-color: #015871;
+  /* 绝对定位 底部 */
+  position: absolute;
+  left: 0;
+  bottom: 0;
+}
+.wave{
+  /* 这里的背景用的是svg文件，这个文件我事先在PS里做好并导出 */
+  background: url("svg/wave.svg") repeat-x;
+  width: 6400px;
+  height: 198px;
+  /* 绝对定位 */
+  position: absolute;
+  top: -198px;
+  /* 执行波动动画：动画名 时长 贝塞尔曲线 无限次播放 */
+  animation: wave 7s cubic-bezier(0.36,0.45,0.63,0.53) infinite;
+}
+.wave:nth-child(2){
+  top: -175px;
+  /* 执行波动+上下浮动动画 */
+  animation: wave 7s cubic-bezier(0.36,0.45,0.63,0.53) infinite,swell 7s ease infinite;
+  animation-delay: -0.2s;
+}
+
+/* 定义动画 */
+/* 波动动画 */
+@keyframes wave {
+  0%{
+    margin-left: 0;
+  }
+  100%{
+    margin-left: -1600px;
+  }
+}
+/* 上下浮动动画 */
+@keyframes swell {
+  0%,100%{
+    transform: translate(0,-25px);
+  }
+  50%{
+    transform: translate(0,5px);
+  }
+}

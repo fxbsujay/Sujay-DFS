@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>render with config</title>
+    <script src="../coolestBackground.min.js"></script>
+    <style>
+        body{
+            margin: 0;
+            background: black;
+        }
+        #example{
+            position: absolute;  /*position must be absolute or fixed*/
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+<div id="example"></div>
+</body>
+<script>
+    coolestBackground(document.getElementById('example'),{
+        mode:{
+            display:'svg' /*lt‘s not recommend to set this*/
+        },
+        LIGHT:{
+            count:2,
+            draw:true,
+            diffuse: '#9c791b'
+        },
+        MESH:{
+            depth:40,
+            height:0.7
+        }
+    })
+</script>
+</html>
