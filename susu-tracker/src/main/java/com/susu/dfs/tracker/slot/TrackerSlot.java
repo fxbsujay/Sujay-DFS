@@ -2,6 +2,8 @@ package com.susu.dfs.tracker.slot;
 
 import com.susu.common.model.TrackerSlots;
 import com.susu.dfs.common.netty.msg.NetPacket;
+import com.susu.dfs.common.netty.msg.NetRequest;
+
 import java.util.Map;
 
 /**
@@ -10,7 +12,6 @@ import java.util.Map;
  * @version 16:57 2022/7/27
  */
 public interface TrackerSlot {
-
 
     /**
      * <p>Description: 组件初始化</p>
@@ -34,6 +35,37 @@ public interface TrackerSlot {
      * @throws Exception 异常
      */
     void rebalancedSlots(NetPacket packet) throws Exception;
+
+    /**
+     * <p>Description: 需要重平衡的节点抓取到其他节点的元数据信息</p>
+     *
+     * @param request    请求
+     * @throws Exception 异常
+     */
+    default void onFetchMetadata(NetRequest request) throws Exception {
+        // TODO 重平衡节点抓取元数据的方法
+    }
+
+    /**
+     * <p>Description: 让各个需要重平衡的节点删除自己的元数据，并让新的slot分配信息生效</p>
+     *
+     * <pre>
+     *   对于主节点：收到的是需要重平衡的节点，需要移除内存元数据，并发送广播给所有其他的Tracker，让它们也移除元数据
+     *   对于一般节点：收到的是主节点的广播信息，需要移除内存元数据，并上报给主节点
+     * <pre/>
+     *
+     * @throws Exception 中断异常
+     * @param rebalancedNodeId 重平衡请求发起的节点
+     */
+    void onFetchSlotMetadataCompleted(int rebalancedNodeId) throws Exception;
+
+    /**
+     * <p>Description: 主节点收到其他Tracker节点删除内存元数据的上报请求 </p>
+     *
+     * @param packet     请求
+     * @throws Exception 序列化异常
+     */
+    default void onRemoveMetadataCompleted(NetPacket packet) throws Exception {}
 
     /**
      * <p>Description: 获取 Slots</p>

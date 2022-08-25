@@ -244,4 +244,16 @@ public class TrackerClusterService {
     public List<Integer> getAllTrackerIndex() {
         return new ArrayList<>(clusterServerMap.keySet());
     }
+
+    public int getConnectedCount() {
+        synchronized (this) {
+            int count = 0;
+            for (TrackerCluster peerNameNode : clusterServerMap.values()) {
+                if (peerNameNode.isConnected()) {
+                    count++;
+                }
+            }
+            return count;
+        }
+    }
 }

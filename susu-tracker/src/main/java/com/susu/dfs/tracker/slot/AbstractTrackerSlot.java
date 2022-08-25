@@ -6,6 +6,7 @@ import com.susu.common.model.TrackerSlots;
 import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.utils.FileUtils;
 import com.susu.dfs.tracker.client.ClientManager;
+import com.susu.dfs.tracker.service.TrackerClusterService;
 import com.susu.dfs.tracker.service.TrackerFileService;
 import lombok.extern.slf4j.Slf4j;
 import java.io.File;
@@ -29,11 +30,15 @@ public abstract class AbstractTrackerSlot implements TrackerSlot {
 
     protected int trackerIndex;
 
+    protected int trackerMasterIndex;
+
     private final String SLOTS_FILE_BASE_DIR;
 
     protected ClientManager clientManager;
 
     protected TrackerFileService fileService;
+
+    protected TrackerClusterService trackerClusterService;
 
     protected Map<Integer, Integer> slotsOfTracker;
 
@@ -55,9 +60,13 @@ public abstract class AbstractTrackerSlot implements TrackerSlot {
      */
     private final List<OnSlotCompletedListener> slotCompletedListeners = new ArrayList<>();
 
-    public AbstractTrackerSlot(int trackerIndex, TrackerFileService trackerFileService) {
+    public AbstractTrackerSlot(int trackerIndex, int trackerMasterIndex, ClientManager clientManager,
+                              TrackerClusterService trackerClusterService, TrackerFileService trackerFileService) {
+        this.clientManager = clientManager;
         this.fileService = trackerFileService;
+        this.trackerClusterService = trackerClusterService;
         this.trackerIndex = trackerIndex;
+        this.trackerMasterIndex = trackerMasterIndex;
         this.initCompleted = new AtomicBoolean(false);
         this.lock = new ReentrantLock();
         this.initCompletedCondition = lock.newCondition();
@@ -76,7 +85,6 @@ public abstract class AbstractTrackerSlot implements TrackerSlot {
     protected void replaceSlots(Map<Integer, Integer> slotOfTracker, Map<Integer, Set<Integer>> trackerOfSlots) throws Exception {
         this.slotsOfTracker = slotOfTracker;
         this.trackerOfSlots = trackerOfSlots;
-
         loadWriteSlots();
     }
 

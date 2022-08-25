@@ -5,6 +5,9 @@ package com.susu.common.proto;
 option java_multiple_files = true;
 option java_package = "com.susu.common.model";
 
+import "file.proto";
+
+
 /**
  *  节点信息
  */
@@ -27,10 +30,42 @@ message TrackerAwareRequest {
 
 /**
  *  槽位用于分片
+ *    rebalanced 是否需要重平衡
  */
 message TrackerSlots {
   map<int32, int32> oldSlots = 1;
   map<int32, int32> newSlots = 2;
   bool rebalanced = 3;
   int32 rebalancedNodeId = 4;
+}
+/**
+ * 获取槽位数据
+ */
+message FetchMetaDataRequest {
+  repeated int32 slots = 1;
+  int32 nodeId = 2;
+}
+
+/**
+ * 获取槽位数据响应
+ */
+message FetchMetaDataResponse {
+  repeated Metadata files = 1;
+  bool completed = 2;
+  int32 nodeId = 3;
+}
+
+/**
+ * 获取槽位数据工作完成
+ */
+message RebalancedFetchMetadataCompletedEvent {
+  int32 rebalancedNodeId = 1;
+}
+
+/**
+ * 刪除槽位数据工作完成
+ */
+message RebalancedRemoveMetadataCompletedEvent {
+  int32 rebalancedNodeId = 1;
+  int32 currentNodeId = 2;
 }

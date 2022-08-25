@@ -32,6 +32,12 @@ public enum PacketType {
     GET_FILE(2010, "Client从Storage下载文件，或Storage之间相互同步副本请求"),
 
     TRACKER_SERVER_AWARE(3001, "Tracker 服务端 相互之间发起连接时的感知请求"),
+    TRACKER_SLOT_BROADCAST(3002, "往所有Tracker广播Slots信息"),
+    TRACKER_FETCH_SLOT_META_DATA(3003, "新节点从旧节点中拉取文件目录树元数据"),
+    TRACKER_FETCH_SLOT_META_DATA_COMPLETED(3004, "新节点完成了文件目录树的拉取，通知主节点"),
+    TRACKER_FETCH_SLOT_META_DATA_COMPLETED_BROADCAST(3005, "主节点广播给所有Tracker，新节点完成了元数据拉取回放"),
+    TRACKER_REMOVE_META_DATA_COMPLETED(3006, "旧节点删除不属于自身Slot的内存目录树之后，往主上报"),
+
     ;
 
     public int value;

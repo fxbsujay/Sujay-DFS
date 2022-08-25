@@ -108,15 +108,17 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
                 break;
             case REMOVE_FILE:
                 clientRemoveFile(request);
-            case TRACKER_SERVER_AWARE:
-                trackerServerAware(request);
-                break;
             case REMOVE_FILE_COMPLETE:
                 storageRemoveFileComplete(request);
                 break;
             case GET_STORAGE_FOR_FILE:
                 clientGetStorageForFile(request);
                 break;
+            case TRACKER_SERVER_AWARE:
+                trackerServerAware(request);
+                break;
+            case TRACKER_SLOT_BROADCAST:
+
             default:
                 break;
         }

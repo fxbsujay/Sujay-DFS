@@ -1,4 +1,4 @@
-import { defineComponent } from 'vue'
+import {defineComponent, h} from 'vue'
 import { AsyncRoutes } from '@/router'
 import { RouteRecordRaw } from 'vue-router'
 
@@ -36,7 +36,7 @@ export default defineComponent({
                 return
             }
             return (
-                <a-sub-menu title={route.meta.title} key={route.name}>
+                <a-sub-menu title={route.meta ? route.meta.title : ''} key={route.name}>
                     { this.getNavMenuItems(route.children)}
                 </a-sub-menu>
             )

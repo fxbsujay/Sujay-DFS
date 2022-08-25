@@ -32,6 +32,7 @@ export default {
     const { locale } = useI18n()
     const selectedKeys = ref<string[]>([locale.value])
     const setLanguage: MenuProps['onClick'] = ({ key: value }) => {
+      value = value as  string
       setLang(value)
       locale.value = value
       selectedKeys.value = [value]

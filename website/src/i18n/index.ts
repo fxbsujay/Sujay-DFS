@@ -1,5 +1,5 @@
 import { createI18n } from 'vue-i18n'
-import { getLang, setLang} from '@/utils/cookies'
+import { getLang} from '@/utils/cookies'
 import ZH from './zh'
 import EN from './en'
 // $t('msg.title')
