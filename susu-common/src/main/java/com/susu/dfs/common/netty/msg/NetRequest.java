@@ -23,12 +23,20 @@ public class NetRequest {
 
     private long requestSequence;
 
+    private int trackerIndex;
+
     private NetPacket request;
 
     public NetRequest(ChannelHandlerContext ctx, NetPacket request) {
+       this(ctx,request,-1);
+    }
+
+
+    public NetRequest(ChannelHandlerContext ctx, NetPacket request,int trackerIndex) {
         this.ctx = ctx;
         this.requestSequence = request.getSequence();
         this.request = request;
+        this.trackerIndex = trackerIndex;
     }
 
     public ChannelHandlerContext getCtx() {
@@ -66,6 +74,7 @@ public class NetRequest {
     }
 
     public void sendResponse(NetPacket response, Long sequence) {
+        response.setTrackerIndex(trackerIndex);
         if (sequence != null) {
             response.setSequence(sequence);
         }

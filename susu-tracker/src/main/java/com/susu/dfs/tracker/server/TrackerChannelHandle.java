@@ -4,6 +4,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.susu.common.model.*;
 import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.FileInfo;
+import com.susu.dfs.common.Node;
 import com.susu.dfs.common.TrackerInfo;
 import com.susu.dfs.common.eum.CommandType;
 import com.susu.dfs.common.file.FileNode;
@@ -44,6 +45,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TrackerChannelHandle extends AbstractChannelHandler {
 
+    private final Node node;
+
     private final ThreadPoolExecutor executor;
 
     private final TaskScheduler taskScheduler;
@@ -64,9 +67,10 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      */
     private final SnowFlakeUtils snowFlakeUtils = new SnowFlakeUtils(1,1);
 
-    public TrackerChannelHandle(TaskScheduler taskScheduler,
+    public TrackerChannelHandle(Node node,TaskScheduler taskScheduler,
                                 ClientManager clientManager, ServerManager serverManager,
                                 TrackerFileService trackerFileService, TrackerClusterService trackerClusterService) {
+        this.node = node;
         this.taskScheduler = taskScheduler;
         this.executor = new ThreadPoolExecutor(Constants.HANDLE_THREAD_EXECUTOR_CORE_SIZE,Constants.HANDLE_THREAD_EXECUTOR_CORE_SIZE_MAX,
                 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(Constants.HANDLE_THREAD_EXECUTOR_QUEUE_SIZE_MAX));
@@ -82,8 +86,12 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
 
     @Override
     protected boolean handlePackage(ChannelHandlerContext ctx, NetPacket packet) throws Exception {
+        boolean consumedMsg = trackerClusterService.onResponse(packet);
+        if (consumedMsg) {
+            return true;
+        }
         PacketType packetType = PacketType.getEnum(packet.getType());
-        NetRequest request = new NetRequest(ctx, packet);
+        NetRequest request = new NetRequest(ctx, packet, node.getIndex());
         switch (packetType) {
             case STORAGE_REGISTER:
                 storageRegisterHandle(request);
@@ -254,14 +262,14 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
             commandList.addAll(commands);
         }
 
-        // 同步请求其他所有NameNode节点获取他们的响应
         List<NetPacket> nettyPackets = broadcastSync(request);
-        // 将其他NameNode节点的命令添加到给客户端的响应中
+
         for (NetPacket nettyPacket : nettyPackets) {
             HeartbeatResponse heartbeatResponse = HeartbeatResponse.parseFrom(nettyPacket.getBody());
             commandList.addAll(heartbeatResponse.getCommandsList());
         }
 
+        request.getRequest().getBroadcast();
         HeartbeatResponse response = HeartbeatResponse.newBuilder()
                 .setIsSuccess(isSuccess)
                 .addAllCommands(commandList)

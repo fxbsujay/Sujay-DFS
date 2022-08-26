@@ -206,7 +206,6 @@ public class TrackerClusterService {
      * <p>Description: Synchronously broadcast messages to nodes of all tracker server</p>
      *
      * @param packet        消息内容
-     * @param excludeIndex  排除在外的Tracker节点
      * @return              所进行广播消息的Tracker节点下标
      */
     public List<NetPacket> broadcastSync(NetPacket packet) {
@@ -216,12 +215,12 @@ public class TrackerClusterService {
             }
             List<NetPacket> result = new CopyOnWriteArrayList<>();
             CountDownLatch latch = new CountDownLatch(clusterServerMap.size());
-            for (TrackerCluster peerNameNode : clusterServerMap.values()) {
+            for (TrackerCluster trackerCluster : clusterServerMap.values()) {
                 taskScheduler.scheduleOnce("同步请求TrackerCluster", () -> {
                     NetPacket response;
                     NetPacket requestCopy = NetPacket.copy(packet);
                     try {
-                        response = peerNameNode.sendSync(requestCopy);
+                        response = trackerCluster.sendSync(requestCopy);
                         result.add(response);
                     } catch (Exception e) {
                         log.error("同步请求TrackerCluster失败，sequence=" + requestCopy.getSequence(), e);
@@ -275,6 +274,21 @@ public class TrackerClusterService {
             log.warn("No tracker found by index");
         }
         throw new IllegalArgumentException("Invalid TrackerIndex: " + trackerIndex);
+    }
+
+    /**
+     * 收到响应结果
+     */
+    public boolean onResponse(NetPacket packet) {
+        TrackerCluster trackerCluster = clusterServerMap.get(packet.getTrackerIndex());
+        if (trackerCluster == null) {
+            return false;
+        }
+        if (!(trackerCluster instanceof TrackerClusterServer)) {
+            return false;
+        }
+        TrackerClusterServer server = (TrackerClusterServer) trackerCluster;
+        return server.onResponse(packet);
     }
 
     public List<TrackerInfo> getAllTracker() {

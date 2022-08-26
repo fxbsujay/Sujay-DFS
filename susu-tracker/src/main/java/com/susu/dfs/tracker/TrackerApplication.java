@@ -64,12 +64,12 @@ public class TrackerApplication {
 
     public TrackerApplication(NodeConfig nodeConfig) {
         Node node = nodeConfig.getNode();
-        this.taskScheduler = new TaskScheduler("SUSU-DFS-TRACKER",8,true);
+        this.taskScheduler = new TaskScheduler("SUSU-DFS-TRACKER",Runtime.getRuntime().availableProcessors() * 2,true);
         this.clientManager = new ClientManager(taskScheduler);
         this.fileService = new TrackerFileService(taskScheduler,clientManager);
         this.clusterService = new TrackerClusterService(node,nodeConfig.getTrackers(),taskScheduler);
         this.serverManager = new ServerManager(node,nodeConfig.getTrackers(),clientManager,clusterService, fileService);
-        this.trackerChannelHandle = new TrackerChannelHandle(taskScheduler, clientManager, serverManager, fileService, clusterService);
+        this.trackerChannelHandle = new TrackerChannelHandle(node,taskScheduler, clientManager, serverManager, fileService, clusterService);
         this.trackerServer = new TrackerServer(node,taskScheduler,trackerChannelHandle);
         this.tomcatServer = new TomcatServer(node,serverManager,clientManager,clusterService);
     }

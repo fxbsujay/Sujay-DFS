@@ -27,7 +27,6 @@ import java.util.*;
 @Builder
 @Slf4j
 @NoArgsConstructor
-@AllArgsConstructor
 public class NetPacket {
 
     /**
@@ -84,6 +83,16 @@ public class NetPacket {
     public long getSequence() {
         return StringUtils.isNotBlank(header.get("sequence")) ? Long.parseLong(header.get("sequence")) : 0;
     }
+
+    public void setTrackerIndex(int trackerIndex) {
+        header.put("trackerIndex", String.valueOf(trackerIndex));
+    }
+
+    public int getTrackerIndex() {
+        String trackerIndex = header.getOrDefault("trackerIndex", "-1");
+        return Integer.parseInt(trackerIndex);
+    }
+
 
     /**
      * 请求包类型

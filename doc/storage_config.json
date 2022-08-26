@@ -1,7 +1,7 @@
 {
   "name": "Netty-Storage",
-  "port": 8091,
-  "httpPort": 8092,
+  "port": 8093,
+  "httpPort": 8094,
   "host": "localhost",
   "isCluster": false,
   "trackerPort": 8080,
