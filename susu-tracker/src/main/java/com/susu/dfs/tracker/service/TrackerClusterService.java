@@ -11,6 +11,7 @@ import com.susu.dfs.tracker.cluster.TrackerClusterClient;
 import com.susu.dfs.tracker.cluster.TrackerClusterServer;
 import com.susu.dfs.tracker.server.ServerManager;
 import com.susu.dfs.tracker.server.TrackerChannelHandle;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.SocketChannel;
 import lombok.extern.slf4j.Slf4j;
 import java.util.*;
@@ -63,9 +64,11 @@ public class TrackerClusterService {
         if (!node.getIsCluster()) {
             return;
         }
-        log.info("Start TrackerClusterService");
-        for (TrackerInfo tracker : trackers) {
-            connect(tracker,false);
+        if (!node.getIsMaster()) {
+            log.info("Start TrackerClusterService");
+            for (TrackerInfo tracker : trackers) {
+                connect(tracker,false);
+            }
         }
     }
 
@@ -98,7 +101,7 @@ public class TrackerClusterService {
         if (Objects.equals(node.getIndex(), tracker.getIndex())) {
             return;
         }
-        log.info("建立连接：[hostname={},port={}]",tracker.getHostname(),tracker.getPort());
+        log.info("建立连接：[index={},hostname={},port={}]",tracker.getIndex(),tracker.getHostname(),tracker.getPort());
         synchronized (this) {
             TrackerCluster trackerCluster = clusterServerMap.get(tracker.getIndex());
             if (force || trackerCluster == null) {
@@ -130,18 +133,19 @@ public class TrackerClusterService {
      * @param taskScheduler 任务调度器
      * @return              是否产生新的连接
      */
-    public TrackerCluster addTrackerCluster(int index, SocketChannel channel,TrackerInfo tracker,TaskScheduler taskScheduler) {
+    public TrackerCluster addTrackerCluster(int index, ChannelHandlerContext channel, TrackerInfo tracker, TaskScheduler taskScheduler) {
         synchronized (this) {
             TrackerCluster oldCluster = clusterServerMap.get(index);
             TrackerCluster newCluster = new TrackerClusterServer(tracker,channel,node.getIndex(),index,taskScheduler);
             if (oldCluster == null) {
+                log.info("收到新的Tracker的通知网络包, 保存连接以便下一次使用: [trackerIndex={}]", index);
                 clusterServerMap.put(index, newCluster);
                 return newCluster;
             }
 
             if (oldCluster instanceof TrackerClusterServer && newCluster.getTargetIndex() == oldCluster.getTargetIndex()) {
-                TrackerClusterServer peerNameNodeServer = (TrackerClusterServer) oldCluster;
-                peerNameNodeServer.setSocketChannel(channel);
+                TrackerClusterServer trackerClusterServer = (TrackerClusterServer) oldCluster;
+                trackerClusterServer.setSocketChannel(channel);
                 log.info("Tracker Cluster reconnect, update channel: [index={}]", oldCluster.getTargetIndex());
                 return oldCluster;
             }

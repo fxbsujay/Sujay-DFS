@@ -17,6 +17,8 @@ import com.susu.dfs.common.netty.AbstractChannelHandler;
 import com.susu.dfs.common.netty.msg.NetPacket;
 import com.susu.dfs.common.eum.PacketType;
 import com.susu.dfs.tracker.cluster.TrackerCluster;
+import com.susu.dfs.tracker.cluster.TrackerClusterClient;
+import com.susu.dfs.tracker.cluster.TrackerClusterServer;
 import com.susu.dfs.tracker.rebalance.RemoveReplicaTask;
 import com.susu.dfs.tracker.rebalance.ReplicaTask;
 import com.susu.dfs.tracker.service.TrackerClusterService;
@@ -69,9 +71,9 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
                 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(Constants.HANDLE_THREAD_EXECUTOR_QUEUE_SIZE_MAX));
         this.clientManager = clientManager;
         this.serverManager = serverManager;
-
         this.trackerFileService = trackerFileService;
         this.trackerClusterService = trackerClusterService;
+        this.trackerClusterService.setTrackerChannelHandle(this);
         this.serverManager.addOnSlotCompletedListener(slots -> {
             log.info("slot 初始化已经完成了");
         });
@@ -118,7 +120,29 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
                 trackerServerAware(request);
                 break;
             case TRACKER_SLOT_BROADCAST:
-
+                serverManager.onReceiveSlots(request);
+                break;
+            case NEW_TRACKER_INFO:
+                trackerNewTrackerInfoRequest(request);
+                break;
+            case TRACKER_RE_BALANCE_SLOTS:
+                serverManager.onRebalancedSlots(request);
+                break;
+            case TRACKER_FETCH_SLOT_META_DATA:
+                serverManager.writeMetadataToTracker(request);
+                break;
+            case TRACKER_FETCH_SLOT_META_DATA_RESPONSE:
+                serverManager.onFetchMetadata(request);
+                break;
+            case TRACKER_FETCH_SLOT_META_DATA_COMPLETED:
+                serverManager.onLocalControllerFetchSlotMetadataCompleted(request);
+                break;
+            case TRACKER_FETCH_SLOT_META_DATA_COMPLETED_BROADCAST:
+                serverManager.onRemoteControllerFetchSlotMetadataCompleted(request);
+                break;
+            case TRACKER_REMOVE_META_DATA_COMPLETED:
+                serverManager.onRemoveMetadataCompleted(request);
+                break;
             default:
                 break;
         }
@@ -343,11 +367,10 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
         NetPacket packet = request.getRequest();
         ChannelHandlerContext ctx = request.getCtx();
         TrackerAwareRequest awareRequest = TrackerAwareRequest.parseFrom(packet.getBody());
-        log.info("收到 Track信息:[index={},isClient={}]",awareRequest.getIndex(),awareRequest.getIsClient());
         if (awareRequest.getIsClient()) {
             TrackerCluster trackerCluster = trackerClusterService.addTrackerCluster(
                     awareRequest.getIndex(),
-                    (SocketChannel) ctx.channel(),
+                    ctx,
                     new TrackerInfo(awareRequest.getNode()),
                     taskScheduler);
             if (trackerCluster != null) {
@@ -357,6 +380,19 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
         serverManager.receiveSelfInf(awareRequest);
     }
 
+    /**
+     * 处理同步过来的storage信息请求
+     */
+    private void trackerNewTrackerInfoRequest(NetRequest request) throws InvalidProtocolBufferException {
+        NetPacket packet = request.getRequest();
+        NewTrackerInfo newPeerDataNodeInfo = NewTrackerInfo.parseFrom(packet.getBody());
+        List<RegisterRequest> requestsList = newPeerDataNodeInfo.getRequestsList();
+        for (RegisterRequest registerRequest : requestsList) {
+            clientManager.register(registerRequest,registerRequest.getNodeId());
+            ClientInfo client = clientManager.getClientByHost(registerRequest.getHostname());
+            client.setStatus(ClientInfo.STATUS_READY);
+        }
+    }
     /**
      * <p>Description: Client 读取文件属性请求</p>
      *

@@ -70,6 +70,25 @@ public class ClientManager {
         return clients.get(hostname);
     }
 
+    public List<ClientInfo> getClientList() {
+        return new ArrayList<>(clients.values());
+    }
+
+    public FileInfo getFileStorage(String filename) {
+        replicaLock.readLock().lock();
+        try {
+            for (Map<String, FileInfo> map : clientOfFiles.values()) {
+                FileInfo fileInfo = map.get(filename);
+                if (fileInfo != null) {
+                    return fileInfo;
+                }
+            }
+            return null;
+        } finally {
+            replicaLock.readLock().unlock();
+        }
+    }
+
     /**
      * <p>Description: 客户端注册</p>
      * <p>Description: Client Register</p>

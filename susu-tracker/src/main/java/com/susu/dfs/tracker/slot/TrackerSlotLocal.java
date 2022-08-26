@@ -1,17 +1,19 @@
 package com.susu.dfs.tracker.slot;
 
 
-import com.susu.common.model.RebalancedFetchMetadataCompletedEvent;
-import com.susu.common.model.TrackerSlots;
+import com.susu.common.model.*;
 import com.susu.dfs.common.Constants;
+import com.susu.dfs.common.TrackerInfo;
 import com.susu.dfs.common.eum.PacketType;
 import com.susu.dfs.common.netty.msg.NetPacket;
+import com.susu.dfs.tracker.client.ClientInfo;
 import com.susu.dfs.tracker.client.ClientManager;
 import com.susu.dfs.tracker.service.TrackerClusterService;
 import com.susu.dfs.tracker.service.TrackerFileService;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author sujay
@@ -21,8 +23,12 @@ import java.util.*;
 @Slf4j
 public class TrackerSlotLocal extends AbstractTrackerSlot {
 
+    private RebalancedManager rebalancedManager;
+
     public TrackerSlotLocal(int trackerIndex, ClientManager clientManager, TrackerClusterService trackerClusterService, TrackerFileService trackerFileService) {
         super(trackerIndex,trackerIndex,clientManager,trackerClusterService,trackerFileService);
+
+        this.rebalancedManager = new RebalancedManager(this);
     }
 
     @Override
@@ -57,7 +63,25 @@ public class TrackerSlotLocal extends AbstractTrackerSlot {
 
     @Override
     public void rebalancedSlots(NetPacket packet) throws Exception {
-
+        log.info("rebalanced Slots Start");
+        synchronized (this) {
+            List<Integer> allTrackerIndex = trackerClusterService.getAllTrackerIndex();
+            allTrackerIndex.add(trackerIndex);
+            int numOfNode = allTrackerIndex.size();
+            int oldNumOfNode = trackerOfSlots.size();
+            if (numOfNode <= oldNumOfNode) {
+                log.warn("节点数量异常，不需要重新分配slots");
+                return;
+            }
+            RebalancedSlotsRequest rebalancedSlotsRequest = RebalancedSlotsRequest.parseFrom(packet.getBody());
+            RebalancedSlotInfo info = new RebalancedSlotInfo();
+            info.setApplyTrackerId(rebalancedSlotsRequest.getRebalancedNodeId());
+            info.setTrackerIdList(allTrackerIndex);
+            // 这里使用防御性复制，避免别的线程改动了这两个map
+            HashMap<Integer, Integer> slotNodeMapSnapshot = new HashMap<>(slotsOfTracker);
+            info.setSlotsOfTrackerSnapshot(slotNodeMapSnapshot);
+            rebalancedManager.add(info);
+        }
     }
 
     @Override
@@ -75,5 +99,45 @@ public class TrackerSlotLocal extends AbstractTrackerSlot {
             log.info("发送广播给所有的Tracker节点，让他们移除所有的元数据: [applyRebalancedNodeId={}, rebalancedNodeId={}, otherNodeIds={}]",
                     rebalancedSlotInfo.getApplyTrackerId(), rebalancedNodeId, otherNodeIds == null ? 0 : otherNodeIds.size());
         }
+    }
+
+    /**
+     * 重平衡结果下发
+     */
+    public void setRebalancedInfo(RebalancedSlotInfo rebalancedSlotInfo) throws InterruptedException {
+        synchronized (this) {
+            this.rebalancedSlotInfo = rebalancedSlotInfo;
+            TrackerSlots trackerSlots = TrackerSlots.newBuilder()
+                    .putAllOldSlots(slotsOfTracker)
+                    .putAllNewSlots(rebalancedSlotInfo.getSlotsOfTrackerSnapshot())
+                    .setRebalanced(true)
+                    .setRebalancedNodeId(rebalancedSlotInfo.getApplyTrackerId())
+                    .build();
+            NetPacket packet = NetPacket.buildPacket(trackerSlots.toByteArray(), PacketType.TRACKER_SLOT_BROADCAST);
+            trackerClusterService.broadcast(packet);
+            log.info("重平衡Slot之后，将最新的Slots分配信息广播给所有的NameNode.");
+
+            Set<Integer> rebalancedNodeIdSet = rebalancedSlotInfo.getTrackerIdSet();
+            List<ClientInfo> clients = clientManager.getClientList();
+            NewTrackerInfo.Builder builder = NewTrackerInfo.newBuilder();
+            for (ClientInfo client : clients) {
+                RegisterRequest request = RegisterRequest.newBuilder()
+                        .setHostname(client.getHostname())
+                        .setPort(client.getPort())
+                        .setStoredDataSize(client.getStoredSize())
+                        .setFreeSpace(client.getFreeSpace())
+                        .setNodeId(client.getClientId())
+                        .build();
+                builder.addRequests(request);
+            }
+
+            NewTrackerInfo newPeerDataNodeInfo = builder.build();
+            NetPacket request = NetPacket.buildPacket(newPeerDataNodeInfo.toByteArray(), PacketType.NEW_TRACKER_INFO);
+            for (Integer nodeId : rebalancedNodeIdSet) {
+                trackerClusterService.send(nodeId, request);
+            }
+            log.info("下发所有Storage信息给本次重平衡包含的节点：[nodeIds={}]", rebalancedNodeIdSet);
+        }
+
     }
 }

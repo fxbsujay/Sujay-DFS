@@ -24,6 +24,10 @@ message RegisterRequest {
   string name = 1;
   string hostname = 2;
   int32 port = 3;
+  int32 httpPort = 4;
+  int64 storedDataSize = 5;
+  int64 freeSpace = 6;
+  int64 nodeId = 7;
 }
 
 message RegisterResponse {

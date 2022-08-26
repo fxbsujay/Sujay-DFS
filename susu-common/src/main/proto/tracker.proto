@@ -6,7 +6,7 @@ option java_multiple_files = true;
 option java_package = "com.susu.common.model";
 
 import "file.proto";
-
+import "storage.proto";
 
 /**
  *  节点信息
@@ -29,6 +29,20 @@ message TrackerAwareRequest {
 }
 
 /**
+ *  重新分配一下槽位
+ */
+message RebalancedSlotsRequest {
+  int32 rebalancedNodeId = 1;
+}
+
+/**
+ *  新上线的节点信息
+ */
+message NewTrackerInfo {
+  repeated RegisterRequest requests = 1;
+}
+
+/**
  *  槽位用于分片
  *    rebalanced 是否需要重平衡
  */
@@ -38,6 +52,7 @@ message TrackerSlots {
   bool rebalanced = 3;
   int32 rebalancedNodeId = 4;
 }
+
 /**
  * 获取槽位数据
  */

@@ -4,6 +4,7 @@ import com.susu.dfs.common.TrackerInfo;
 import com.susu.dfs.common.netty.msg.NetPacket;
 import com.susu.dfs.common.netty.msg.NetSyncRequest;
 import com.susu.dfs.common.task.TaskScheduler;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.SocketChannel;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,21 +18,21 @@ public class TrackerClusterServer extends AbstractTrackerCluster{
 
     private final String name;
 
-    private volatile SocketChannel socketChannel;
+    private volatile ChannelHandlerContext socketChannel;
 
     private final NetSyncRequest syncRequest;
 
-    public TrackerClusterServer(TrackerInfo tracker, SocketChannel socketChannel, int currentIndex, int targetIndex, TaskScheduler taskScheduler) {
+    public TrackerClusterServer(TrackerInfo tracker, ChannelHandlerContext socketChannel, int currentIndex, int targetIndex, TaskScheduler taskScheduler) {
         super(currentIndex, targetIndex, tracker);
         this.name = "Tracker-Cluster-" + currentIndex + "-" + targetIndex;
         this.syncRequest = new NetSyncRequest(taskScheduler);
         this.setSocketChannel(socketChannel);
     }
 
-    public void setSocketChannel(SocketChannel socketChannel) {
+    public void setSocketChannel(ChannelHandlerContext socketChannel) {
         synchronized (this) {
             this.socketChannel = socketChannel;
-            this.syncRequest.setSocketChannel(socketChannel);
+            this.syncRequest.setSocketChannel((SocketChannel) socketChannel.channel());
             notifyAll();
         }
     }
@@ -66,6 +67,6 @@ public class TrackerClusterServer extends AbstractTrackerCluster{
 
     @Override
     public boolean isConnected() {
-        return socketChannel != null && socketChannel.isActive();
+        return socketChannel != null && socketChannel.channel().isActive();
     }
 }

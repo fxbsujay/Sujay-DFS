@@ -56,7 +56,7 @@ public class TrackerSlotRemote extends AbstractTrackerSlot{
         if (initCompleted.get()) {
             log.info("从磁盘中读取到Slots信息，不需要重新分配了. [trackerIndex={}]", trackerIndex);
         } else {
-            trackerClusterService.send(trackerIndex, packet);
+            trackerClusterService.send(trackerMasterIndex, packet);
             log.info("发送请求到主节点申请重平衡. [trackerMasterIndex={}]", trackerMasterIndex);
         }
     }
@@ -173,12 +173,12 @@ public class TrackerSlotRemote extends AbstractTrackerSlot{
                     .build();
             NetPacket nettyPacket = NetPacket.buildPacket(fetchDataBySlotRequest.toByteArray(), PacketType.TRACKER_FETCH_SLOT_META_DATA);
             trackerClusterService.send(targetNodeId, nettyPacket);
-            // 这里发送后会走到 ControllerManger#writeMetadataToPeer方法，接着会走到自身节点的onFetchMetadata方法
+            // 这里发送后会走到 ServerManger#writeMetadataToTracker方法，接着会走到自身节点的onFetchMetadata方法
             log.info("发送请求从别的NameNode获取元数据：[targetNodeId={}, slotsSize={}]", targetNodeId, entry.getValue().size());
         }
         rebalancedSlotInfo.waitFetchMetadataCompleted(otherNodeSlots.keySet());
         replaceSlots(rebalancedSlotInfo.getSlotsOfTrackerSnapshot(), rebalancedSlotInfo.getTrackerOfSlotsSnapshot());
-        // 发送个请求给Controller, 告诉它我已经完事了，可以对外工作了。
+        // 发送个请求给主节点, 告诉它我已经完事了，可以对外工作了。
         RebalancedFetchMetadataCompletedEvent event = RebalancedFetchMetadataCompletedEvent.newBuilder()
                 .setRebalancedNodeId(trackerIndex)
                 .build();
