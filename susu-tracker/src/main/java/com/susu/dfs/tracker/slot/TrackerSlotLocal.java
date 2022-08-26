@@ -70,14 +70,14 @@ public class TrackerSlotLocal extends AbstractTrackerSlot {
             int numOfNode = allTrackerIndex.size();
             int oldNumOfNode = trackerOfSlots.size();
             if (numOfNode <= oldNumOfNode) {
-                log.warn("节点数量异常，不需要重新分配slots");
+                log.info("当前节点数量不需要重新分配slots [allTrackerSize={},oldTrackerSize={}]",numOfNode,oldNumOfNode);
                 return;
             }
             RebalancedSlotsRequest rebalancedSlotsRequest = RebalancedSlotsRequest.parseFrom(packet.getBody());
             RebalancedSlotInfo info = new RebalancedSlotInfo();
             info.setApplyTrackerId(rebalancedSlotsRequest.getRebalancedNodeId());
             info.setTrackerIdList(allTrackerIndex);
-            // 这里使用防御性复制，避免别的线程改动了这两个map
+
             HashMap<Integer, Integer> slotNodeMapSnapshot = new HashMap<>(slotsOfTracker);
             info.setSlotsOfTrackerSnapshot(slotNodeMapSnapshot);
             rebalancedManager.add(info);

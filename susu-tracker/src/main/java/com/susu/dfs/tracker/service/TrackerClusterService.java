@@ -16,6 +16,8 @@ import io.netty.channel.socket.SocketChannel;
 import lombok.extern.slf4j.Slf4j;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * @author sujay
@@ -154,6 +156,7 @@ public class TrackerClusterService {
         }
     }
 
+
     /**
      * <p>Description: 广播消息给所有的Tracker节点</p>
      *
@@ -194,6 +197,43 @@ public class TrackerClusterService {
             return result;
         } catch (Exception e) {
             log.error("Tracker Cluster Service broadcast has interrupted. ", e);
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * <p>Description: 同步广播消息给所有的Tracker节点</p>
+     * <p>Description: Synchronously broadcast messages to nodes of all tracker server</p>
+     *
+     * @param packet        消息内容
+     * @param excludeIndex  排除在外的Tracker节点
+     * @return              所进行广播消息的Tracker节点下标
+     */
+    public List<NetPacket> broadcastSync(NetPacket packet) {
+        try {
+            if (clusterServerMap.size() == 0) {
+                return new ArrayList<>();
+            }
+            List<NetPacket> result = new CopyOnWriteArrayList<>();
+            CountDownLatch latch = new CountDownLatch(clusterServerMap.size());
+            for (TrackerCluster peerNameNode : clusterServerMap.values()) {
+                taskScheduler.scheduleOnce("同步请求TrackerCluster", () -> {
+                    NetPacket response;
+                    NetPacket requestCopy = NetPacket.copy(packet);
+                    try {
+                        response = peerNameNode.sendSync(requestCopy);
+                        result.add(response);
+                    } catch (Exception e) {
+                        log.error("同步请求TrackerCluster失败，sequence=" + requestCopy.getSequence(), e);
+                    } finally {
+                        latch.countDown();
+                    }
+                });
+            }
+            latch.await();
+            return result;
+        } catch (Exception e) {
+            log.error("TrackerCluster#boardcast has interrupted. ", e);
             return new ArrayList<>();
         }
     }

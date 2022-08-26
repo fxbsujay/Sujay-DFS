@@ -40,6 +40,11 @@ public class NetPacket {
      */
     protected byte[] body;
 
+    public NetPacket(Map<String, String> header, byte[] body) {
+        this.header = header;
+        this.body = body;
+    }
+
     /**
      * 一个静态的构造器
      *
@@ -55,6 +60,14 @@ public class NetPacket {
         nettyPacket.setType(packetType.value);
         return nettyPacket;
     }
+
+    /**
+     * 复制
+     */
+    public static NetPacket copy(NetPacket nettyPacket) {
+        return new NetPacket(new HashMap<>(nettyPacket.getHeader()),nettyPacket.getBody());
+    }
+
 
     /**
      * 设置请求序列号
@@ -100,6 +113,23 @@ public class NetPacket {
     public void setSupportChunked(boolean chunkedFinish) {
         header.put("supportChunked", String.valueOf(chunkedFinish));
     }
+
+    /**
+     * 请求是否需要继续广播给其他节点
+     *
+     * @param broadcast 是否需要广播
+     */
+    public void setBroadcast(boolean broadcast) {
+        header.put("broadcast", String.valueOf(broadcast));
+    }
+
+    /**
+     * 请求是否需要继续广播给其他节点
+     */
+    public boolean getBroadcast() {
+        return Boolean.parseBoolean(header.getOrDefault("broadcast", "false"));
+    }
+
 
     /**
      * <p>Description: 写入数据</p>

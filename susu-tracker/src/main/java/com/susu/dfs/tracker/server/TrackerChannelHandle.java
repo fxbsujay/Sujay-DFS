@@ -10,6 +10,7 @@ import com.susu.dfs.common.file.FileNode;
 import com.susu.dfs.common.netty.msg.NetRequest;
 import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.common.utils.SnowFlakeUtils;
+import com.susu.dfs.common.utils.StopWatch;
 import com.susu.dfs.common.utils.StringUtils;
 import com.susu.dfs.tracker.client.ClientInfo;
 import com.susu.dfs.tracker.client.ClientManager;
@@ -168,9 +169,10 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      */
     private void storageRegisterHandle(NetRequest request) throws InvalidProtocolBufferException {
         long clientId = snowFlakeUtils.nextId();
+        boolean broadcast = broadcast(request.getRequest());
         RegisterRequest registerRequest = RegisterRequest.parseFrom(request.getRequest().getBody());
         boolean register = clientManager.register(registerRequest,clientId);
-        if (register) {
+        if (register && !broadcast) {
             RegisterResponse response = RegisterResponse.newBuilder().setClientId(clientId).build();
             request.sendResponse(response);
         }
@@ -184,6 +186,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      */
     private void storageReportInfoHandle(NetRequest request) throws InvalidProtocolBufferException {
         NetPacket packet = request.getRequest();
+        broadcast(packet);
         ReportStorageInfoRequest reportStorageInfoRequest = ReportStorageInfoRequest.parseFrom(packet.getBody());
         log.info("全量上报存储信息：[hostname={}, files={}]", reportStorageInfoRequest.getHostname(), reportStorageInfoRequest.getFileInfosCount());
         for (FileMetaInfo file : reportStorageInfoRequest.getFileInfosList()) {
@@ -249,6 +252,14 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
                     })
                     .collect(Collectors.toList());
             commandList.addAll(commands);
+        }
+
+        // 同步请求其他所有NameNode节点获取他们的响应
+        List<NetPacket> nettyPackets = broadcastSync(request);
+        // 将其他NameNode节点的命令添加到给客户端的响应中
+        for (NetPacket nettyPacket : nettyPackets) {
+            HeartbeatResponse heartbeatResponse = HeartbeatResponse.parseFrom(nettyPacket.getBody());
+            commandList.addAll(heartbeatResponse.getCommandsList());
         }
 
         HeartbeatResponse response = HeartbeatResponse.newBuilder()
@@ -457,11 +468,14 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      */
     private void storageRemoveFileComplete(NetRequest request) throws InvalidProtocolBufferException {
         NetPacket packet = request.getRequest();
+        boolean broadcast = broadcast(packet);
         RemoveCompletionRequest removeCompletionRequest = RemoveCompletionRequest.parseFrom(packet.getBody());
         log.info("Receive the Storage information reported by the client：[hostname={}, filename={}]", removeCompletionRequest.getHostname(), removeCompletionRequest.getFilename());
         ClientInfo client = clientManager.getClientByHost(removeCompletionRequest.getHostname());
         client.addStoredDataSize(-removeCompletionRequest.getFileSize());
-        request.sendResponse();
+        if (!broadcast) {
+            request.sendResponse();
+        }
     }
 
     /**
@@ -496,6 +510,51 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
         } else {
             trackerClusterService.relay(trackerIndex,request);
         }
+    }
+
+    /**
+     * 广播请求给所有的Tracker节点
+     *
+     * @param packet 请求
+     * @return 该请求是否是别的NameNode广播过来的
+     */
+    private boolean broadcast(NetPacket packet) {
+        boolean isBroadcastRequest = packet.getBroadcast();
+        if (!isBroadcastRequest) {
+            packet.setBroadcast(true);
+            List<Integer> broadcast = trackerClusterService.broadcast(packet);
+            if (!broadcast.isEmpty()) {
+                log.debug("广播请求给所有的Tracker: [sequence={}, broadcast={}, packetType={}]",
+                        packet.getSequence(), broadcast, PacketType.getEnum(packet.getType()).getDescription());
+            }
+        }
+        return isBroadcastRequest;
+    }
+
+    /**
+     * 广播请求给所有的Tracker节点, 同时获取所有节点的响应
+     *
+     * @param request 请求
+     * @return 请求结果
+     */
+    private List<NetPacket> broadcastSync(NetRequest request) {
+        NetPacket packet = request.getRequest();
+        boolean isBroadcastRequest = packet.getBroadcast();
+        if (!isBroadcastRequest) {
+            packet.setBroadcast(true);
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
+            List<NetPacket> nettyPackets = new ArrayList<>(trackerClusterService.broadcastSync(packet));
+            stopWatch.stop();
+            if (!nettyPackets.isEmpty()) {
+                log.debug("同步发送请求给所有的Tracker，并获取到了响应: [sequence={}, broadcast={}, packetType={}, cost={} s]",
+                        packet.getSequence(), trackerClusterService.getAllTrackerIndex(),
+                        PacketType.getEnum(packet.getType()).getDescription(),
+                        stopWatch.getTime() / 1000.0D);
+            }
+            return nettyPackets;
+        }
+        return new ArrayList<>();
     }
 
 }
