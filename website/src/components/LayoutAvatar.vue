@@ -1,14 +1,12 @@
 <template>
     <a-dropdown>
       <a class="ant-dropdown-link">
-        <svg class="icon svg-icon" aria-hidden="true">
-          <use xlink:href="#icon-wogerenziliao"></use>
-        </svg>
+        <user-outlined class="avatar-icon"/>
       </a>
       <template #overlay>
         <a-menu>
           <a-menu-item  @click="logout" key="1">
-            退出
+            {{ $t('login.logout')}}
           </a-menu-item>
         </a-menu>
       </template>
@@ -16,11 +14,12 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, Ref, toRefs } from 'vue'
+import { defineComponent, reactive, toRefs } from 'vue'
 import { UserOutlined,DribbbleOutlined } from '@ant-design/icons-vue'
 import { useStore } from 'vuex'
 import { UserActionTypes } from '@/store/modules/app'
 import '@/assets/fonts/avatar'
+
 /**
  * @description 头像组件
  * @author fxbsujay@gmail.com

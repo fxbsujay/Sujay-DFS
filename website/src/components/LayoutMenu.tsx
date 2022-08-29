@@ -21,12 +21,17 @@ export default defineComponent({
                 }
                 return  (
                     <a-menu-item key={item.name}>
-                        <router-link class="nav-link"  to={item.path}>{item.meta ? item.meta.title : item.name}</router-link>
+                        <router-link class="nav-link"  to={item.path}>{item.meta ? this.getTitle(item.meta.title) : item.name}</router-link>
                     </a-menu-item>
                 )
 
             })
         },
+
+        getTitle(i18nIndex: any) {
+            return this.$t('router.' + i18nIndex)
+        },
+
         /**
          * 多级菜单
          * @param route 路由
@@ -36,7 +41,7 @@ export default defineComponent({
                 return
             }
             return (
-                <a-sub-menu title={route.meta ? route.meta.title : ''} key={route.name}>
+                <a-sub-menu title={route.meta ? this.getTitle(route.meta.title) : ''} key={route.name}>
                     { this.getNavMenuItems(route.children)}
                 </a-sub-menu>
             )

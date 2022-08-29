@@ -1,7 +1,12 @@
+
+@bodyPadding: 24px;
+@blue: #1e65ce;
+
 #app {
   margin-top: 0;
   text-align: justify;
 }
+
 .layout .layout-logo {
   width: 150px;
   height: 100%;
@@ -11,7 +16,7 @@
   display: flex;
 }
 .layout-logo h1 {
-  color: #1e65ce;
+  color: @blue;
   font-size: 20px;
   margin-bottom: 1px;
   font-weight: bolder;
@@ -21,25 +26,32 @@
   height: 100%;
   float: left;
 }
+
 .layout .layout-icon {
   margin-right: 20px;
   width: 30px;
   height: 100%;
+  font-size: 16px;
+  letter-spacing: 1px;
   float: right;
   justify-content: center;
   align-items: center;
   display: flex;
+  svg {
+    width: 20px;
+    height: 20px;
+  }
 }
 .app-main {
   min-height: calc(100vh - 170px);
   background: #fff;
-  padding: 24px;
+  padding: @bodyPadding;
 }
 .layout .ant-layout-header {
   position: fixed;
   z-index: 1;
   width: 100%;
-  padding: 0;
+  padding: 0 @bodyPadding;
   background: #fff;
 }
 .layout .ant-layout-content {
@@ -77,4 +89,15 @@
   fill: currentColor;
   overflow: hidden;
 }
+@media (max-width: 700px) {
 
+  .layout .ant-layout-header {
+    padding: 0;
+  }
+
+  .layout .ant-layout-content {
+    padding: 0 20px;
+    margin-top: 64px;
+  }
+
+}

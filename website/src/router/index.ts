@@ -20,7 +20,7 @@ const moduleRoutes: Array<RouteRecordRaw> = [
         component: Layout,
         redirect: '/home',
         meta: {
-            title: '首页',
+            title: 'home',
             icon: '#icondashboard',
             affix: true
         },
@@ -30,7 +30,7 @@ const moduleRoutes: Array<RouteRecordRaw> = [
                 component: () => import('../views/home/index'),
                 name: 'Home',
                 meta: {
-                    title: '首页',
+                    title: 'home',
                     icon: '#icondashboard',
                     affix: true
                 }

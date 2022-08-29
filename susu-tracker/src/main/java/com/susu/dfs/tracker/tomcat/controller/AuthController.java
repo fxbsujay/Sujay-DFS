@@ -27,4 +27,5 @@ public class AuthController {
         }
         return Result.error("密码错误");
     }
+
 }

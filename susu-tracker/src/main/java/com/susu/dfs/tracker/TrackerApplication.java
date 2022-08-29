@@ -50,7 +50,7 @@ public class TrackerApplication {
      */
      public static void main(String[] args) {
 
-        NodeConfig nodeConfig = new NodeConfig("E:\\fxbsuajy@gmail.com\\Sujay-DFS\\doc\\tracker_config.json");
+        NodeConfig nodeConfig = new NodeConfig("E:\\fxbsuajy@gmail.com\\Sujay-DFS\\doc\\tracker_master_config.json");
         TrackerApplication application = new TrackerApplication(nodeConfig);
         try {
             Runtime.getRuntime().addShutdownHook(new Thread(application::shutdown));

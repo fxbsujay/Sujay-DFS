@@ -2,14 +2,12 @@
 
   <a-dropdown >
     <a class="ant-dropdown-link">
-      <svg class="icon svg-icon" aria-hidden="true">
-        <use xlink:href="#icon-yuyanqiehuan"></use>
-      </svg>
+     {{ selectedKeys[0].toLocaleUpperCase() }}
     </a>
     <template #overlay>
       <a-menu v-model:selectedKeys="selectedKeys" @click="setLanguage">
         <a-menu-item key="zh">
-          CN 简体中文
+          ZH 简体中文
         </a-menu-item>
         <a-menu-item key="en">
           EN English

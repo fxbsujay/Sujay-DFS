@@ -1,25 +1,24 @@
+@blue: #1e65ce;
 
 .login-container {
-  /* 初始化 */
   margin: 0;
   padding: 0;
   height: 100vh;
-  /* 弹性布局 居中显示 */
   display: flex;
   justify-content: center;
   align-items: center;
-  /* 径向渐变背景 ellipse表示椭圆 */
-  background: radial-gradient(ellipse at center,#fffeea 0%,#fffeea 35%,#b7e8eb 100%);
-  /* 溢出隐藏 */
+  background: rgba(243, 243, 243, 0.93);
   overflow: hidden;
   text-align: center;
 }
+
 .container{
   width: 640px;
   height: 320px;
   display: flex;
   text-align: center;
 }
+
 .left{
   width: 50%;
   height: calc(100% - 40px);
@@ -27,23 +26,27 @@
   position: relative;
   top: 20px;
 }
+
 .left h1{
-  color: #222225;
+  color: @blue;
   font-size: 50px;
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 4px;
   margin: 55px 40px 40px 40px;
 }
+
 .left p{
   color: #999;
   font-size: 14px;
   margin: 30px;
   line-height: 22px;
 }
+
 .left .left-top {
   font-size: 18px;
 }
+
 @media screen and (max-width:520px){
   .container {
     width: 600px;
@@ -63,28 +66,31 @@
     margin: 10px;
     position: absolute;
   }
-
 }
+
 .right{
   width: 50%;
   height: 100%;
-  background-color: #474a59;
+  background-color: @blue;
   color: #f1f1f1;
   position: relative;
-  box-shadow: 0 0 40px 16px rgba(27, 127, 199, 0.2);
+  box-shadow: 0 0 40px 16px #97bbef;
 }
+
 .form{
   margin: 30px;
   position: absolute;
 }
+
 .form label{
   text-align: left;
   color: #c2c2c2;
   display: block;
   font-size: 14px;
-  margin-top: 20px;
+  margin-top: 25px;
   margin-bottom: 5px;
 }
+
 .form input{
   width: 100%;
   height: 30px;
@@ -95,20 +101,24 @@
   text-indent: 2px;
 
 }
+
 .form .ant-input {
   color: #e0e8f5;
   letter-spacing: 2px;
 }
+
+.form svg {
+  fill: #e0e8f5;
+}
+
 .form .ant-input-affix-wrapper {
-  background-color: #364f67;
-  border-color: #364f67;
+  background-color: @blue;
+  border-color: #fff;
 }
 
 .form .ant-input-affix-wrapper:hover {
-  border-color: #1e65ce;
-
+  border-color:  #fff;
 }
-
 
 .form button{
   width: 100%;
@@ -132,6 +142,7 @@
   left: 0;
   bottom: 0;
 }
+
 .wave{
   /* 这里的背景用的是svg文件，这个文件我事先在PS里做好并导出 */
   background: url("svg/wave.svg") repeat-x;
@@ -143,6 +154,7 @@
   /* 执行波动动画：动画名 时长 贝塞尔曲线 无限次播放 */
   animation: wave 7s cubic-bezier(0.36,0.45,0.63,0.53) infinite;
 }
+
 .wave:nth-child(2){
   top: -175px;
   /* 执行波动+上下浮动动画 */
