@@ -69,8 +69,6 @@ public class NetRequest {
         for (NetPacket res : responses) {
             sendResponse(res, requestSequence);
         }
-        packet.setSequence(request.getSequence());
-        ctx.writeAndFlush(packet);
     }
 
     public void sendResponse(NetPacket response, Long sequence) {

@@ -213,8 +213,12 @@ public class TrackerClusterService {
             if (clusterServerMap.size() == 0) {
                 return new ArrayList<>();
             }
+
+            packet.setTrackerIndex(node.getIndex());
+
             List<NetPacket> result = new CopyOnWriteArrayList<>();
             CountDownLatch latch = new CountDownLatch(clusterServerMap.size());
+
             for (TrackerCluster trackerCluster : clusterServerMap.values()) {
                 taskScheduler.scheduleOnce("同步请求TrackerCluster", () -> {
                     NetPacket response;
