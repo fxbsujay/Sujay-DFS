@@ -13,7 +13,7 @@ export default defineComponent({
     setup () {
         return () =>(
            <div>
-               AAAAAAAAA
+
            </div>
         )
     }

@@ -527,6 +527,9 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      * @return 该请求是否是别的NameNode广播过来的
      */
     private boolean broadcast(NetPacket packet) {
+        if (!node.getIsCluster()) {
+            return false;
+        }
         boolean isBroadcastRequest = packet.getBroadcast();
         if (!isBroadcastRequest) {
             packet.setBroadcast(true);
@@ -546,6 +549,9 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      * @return 请求结果
      */
     private List<NetPacket> broadcastSync(NetRequest request) {
+        if (!node.getIsCluster()) {
+            return new ArrayList<>();
+        }
         NetPacket packet = request.getRequest();
         boolean isBroadcastRequest = packet.getBroadcast();
         if (!isBroadcastRequest) {

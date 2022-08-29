@@ -5,6 +5,7 @@ import com.susu.dfs.tracker.client.ClientManager;
 import com.susu.dfs.tracker.server.ServerManager;
 import com.susu.dfs.tracker.service.TrackerClusterService;
 import com.susu.dfs.tracker.tomcat.servlet.CorsFilter;
+import com.susu.dfs.tracker.tomcat.servlet.DispatchComponentProvider;
 import com.susu.dfs.tracker.tomcat.servlet.DispatcherServlet;
 import com.susu.dfs.tracker.tomcat.servlet.FileDownloadServlet;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +13,6 @@ import org.apache.catalina.Context;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.tomcat.util.descriptor.web.FilterDef;
 import org.apache.tomcat.util.descriptor.web.FilterMap;
-
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
@@ -34,6 +34,7 @@ public class TomcatServer {
     private DispatcherServlet dispatcherServlet;
 
     public TomcatServer(Node node, ServerManager serverManager, ClientManager clientManager, TrackerClusterService trackerClusterService) {
+        DispatchComponentProvider.getInstance().addComponent(serverManager,clientManager,trackerClusterService);
         this.port = node.getHttpPort();
         this.tomcat = new Tomcat();
         this.dispatcherServlet = new DispatcherServlet();
@@ -47,6 +48,7 @@ public class TomcatServer {
         Context context = tomcat.addContext("", null);
         Tomcat.addServlet(context, FileDownloadServlet.class.getSimpleName(), fileDownloadServlet);
         Tomcat.addServlet(context, DispatcherServlet.class.getSimpleName(), dispatcherServlet);
+
         context.addServletMappingDecoded("/api/*", DispatcherServlet.class.getSimpleName());
         context.addServletMappingDecoded("/*", FileDownloadServlet.class.getSimpleName());
         context.addWatchedResource("");
