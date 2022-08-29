@@ -76,7 +76,6 @@ public class Constants {
      */
     public static final String DEFAULT_BASE_DIR = "E:\\srv\\file";
 
-
     /**
      * 文件垃圾箱目录
      */
