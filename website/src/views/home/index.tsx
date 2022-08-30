@@ -5,7 +5,7 @@
  * @version 13:56 2022/8/24
  */
 import { defineComponent, reactive } from 'vue'
-import { TableColumnType } from 'ant-design-vue'
+import { TableColumnType, TreeProps } from 'ant-design-vue'
 import { StorageModel, TrackerModel, FileTreeModel } from '@/model/Models'
 import { queryListApi } from '@/api/storage'
 import { queryInfoApi, queryTreeApi } from '@/api/tracker'
@@ -43,7 +43,13 @@ export default defineComponent({
         const data = reactive({
             loading: false,
             trackerInfo: new TrackerModel(),
-            list: new Array<StorageModel>
+            fileTree: new FileTreeModel(),
+            list: new Array<StorageModel>(),
+            fieldNames: {
+                children: 'children',
+                title: 'path',
+                key: 'path'
+            }
         })
 
 
@@ -58,6 +64,10 @@ export default defineComponent({
 
             queryInfoApi().then( res => {
                 data.trackerInfo = res
+            })
+
+            queryTreeApi().then( res => {
+                data.fileTree = res
             })
 
         }
@@ -76,6 +86,13 @@ export default defineComponent({
                    </a-descriptions>
                </a-row>
                <a-divider orientation="left">storage list</a-divider>
+               <a-row>
+                   <a-directory-tree
+                       multiple
+                       tree-data={ [data.fileTree] }
+                       field-names={ data.fieldNames }
+                   ></a-directory-tree>
+               </a-row>
                <a-spin
                    spinning={ data.loading }
                >

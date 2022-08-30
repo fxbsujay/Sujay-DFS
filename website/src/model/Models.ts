@@ -15,10 +15,10 @@ export class TrackerModel {
 }
 
 
-export interface FileTreeModel {
-    path: string
-    type: number
-    children: FileTreeModel
-    attr: Map<string,string>
-    fileSize: bigint
+export class FileTreeModel {
+    path: string = ''
+    type: number | string = ''
+    children: Array<FileTreeModel> | undefined = []
+    attr: Map<string,string> = new Map<string, string>()
+    fileSize: bigint | string = ''
 }
