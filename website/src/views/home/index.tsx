@@ -6,8 +6,10 @@
  */
 import { defineComponent, reactive } from 'vue'
 import { TableColumnType } from 'ant-design-vue'
-import { StorageModel } from '@/model/Models'
+import { StorageModel, TrackerModel, FileTreeModel } from '@/model/Models'
 import { queryListApi } from '@/api/storage'
+import { queryInfoApi, queryTreeApi } from '@/api/tracker'
+
 export default defineComponent({
     name: 'Home',
     setup () {
@@ -40,10 +42,12 @@ export default defineComponent({
 
         const data = reactive({
             loading: false,
+            trackerInfo: new TrackerModel(),
             list: new Array<StorageModel>
         })
 
-        const queryList = () => {
+
+        const init = () => {
             data.loading = true
             queryListApi().then( res => {
                 data.list = res
@@ -51,21 +55,24 @@ export default defineComponent({
             }).catch( res => {
                 data.loading = false
             })
+
+            queryInfoApi().then( res => {
+                data.trackerInfo = res
+            })
+
         }
 
-        queryList()
+        init()
 
         return () =>(
            <div>
                <a-row>
                    <a-descriptions title="Tracker Info">
-                       <a-descriptions-item label="host">localhost</a-descriptions-item>
-                       <a-descriptions-item label="base file path">/susu/</a-descriptions-item>
-                       <a-descriptions-item label="user">admin</a-descriptions-item>
-                       <a-descriptions-item label="port">8080</a-descriptions-item>
-                       <a-descriptions-item label="client heartbeat interval">
-                          80000 s
-                       </a-descriptions-item>
+                       <a-descriptions-item label="host">{ data.trackerInfo.host }</a-descriptions-item>
+                       <a-descriptions-item label="image file path">{ data.trackerInfo.baseDir }</a-descriptions-item>
+                       <a-descriptions-item label="ready log file path">{ data.trackerInfo.logBaseDir }</a-descriptions-item>
+                       <a-descriptions-item label="port">{ data.trackerInfo.port }</a-descriptions-item>
+                       <a-descriptions-item label="httpPort">{ data.trackerInfo.httpPort }</a-descriptions-item>
                    </a-descriptions>
                </a-row>
                <a-divider orientation="left">storage list</a-divider>

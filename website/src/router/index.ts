@@ -19,6 +19,7 @@ const moduleRoutes: Array<RouteRecordRaw> = [
         path: '/',
         component: Layout,
         redirect: '/home',
+        name: 'home',
         meta: {
             title: 'home',
             icon: '#icondashboard',
@@ -27,13 +28,8 @@ const moduleRoutes: Array<RouteRecordRaw> = [
         children: [
             {
                 path: 'home',
+                name: 'home',
                 component: () => import('../views/home/index'),
-                name: 'Home',
-                meta: {
-                    title: 'home',
-                    icon: '#icondashboard',
-                    affix: true
-                }
             }
         ]
     }

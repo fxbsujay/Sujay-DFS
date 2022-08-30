@@ -37,7 +37,7 @@ public class TrackerFileService extends AbstractFileService {
     private ClearImageTask clearImageTask;
 
     /**
-     * ReadyLog和ImageLog文件的存储路径
+     * Ready_Log文件的存储路径
      */
     private final String baseDir;
 

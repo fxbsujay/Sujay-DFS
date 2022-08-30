@@ -6,6 +6,15 @@ export interface StorageModel {
     filePath: string
 }
 
+export class TrackerModel {
+    host: string = ''
+    port: number | string = ''
+    httpPort: number | string = ''
+    baseDir: string = ''
+    logBaseDir: string = ''
+}
+
+
 export interface FileTreeModel {
     path: string
     type: number

@@ -17,6 +17,11 @@ export class SysConstant {
 
   static projectName = 'SUSU-DFS'
 
+  /**
+   * API Path
+   */
+  static httpPath = 'http://localhost:9080/api'
+
 }
 
 export default SysConstant

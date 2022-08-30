@@ -8,6 +8,7 @@ import {RouteLocationMatched, useRoute} from 'vue-router'
  */
 export default defineComponent({
     name: 'LayoutContent',
+
     render() {
         const route = useRoute()
         const breadcrumbList = ref<RouteLocationMatched[]>([])
@@ -19,19 +20,24 @@ export default defineComponent({
             breadcrumbList.value = route.matched
         },{ deep: true, immediate: true})
 
+        const getTitle = (i18nIndex: any) => {
+            return this.$t('router.' + i18nIndex)
+        }
+
         /**
          * 获取面包屑
          * @param route {RouteLocationMatched}
          */
         const getBreadcrumbItems = (route: RouteLocationMatched[]): any => {
+
             return route
                 .filter( item => {
                     return item.name != undefined && item.name != ''
                 })
                 .map( item => {
-                    if (item.name) {
+                    if (item.name && item.meta.title) {
                         return (
-                            <a-breadcrumb-item>{ item.meta.title }</a-breadcrumb-item>
+                            <a-breadcrumb-item>{ getTitle(item.name) }</a-breadcrumb-item>
                         )
                     }
                 return

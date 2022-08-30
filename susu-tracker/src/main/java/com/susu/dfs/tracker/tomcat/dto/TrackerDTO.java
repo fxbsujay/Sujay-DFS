@@ -11,12 +11,23 @@ public class TrackerDTO {
     private String host;
 
     /**
-     * 状态
+     * 端口
      */
-    private Integer status;
+    private Integer port;
 
     /**
-     * 存储路径
+     * 端口
      */
-    private String filePath;
+    private Integer httpPort;
+
+    /**
+     * 目录树路径
+     */
+    private String baseDir;
+
+    /**
+     * 操作记录文件路径
+     */
+    private String logBaseDir;
+
 }
