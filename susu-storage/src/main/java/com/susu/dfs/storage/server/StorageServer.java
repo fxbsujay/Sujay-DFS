@@ -29,7 +29,7 @@ public class StorageServer {
         this.node = node;
         this.storageChannelHandle = new StorageChannelHandle(callback);
         this.storageManager = storageManager;
-        this.netServer = new NetServer(node.getName(),taskScheduler);
+        this.netServer = new NetServer("STORAGE-SERVER",taskScheduler);
     }
 
     public void start() throws InterruptedException {

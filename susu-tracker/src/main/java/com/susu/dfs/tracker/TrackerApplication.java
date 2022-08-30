@@ -2,6 +2,7 @@ package com.susu.dfs.tracker;
 
 import com.susu.dfs.common.Node;
 import com.susu.dfs.common.config.NodeConfig;
+import com.susu.dfs.common.config.SysConfig;
 import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.tracker.client.ClientManager;
 import com.susu.dfs.tracker.server.ServerManager;
@@ -11,6 +12,8 @@ import com.susu.dfs.tracker.service.TrackerClusterService;
 import com.susu.dfs.tracker.service.TrackerFileService;
 import com.susu.dfs.tracker.tomcat.TomcatServer;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.C;
+
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -49,29 +52,28 @@ public class TrackerApplication {
      * </ul>
      */
      public static void main(String[] args) {
-
-        NodeConfig nodeConfig = new NodeConfig("E:\\fxbsuajy@gmail.com\\Sujay-DFS\\doc\\tracker_master_config.json");
-        TrackerApplication application = new TrackerApplication(nodeConfig);
-        try {
-            Runtime.getRuntime().addShutdownHook(new Thread(application::shutdown));
-            application.start();
-        } catch (Exception e) {
-            e.printStackTrace();
-            log.info("Tracker Application Start Error!!");
-            System.exit(1);
-        }
+         SysConfig config = SysConfig.loadTrackerConfig(TrackerApplication.class);
+         TrackerApplication application = new TrackerApplication(config);
+         try {
+             Runtime.getRuntime().addShutdownHook(new Thread(application::shutdown));
+             application.start();
+         } catch (Exception e) {
+             e.printStackTrace();
+             log.info("Tracker Application Start Error!!");
+             System.exit(1);
+         }
     }
 
-    public TrackerApplication(NodeConfig nodeConfig) {
-        Node node = nodeConfig.getNode();
-        this.taskScheduler = new TaskScheduler("SUSU-DFS-TRACKER",Runtime.getRuntime().availableProcessors() * 2,true);
-        this.clientManager = new ClientManager(taskScheduler);
-        this.fileService = new TrackerFileService(taskScheduler,clientManager);
-        this.clusterService = new TrackerClusterService(node,nodeConfig.getTrackers(),taskScheduler);
-        this.serverManager = new ServerManager(node,nodeConfig.getTrackers(),clientManager,clusterService, fileService);
-        this.trackerChannelHandle = new TrackerChannelHandle(node,taskScheduler, clientManager, serverManager, fileService, clusterService);
-        this.trackerServer = new TrackerServer(node,taskScheduler,trackerChannelHandle);
-        this.tomcatServer = new TomcatServer(node,serverManager,clientManager,clusterService);
+    public TrackerApplication(SysConfig config) {
+         Node node = config.getNode();
+         this.taskScheduler = new TaskScheduler("TRACKER-TRACKER");
+         this.clientManager = new ClientManager(config,taskScheduler);
+         this.fileService = new TrackerFileService(config,taskScheduler,clientManager);
+         this.clusterService = new TrackerClusterService(node,config.getTrackers(),taskScheduler);
+         this.serverManager = new ServerManager(node,config.getTrackers(),clientManager,clusterService, fileService);
+         this.trackerChannelHandle = new TrackerChannelHandle(config,taskScheduler, clientManager, serverManager, fileService, clusterService);
+         this.trackerServer = new TrackerServer(node,taskScheduler,trackerChannelHandle);
+         this.tomcatServer = new TomcatServer(node,serverManager,clientManager,clusterService,fileService);
     }
 
     /**

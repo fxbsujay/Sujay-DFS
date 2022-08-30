@@ -98,6 +98,10 @@ public class FileNode {
         }
     }
 
+    public TreeMap<String, FileNode> getChildren() {
+        return children;
+    }
+
     /**
      * <p>Description: 拷贝节点/p>
      *

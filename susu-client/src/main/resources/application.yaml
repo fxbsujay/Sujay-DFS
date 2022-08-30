@@ -1,0 +1,6 @@
+client:
+  name: net-client
+  trackerHost: localhost
+  trackerPort: 9081
+
+

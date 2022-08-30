@@ -13,10 +13,8 @@ import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.common.utils.FileUtils;
 import com.susu.dfs.client.service.ClientFileService;
 import lombok.extern.slf4j.Slf4j;
-
 import java.io.File;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -220,6 +218,5 @@ public class ClientFileServiceImpl implements ClientFileService {
             throw new RuntimeException("Exception: Illegal file name !! [filename=" + filename + "]");
         }
     }
-
 
 }

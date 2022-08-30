@@ -4,6 +4,7 @@ import com.susu.dfs.common.Node;
 import com.susu.dfs.tracker.client.ClientManager;
 import com.susu.dfs.tracker.server.ServerManager;
 import com.susu.dfs.tracker.service.TrackerClusterService;
+import com.susu.dfs.tracker.service.TrackerFileService;
 import com.susu.dfs.tracker.tomcat.servlet.CorsFilter;
 import com.susu.dfs.tracker.tomcat.servlet.DispatchComponentProvider;
 import com.susu.dfs.tracker.tomcat.servlet.DispatcherServlet;
@@ -33,8 +34,8 @@ public class TomcatServer {
 
     private DispatcherServlet dispatcherServlet;
 
-    public TomcatServer(Node node, ServerManager serverManager, ClientManager clientManager, TrackerClusterService trackerClusterService) {
-        DispatchComponentProvider.getInstance().addComponent(serverManager,clientManager,trackerClusterService);
+    public TomcatServer(Node node, ServerManager serverManager, ClientManager clientManager, TrackerClusterService trackerClusterService, TrackerFileService trackerFileService) {
+        DispatchComponentProvider.getInstance().addComponent(serverManager,clientManager,trackerClusterService,trackerFileService);
         this.port = node.getHttpPort();
         this.tomcat = new Tomcat();
         this.dispatcherServlet = new DispatcherServlet();

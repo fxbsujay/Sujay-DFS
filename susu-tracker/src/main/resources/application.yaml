@@ -1,0 +1,13 @@
+tracker:
+  name: net-tracker
+  host: localhost
+  port: 9081
+  httpPort: 9080
+  config:
+    heartbeatInterval: 30000
+    heartbeatOutTime: 600000
+    heartbeatCheckInterval: 30000
+    defaultBaseDir: E:\srv\file
+    defaultBaseFilePath: /susu
+    sysLogBaseDir: E:\srv\file
+

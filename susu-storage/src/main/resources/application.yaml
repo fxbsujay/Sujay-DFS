@@ -1,0 +1,14 @@
+storage:
+  name: net-storage
+  host: localhost
+  port: 9083
+  httpPort: 9084
+  trackerHost: localhost
+  trackerPort: 9081
+  config:
+    heartbeatInterval: 30000
+    defaultBaseDir: E:\srv\file
+    defaultBaseFilePath: /susu
+    sysLogBaseDir: E:\srv\file
+
+

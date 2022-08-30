@@ -35,7 +35,7 @@ public class TrackerClient {
         this.netClient.addConnectListener(isConnected -> {
             log.info("Tracker Client Connect Start : {}",isConnected);
         });
-        this.netClient.start(node.getHost(),node.getPort());
+        this.netClient.start(node.getTrackerHost(),node.getTrackerPort());
         this.netClient.ensureStart();
     }
 

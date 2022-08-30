@@ -24,7 +24,8 @@ public class StorageController {
     @Autowired
     private ClientManager clientManager;
 
-    public Result<List<StorageDTO>> selectList() {
+    @RequestMapping("/list")
+    public Result<List<StorageDTO>> queryList() {
         List<ClientInfo> clientList = clientManager.getClientList();
         List<StorageDTO> result = new ArrayList<>();
 
@@ -34,7 +35,7 @@ public class StorageController {
 
         for (ClientInfo clientInfo : clientList) {
             StorageDTO dto = new StorageDTO();
-            dto.setStatus(ClientInfo.STATUS_READY == clientInfo.getStatus());
+            dto.setStatus(clientInfo.getStatus());
             dto.setHost(clientInfo.getHostname());
             dto.setStoredSize(clientInfo.getStoredSize());
             dto.setFilePath(Constants.DEFAULT_BASE_DIR);

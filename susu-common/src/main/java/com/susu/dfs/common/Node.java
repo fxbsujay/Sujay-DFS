@@ -39,7 +39,7 @@ public class Node {
     /**
      * 是否为主节点
      */
-    private Boolean isMaster;
+    private Boolean isMaster = false;
 
     /**
      * 调度器端口
@@ -54,12 +54,12 @@ public class Node {
     /**
      * 是否为集群模式
      */
-    private Boolean isCluster;
+    private Boolean isCluster = false;
 
     /**
      * 当前节点所在集群下标
      */
-    private Integer index;
+    private Integer index = 0;
 
     /**
      * 集群配置，key为数组的index

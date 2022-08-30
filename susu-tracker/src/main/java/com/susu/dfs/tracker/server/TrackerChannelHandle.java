@@ -6,6 +6,7 @@ import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.FileInfo;
 import com.susu.dfs.common.Node;
 import com.susu.dfs.common.TrackerInfo;
+import com.susu.dfs.common.config.SysConfig;
 import com.susu.dfs.common.eum.CommandType;
 import com.susu.dfs.common.file.FileNode;
 import com.susu.dfs.common.netty.msg.NetRequest;
@@ -45,6 +46,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TrackerChannelHandle extends AbstractChannelHandler {
 
+    private String DEFAULT_BASE_FILE_PATH = "/susu";
+
     private final Node node;
 
     private final ThreadPoolExecutor executor;
@@ -67,10 +70,11 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      */
     private final SnowFlakeUtils snowFlakeUtils = new SnowFlakeUtils(1,1);
 
-    public TrackerChannelHandle(Node node,TaskScheduler taskScheduler,
+    public TrackerChannelHandle(SysConfig config, TaskScheduler taskScheduler,
                                 ClientManager clientManager, ServerManager serverManager,
                                 TrackerFileService trackerFileService, TrackerClusterService trackerClusterService) {
-        this.node = node;
+        this.node = config.getNode();
+        this.DEFAULT_BASE_FILE_PATH = config.DEFAULT_BASE_FILE_PATH;
         this.taskScheduler = taskScheduler;
         this.executor = new ThreadPoolExecutor(Constants.HANDLE_THREAD_EXECUTOR_CORE_SIZE,Constants.HANDLE_THREAD_EXECUTOR_CORE_SIZE_MAX,
                 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(Constants.HANDLE_THREAD_EXECUTOR_QUEUE_SIZE_MAX));
@@ -288,7 +292,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
     private void clientMkdirHandel(NetRequest request) throws InvalidProtocolBufferException, InterruptedException {
         NetPacket packet = request.getRequest();
         MkdirRequest mkdirRequest = MkdirRequest.parseFrom(packet.getBody());
-        String realFilename =  "/susu" + mkdirRequest.getPath();
+        String realFilename =  DEFAULT_BASE_FILE_PATH + mkdirRequest.getPath();
         int trackerIndex = serverManager.getTrackerIndexByFilename(realFilename);
         if (serverManager.isCurrentTracker(trackerIndex)) {
             trackerFileService.mkdir(realFilename, mkdirRequest.getAttrMap());
@@ -308,7 +312,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
     private void clientCreateFileHandle(NetRequest request) throws InvalidProtocolBufferException{
         NetPacket packet = request.getRequest();
         CreateFileRequest createFileRequest = CreateFileRequest.parseFrom(packet.getBody());
-        String filename =  "/susu" + createFileRequest.getFilename();
+        String filename =  DEFAULT_BASE_FILE_PATH + createFileRequest.getFilename();
         Map<String, String> attrMap = new HashMap<>(createFileRequest.getAttrMap());
         String replicaNumStr = attrMap.get(Constants.ATTR_REPLICA_NUM);
         attrMap.put(Constants.ATTR_FILE_SIZE, String.valueOf(createFileRequest.getFileSize()));
@@ -344,7 +348,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
     private void clientUploadFileConfirm(NetRequest request) throws InvalidProtocolBufferException, InterruptedException {
         NetPacket packet = request.getRequest();
         CreateFileRequest createFileRequest = CreateFileRequest.parseFrom(packet.getBody());
-        String filename =  "/susu"  + createFileRequest.getFilename();
+        String filename =  DEFAULT_BASE_FILE_PATH  + createFileRequest.getFilename();
         clientManager.waitUploadFile(filename,3000);
         CreateFileResponse response = CreateFileResponse.newBuilder().build();
         request.sendResponse(response);
@@ -420,7 +424,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
     private void clientReadAttrHandle(NetRequest request) throws InvalidProtocolBufferException, InterruptedException {
         NetPacket packet = request.getRequest();
         ReadAttrRequest readAttrRequest = ReadAttrRequest.parseFrom(packet.getBody());
-        String readFilename = "/susu" + readAttrRequest.getFilename();
+        String readFilename = DEFAULT_BASE_FILE_PATH + readAttrRequest.getFilename();
         int trackerIndex = serverManager.getTrackerIndexByFilename(readFilename);
         if (serverManager.isCurrentTracker(trackerIndex)) {
             Map<String, String> attr = trackerFileService.getAttr(readFilename);
@@ -444,7 +448,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
     private void clientRemoveFile(NetRequest request) throws InvalidProtocolBufferException, InterruptedException {
         NetPacket packet = request.getRequest();
         RemoveFileRequest removeFileRequest = RemoveFileRequest.parseFrom(packet.getBody());
-        String filename =  "/susu" + removeFileRequest.getFilename();
+        String filename =  DEFAULT_BASE_FILE_PATH + removeFileRequest.getFilename();
         int trackerIndex = serverManager.getTrackerIndexByFilename(filename);
         if (serverManager.isCurrentTracker(trackerIndex)) {
             FileNode fileNode = trackerFileService.listFiles(filename);
@@ -455,7 +459,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
             attr.put(Constants.ATTR_FILE_DEL_TIME, String.valueOf(System.currentTimeMillis()));
             if (fileNode.getChildren().isEmpty()) {
                 trackerFileService.deleteFile(filename);
-                String destFilename = "/susu" + File.separator + Constants.TRASH_DIR + filename;
+                String destFilename = DEFAULT_BASE_FILE_PATH + File.separator + Constants.TRASH_DIR + filename;
                 Map<String, String> currentAttr = fileNode.getAttr();
                 currentAttr.putAll(attr);
                 trackerFileService.createFile(destFilename,currentAttr);
@@ -496,7 +500,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
 
         NetPacket packet = request.getRequest();
         GetStorageForFileRequest getStorageForFileRequest = GetStorageForFileRequest.parseFrom(packet.getBody());
-        String realFilename = "/susu" + getStorageForFileRequest.getFilename();
+        String realFilename = DEFAULT_BASE_FILE_PATH + getStorageForFileRequest.getFilename();
 
         int trackerIndex = serverManager.getTrackerIndexByFilename(realFilename);
         if (serverManager.isCurrentTracker(trackerIndex)) {

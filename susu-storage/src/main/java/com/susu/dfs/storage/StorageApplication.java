@@ -1,8 +1,6 @@
 package com.susu.dfs.storage;
 
-import com.susu.dfs.common.Constants;
-import com.susu.dfs.common.Node;
-import com.susu.dfs.common.config.NodeConfig;
+import com.susu.dfs.common.config.SysConfig;
 import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.storage.client.TrackerClient;
 import com.susu.dfs.storage.locator.FileLocatorFactory;
@@ -11,7 +9,6 @@ import com.susu.dfs.storage.server.StorageServer;
 import com.susu.dfs.storage.server.StorageTransportCallback;
 import lombok.extern.slf4j.Slf4j;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 
 /**
  * <p>Description: DFS 的 执行器，用于存储和管理文件</p>
@@ -32,13 +29,12 @@ public class StorageApplication {
 
     private AtomicBoolean started = new AtomicBoolean(false);
 
-    public StorageApplication(NodeConfig nodeConfig) {
-        Node node = nodeConfig.getNode();
-        this.taskScheduler = new TaskScheduler("SUSU-DFS-STORAGE",8,false);
-        this.storageManager = new StorageManager(Constants.DEFAULT_BASE_DIR, FileLocatorFactory.SHA1);
-        this.trackerClient = new TrackerClient(node, taskScheduler, storageManager);
+    public StorageApplication(SysConfig config) {
+        this.taskScheduler = new TaskScheduler( "STORAGE-TRACKER");
+        this.storageManager = new StorageManager(config.DEFAULT_BASE_DIR, FileLocatorFactory.SHA1);
+        this.trackerClient = new TrackerClient(config, taskScheduler, storageManager);
         StorageTransportCallback transportCallback = new StorageTransportCallback(storageManager,trackerClient);
-        this.storageServer = new StorageServer(node,taskScheduler,storageManager,transportCallback);
+        this.storageServer = new StorageServer(config.getNode(),taskScheduler,storageManager,transportCallback);
     }
 
     /**
@@ -62,9 +58,8 @@ public class StorageApplication {
      * </ul>
      */
     public static void main(String[] args) {
-
-        NodeConfig nodeConfig = new NodeConfig("E:\\fxbsuajy@gmail.com\\Sujay-DFS\\doc\\storage_config.json");
-        StorageApplication application = new StorageApplication(nodeConfig);
+        SysConfig config = SysConfig.loadStorageConfig(StorageApplication.class);
+        StorageApplication application = new StorageApplication(config);
         try {
             Runtime.getRuntime().addShutdownHook(new Thread(application::shutdown));
             application.start();
@@ -72,7 +67,6 @@ public class StorageApplication {
             log.info("Tracker Application Start Error!!");
             System.exit(1);
         }
-
     }
 
     /**

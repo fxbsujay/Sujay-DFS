@@ -2,6 +2,7 @@ package com.susu.dfs.tracker.service;
 
 import com.susu.common.model.ReadyLog;
 import com.susu.dfs.common.Constants;
+import com.susu.dfs.common.config.SysConfig;
 import com.susu.dfs.common.eum.ReadyLogType;
 import com.susu.dfs.common.file.AbstractFileService;
 import com.susu.dfs.common.file.image.ImageLogWrapper;
@@ -42,10 +43,10 @@ public class TrackerFileService extends AbstractFileService {
 
     private volatile long maxTxId = 0L;
 
-    public TrackerFileService(TaskScheduler taskScheduler, ClientManager clientManager) {
-        super(Constants.DEFAULT_BASE_DIR);
+    public TrackerFileService(SysConfig config,TaskScheduler taskScheduler, ClientManager clientManager) {
+        super(config.DEFAULT_BASE_DIR);
         this.taskScheduler = taskScheduler;
-        this.baseDir = Constants.DEFAULT_BASE_DIR;
+        this.baseDir = config.SYS_LOG_BASE_DIR;
         this.doubleBuffer = new DoubleBuffer(baseDir);
         clientManager.setTrackerFileService(this);
         this.trashPolicyTask =  new TrashPolicyTask(this,clientManager);

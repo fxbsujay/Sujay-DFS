@@ -3,7 +3,7 @@ package com.susu.dfs.tracker.tomcat.dto;
 import lombok.Data;
 
 @Data
-public class StorageDTO {
+public class TrackerDTO {
 
     /**
      * 地址
@@ -14,11 +14,6 @@ public class StorageDTO {
      * 状态
      */
     private Integer status;
-
-    /**
-     * 存储大写
-     */
-    private Long storedSize;
 
     /**
      * 存储路径

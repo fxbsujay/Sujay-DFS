@@ -3,6 +3,7 @@ package com.susu.dfs.tracker.client;
 import com.susu.common.model.RegisterRequest;
 import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.FileInfo;
+import com.susu.dfs.common.config.SysConfig;
 import com.susu.dfs.common.file.FileNode;
 import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.common.utils.DateUtils;
@@ -24,6 +25,11 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class ClientManager {
+
+    /**
+     * 客户端心跳超时时间
+     */
+    private final int HEARTBEAT_OUT_TIME;
 
     /**
      * 客户端实例
@@ -57,9 +63,10 @@ public class ClientManager {
     private final ReentrantReadWriteLock replicaLock = new ReentrantReadWriteLock();
 
 
-    public ClientManager(TaskScheduler taskScheduler) {
+    public ClientManager(SysConfig config,TaskScheduler taskScheduler) {
         taskScheduler.schedule("Client-Check", new DataNodeAliveMonitor(),
-                Constants.HEARTBEAT_CHECK_INTERVAL, Constants.HEARTBEAT_CHECK_INTERVAL, TimeUnit.MILLISECONDS);
+                config.HEARTBEAT_CHECK_INTERVAL, config.HEARTBEAT_CHECK_INTERVAL, TimeUnit.MILLISECONDS);
+        this.HEARTBEAT_OUT_TIME = config.HEARTBEAT_OUT_TIME;
     }
 
     public void setTrackerFileService(TrackerFileService trackerFileService) {
@@ -150,7 +157,7 @@ public class ClientManager {
             while (iterator.hasNext()) {
                 ClientInfo next = iterator.next();
                 long currentTimeMillis = System.currentTimeMillis();
-                if (currentTimeMillis < next.getLatestHeartbeatTime() + Constants.HEARTBEAT_OUT_TIME) {
+                if (currentTimeMillis < next.getLatestHeartbeatTime() + HEARTBEAT_OUT_TIME) {
                     continue;
                 }
                 log.info("Client out time，remove client：[hostname={}, current={}, latestHeartbeatTime={}]",

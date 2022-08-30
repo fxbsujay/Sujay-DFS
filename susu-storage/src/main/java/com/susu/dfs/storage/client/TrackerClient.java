@@ -3,10 +3,9 @@ package com.susu.dfs.storage.client;
 import com.google.common.collect.Lists;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.susu.common.model.*;
-import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.FileInfo;
 import com.susu.dfs.common.Node;
-import com.susu.dfs.common.StorageInfo;
+import com.susu.dfs.common.config.SysConfig;
 import com.susu.dfs.common.eum.PacketType;
 import com.susu.dfs.common.netty.NetClient;
 import com.susu.dfs.common.netty.msg.NetPacket;
@@ -31,6 +30,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TrackerClient {
 
+    /**
+     * 客户端心跳时间
+     */
+    private final int HEARTBEAT_INTERVAL;
+
     private final Node node;
 
     private NetClient netClient;
@@ -46,8 +50,9 @@ public class TrackerClient {
 
     private StorageManager storageManager;
 
-    public TrackerClient(Node node, TaskScheduler taskScheduler, StorageManager storageManager) {
-        this.node = node;
+    public TrackerClient(SysConfig config, TaskScheduler taskScheduler, StorageManager storageManager) {
+        this.node = config.getNode();
+        this.HEARTBEAT_INTERVAL = config.HEARTBEAT_INTERVAL;
         this.netClient = new NetClient(node.getName(), taskScheduler);
         this.taskScheduler = taskScheduler;
         this.storageManager = storageManager;
@@ -129,9 +134,9 @@ public class TrackerClient {
         RegisterResponse response = RegisterResponse.parseFrom(request.getRequest().getBody());
         node.setId(response.getClientId());
         if (scheduledFuture == null) {
-            log.info("Start the scheduled task to send heartbeat, heartbeat interval: [interval={}ms]", Constants.HEARTBEAT_INTERVAL);
+            log.info("Start the scheduled task to send heartbeat, heartbeat interval: [interval={}ms]", HEARTBEAT_INTERVAL);
             scheduledFuture = ctx.executor().scheduleAtFixedRate(new HeartbeatTask(ctx, node),
-                    0, Constants.HEARTBEAT_INTERVAL, TimeUnit.MILLISECONDS);
+                    0,HEARTBEAT_INTERVAL, TimeUnit.MILLISECONDS);
         }
         storageReportInfo(request.getCtx());
     }
