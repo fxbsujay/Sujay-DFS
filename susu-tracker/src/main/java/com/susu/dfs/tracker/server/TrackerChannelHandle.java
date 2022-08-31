@@ -310,7 +310,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
     private void clientCreateFileHandle(NetRequest request) throws InvalidProtocolBufferException{
         NetPacket packet = request.getRequest();
         CreateFileRequest createFileRequest = CreateFileRequest.parseFrom(packet.getBody());
-        String filename =  DEFAULT_BASE_FILE_PATH + createFileRequest.getFilename();
+        String filename = DEFAULT_BASE_FILE_PATH + createFileRequest.getFilename();
         Map<String, String> attrMap = new HashMap<>(createFileRequest.getAttrMap());
         String replicaNumStr = attrMap.get(Constants.ATTR_REPLICA_NUM);
         attrMap.put(Constants.ATTR_FILE_SIZE, String.valueOf(createFileRequest.getFileSize()));

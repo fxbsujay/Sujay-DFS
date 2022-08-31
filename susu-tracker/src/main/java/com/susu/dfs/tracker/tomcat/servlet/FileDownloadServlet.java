@@ -65,7 +65,7 @@ public class FileDownloadServlet extends HttpServlet {
         try {
             fileResp = trackerClusterService.sendSync(trackerIndex, packet);
         } catch (InterruptedException e) {
-            log.error("下载文件失败：", e);
+            log.error("download fail：", e);
             resp.sendError(500, "File Failed: " + filename);
             return;
         }

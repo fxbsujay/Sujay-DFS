@@ -1,8 +1,13 @@
 import { defineComponent, reactive } from 'vue'
 import { queryTreeApi } from '@/api/tracker'
 import { FileTreeModel } from '@/model/Models'
+import FileTree from './fileTree.vue'
+import './index.less'
 export default defineComponent({
     name: 'Storage',
+    components: {
+        FileTree
+    },
     setup() {
 
         const data = reactive({
@@ -26,14 +31,9 @@ export default defineComponent({
         }
 
         init()
-
         return () => (
             <>
-                <a-directory-tree
-                    tree-data={ [data.fileTree] }
-                    field-names={ data.fieldNames }
-                >
-                </a-directory-tree>
+                <FileTree treeList={ [data.fileTree] } />
             </>
         )
     }

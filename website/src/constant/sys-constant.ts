@@ -4,17 +4,17 @@
  * @version 20:29 2022/6/18
  */
 class Constant {
-    public key: any
-    public value: any
+    public key: string = ''
+    public value: string = ''
 }
 
-export const RoomConstant: Constant[] = [
-    {
-        key: '0',
-        value: '私有'
-    },
+export const FileType: Constant[] = [
     {
         key: '1',
-        value: '公开'
+        value: '文件'
+    },
+    {
+        key: '2',
+        value: '文件目录'
     }
 ]
