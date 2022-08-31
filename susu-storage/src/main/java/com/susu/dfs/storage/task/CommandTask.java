@@ -75,7 +75,7 @@ public class CommandTask {
      * @param filename  文件名
      */
     private void fileRemoveTaskHandel(String filename) throws InterruptedException {
-        log.info("Received a command to delete a file...");
+        log.info("Received a command to delete a file: filename={}",filename);
         String absolutePathByFileName = storageManager.getAbsolutePathByFileName(filename);
         File file = new File(absolutePathByFileName);
         long length = 0;

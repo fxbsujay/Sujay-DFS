@@ -30,4 +30,15 @@ public class TrackerDTO {
      */
     private String logBaseDir;
 
+    /**
+     * 总存储大写
+     */
+    private Long totalStoredSize;
+
+    /**
+     * 总存储大写
+     */
+    private Long fileCount;
+
+
 }

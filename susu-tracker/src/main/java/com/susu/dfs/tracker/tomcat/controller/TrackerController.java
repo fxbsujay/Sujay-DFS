@@ -2,15 +2,23 @@ package com.susu.dfs.tracker.tomcat.controller;
 
 import com.susu.dfs.common.Node;
 import com.susu.dfs.common.Result;
+import com.susu.dfs.common.TrackerInfo;
 import com.susu.dfs.common.config.SysConfig;
 import com.susu.dfs.common.file.FileNode;
+import com.susu.dfs.tracker.client.ClientInfo;
 import com.susu.dfs.tracker.client.ClientManager;
+import com.susu.dfs.tracker.server.ServerManager;
 import com.susu.dfs.tracker.service.TrackerFileService;
 import com.susu.dfs.tracker.tomcat.annotation.Autowired;
 import com.susu.dfs.tracker.tomcat.annotation.RequestMapping;
 import com.susu.dfs.tracker.tomcat.annotation.RestController;
 import com.susu.dfs.tracker.tomcat.dto.FileTreeDTO;
+import com.susu.dfs.tracker.tomcat.dto.StorageDTO;
 import com.susu.dfs.tracker.tomcat.dto.TrackerDTO;
+import org.checkerframework.checker.units.qual.A;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <p>Description: 存储器 API</p>
@@ -31,8 +39,26 @@ public class TrackerController {
     @Autowired
     private SysConfig sysConfig;
 
+    @Autowired
+    private ServerManager serverManager;
+    @RequestMapping("/list")
+    public Result<List<TrackerDTO>> queryList() {
+        List<TrackerDTO> result = new ArrayList<>();
+        List<TrackerInfo> trackers = sysConfig.getTrackers();
+        if (trackers.isEmpty()) {
+            return Result.ok(result);
+        }
+
+        return Result.ok(result);
+    }
+
     @RequestMapping("/info")
     public Result<TrackerDTO> info() {
+        long totalStorageSize = 0;
+        List<ClientInfo> clientList = clientManager.getClientList();
+        for (ClientInfo clientInfo : clientList) {
+            totalStorageSize += clientInfo.getStoredSize();
+        }
         TrackerDTO dto = new TrackerDTO();
         Node node = sysConfig.getNode();
         dto.setHost(node.getHost());
@@ -40,6 +66,8 @@ public class TrackerController {
         dto.setHttpPort(node.getHttpPort());
         dto.setBaseDir(sysConfig.DEFAULT_BASE_DIR);
         dto.setLogBaseDir(sysConfig.SYS_LOG_BASE_DIR);
+        dto.setTotalStoredSize(totalStorageSize);
+        dto.setFileCount(clientManager.countFiles());
         return Result.ok(dto);
     }
 

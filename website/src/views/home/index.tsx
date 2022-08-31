@@ -5,46 +5,77 @@
  * @version 13:56 2022/8/24
  */
 import { defineComponent, reactive } from 'vue'
-import { TableColumnType, TreeProps } from 'ant-design-vue'
+import { TableColumnType } from 'ant-design-vue'
 import { StorageModel, TrackerModel, FileTreeModel } from '@/model/Models'
-import { queryListApi } from '@/api/storage'
-import { queryInfoApi, queryTreeApi } from '@/api/tracker'
+import { queryListApi as storageQueryList } from '@/api/storage'
+import { queryListApi as trackerQueryList, queryInfoApi, queryTreeApi } from '@/api/tracker'
+
+const storageColumns: TableColumnType<StorageModel>[] = [
+    {
+        key: 'host',
+        title: 'host',
+        dataIndex: 'host',
+        align: 'center'
+    },
+    {
+        key: 'storedSize',
+        title: 'stored size',
+        dataIndex: 'storedSize',
+        align: 'center'
+    },
+    {
+        key: 'filePath',
+        title: 'file path',
+        dataIndex: 'filePath',
+        align: 'center'
+    },
+    {
+        key: 'status',
+        title: 'status',
+        dataIndex: 'status',
+        align: 'center'
+    }
+]
+
+const trackerColumns: TableColumnType<TrackerModel>[] = [
+    {
+        key: 'host',
+        title: 'host',
+        dataIndex: 'host',
+        align: 'center'
+    },
+    {
+        key: 'port',
+        title: 'port',
+        dataIndex: 'port',
+        align: 'center'
+    },
+    {
+        key: 'httpPort',
+        title: 'http port',
+        dataIndex: 'httpPort',
+        align: 'center'
+    },
+    {
+        key: 'status',
+        title: 'status',
+        dataIndex: 'status',
+        align: 'center'
+    }
+]
 
 export default defineComponent({
     name: 'Home',
     setup () {
-        const columns: TableColumnType<StorageModel>[] = [
-            {
-                key: 'host',
-                title: 'host',
-                dataIndex: 'host',
-                align: 'center'
-            },
-            {
-                key: 'status',
-                title: 'status',
-                dataIndex: 'status',
-                align: 'center'
-            },
-            {
-                key: 'storedSize',
-                title: 'stored size',
-                dataIndex: 'storedSize',
-                align: 'center'
-            },
-            {
-                key: 'filePath',
-                title: 'file path',
-                dataIndex: 'filePath',
-                align: 'center'
-            },
-        ]
+
 
         const data = reactive({
-            loading: false,
+            storageListLoading: false,
+            trackerListLoading: false,
             trackerInfo: new TrackerModel(),
             fileTree: new FileTreeModel(),
-            list: new Array<StorageModel>(),
+            storageList: new Array<StorageModel>(),
+            trackerList: new Array<TrackerModel>(),
             fieldNames: {
                 children: 'children',
                 title: 'path',
@@ -52,14 +83,21 @@ export default defineComponent({
             }
         })
 
-
         const init = () => {
-            data.loading = true
-            queryListApi().then( res => {
-                data.list = res
-                data.loading = false
+            data.storageListLoading = true
+            data.trackerListLoading = true
+            storageQueryList().then( res => {
+                data.storageList = res
+                data.storageListLoading = false
             }).catch( res => {
-                data.loading = false
+                data.storageListLoading = false
+            })
+
+            trackerQueryList().then( res => {
+                data.trackerListLoading = false
+                data.trackerList = res
+            }).catch( res => {
+                data.trackerListLoading = false
             })
 
             queryInfoApi().then( res => {
@@ -75,31 +113,42 @@ export default defineComponent({
         init()
 
         return () =>(
-           <div>
+           <>
                <a-row>
-                   <a-descriptions title="Tracker Info">
+                   <a-descriptions labelStyle={{ width: '150px' }} title="Tracker Info">
                        <a-descriptions-item label="host">{ data.trackerInfo.host }</a-descriptions-item>
-                       <a-descriptions-item label="image file path">{ data.trackerInfo.baseDir }</a-descriptions-item>
-                       <a-descriptions-item label="ready log file path">{ data.trackerInfo.logBaseDir }</a-descriptions-item>
+                       <a-descriptions-item label="base file path">{ data.trackerInfo.baseDir }  , { data.trackerInfo.logBaseDir }</a-descriptions-item>
                        <a-descriptions-item label="port">{ data.trackerInfo.port }</a-descriptions-item>
                        <a-descriptions-item label="httpPort">{ data.trackerInfo.httpPort }</a-descriptions-item>
+                       <a-descriptions-item label="total stored size">{ data.trackerInfo.totalStoredSize }</a-descriptions-item>
+                       <a-descriptions-item label="count of files">{ data.trackerInfo.fileCount }</a-descriptions-item>
                    </a-descriptions>
                </a-row>
-               <a-divider orientation="left">storage list</a-divider>
+               <a-divider orientation="left">file tree</a-divider>
                <a-row>
-                   <a-directory-tree
-                       multiple
-                       tree-data={ [data.fileTree] }
-                       field-names={ data.fieldNames }
-                   ></a-directory-tree>
+                   <a-col span={ 24 }>
+                       <a-directory-tree
+                           tree-data={ [data.fileTree] }
+                           field-names={ data.fieldNames }
+                       ></a-directory-tree>
+                   </a-col>
+
                </a-row>
+               <a-divider orientation="left">storage list</a-divider>
                <a-spin
-                   spinning={ data.loading }
+                   spinning={ data.storageListLoading }
                >
-                   <a-table data-source={ data.list } columns={ columns } />
+                   <a-table data-source={ data.storageList } columns={ storageColumns } pagination={ false }/>
                </a-spin>
 
-           </div>
+               <a-divider style={{ marginTop: '40px'}} orientation="left">tracker list</a-divider>
+               <a-spin
+                   spinning={ data.trackerListLoading }
+               >
+                   <a-table data-source={ data.trackerList } columns={ trackerColumns } pagination={ false }/>
+               </a-spin>
+
+           </>
         )
     }
 })

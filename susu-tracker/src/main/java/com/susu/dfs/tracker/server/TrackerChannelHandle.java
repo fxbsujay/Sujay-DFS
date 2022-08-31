@@ -200,12 +200,10 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
         NetPacket packet = request.getRequest();
         broadcast(packet);
         ReportStorageInfoRequest reportStorageInfoRequest = ReportStorageInfoRequest.parseFrom(packet.getBody());
-        log.info("全量上报存储信息：[hostname={}, files={}]", reportStorageInfoRequest.getHostname(), reportStorageInfoRequest.getFileInfosCount());
+        log.info("Report storage information：[hostname={}, files={}]", reportStorageInfoRequest.getHostname(), reportStorageInfoRequest.getFileInfosCount());
         for (FileMetaInfo file : reportStorageInfoRequest.getFileInfosList()) {
             int trackerIndex = serverManager.getTrackerIndexByFilename(file.getFilename());
             if (serverManager.isCurrentTracker(trackerIndex)) {
-                // 只有属于自己Slot的文件信息才进行保存
-                // TODO 考虑和内存目录树进行对比，看看是否存在内存目录树不存在的文件，下发命令让DataNode清除
                 FileInfo fileInfo = new FileInfo();
                 fileInfo.setFileName(file.getFilename());
                 fileInfo.setFileSize(file.getFileSize());
@@ -215,7 +213,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
         }
         if (reportStorageInfoRequest.getFinished()) {
             clientManager.setStorageReady(reportStorageInfoRequest.getHostname());
-            log.info("全量上报存储信息完成：[hostname={}]", reportStorageInfoRequest.getHostname());
+            log.info("Completion of reporting storage information：[hostname={}]", reportStorageInfoRequest.getHostname());
         }
     }
 

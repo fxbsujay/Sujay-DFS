@@ -12,6 +12,8 @@ export class TrackerModel {
     httpPort: number | string = ''
     baseDir: string = ''
     logBaseDir: string = ''
+    totalStoredSize: bigint | string = ''
+    fileCount: bigint | string = ''
 }
 
 

@@ -387,6 +387,13 @@ public class ClientManager {
     }
 
     /**
+     * 获取文件数量
+     */
+    public long countFiles() {
+        return fileOfClients.size();
+    }
+
+    /**
      * <p>Description: 添加文件</p>
      * 1. 判断是否在垃圾箱中，在则发送一条删除副本指令
      * 2. 查看副本真实存在的数量是否大于副本的本身数量，如果大于则删除这个副本，并不在添加信息
@@ -396,14 +403,17 @@ public class ClientManager {
         replicaLock.writeLock().lock();
         try {
             ClientInfo clientInfo = clients.get(file.getHostname());
+            clientInfo.addStoredDataSize(file.getFileSize());
             List<ClientInfo> clientInfoList = fileOfClients.computeIfAbsent(file.getFileName(), k -> new ArrayList<>());
             FileNode fileNode = isInTrash(file.getFileName());
+
             if (fileNode == null) {
                 log.warn("Receive file submission by Storage, But the file was not found,must delete file: [hostname={}, filename={}]", file.getHostname(), file.getFileName());
                 RemoveReplicaTask task = new RemoveReplicaTask(file.getHostname(),file.getFileName());
                 clientInfo.addRemoveReplicaTask(task);
                 return;
             }
+
             int replicaNum = Integer.parseInt(fileNode.getAttr().getOrDefault(Constants.ATTR_REPLICA_NUM, "1"));
             if (clientInfoList.size() > replicaNum) {
                 RemoveReplicaTask task = new RemoveReplicaTask(clientInfo.getHostname(), file.getFileName());
@@ -411,7 +421,19 @@ public class ClientManager {
                 clientInfo.addRemoveReplicaTask(task);
                 return;
             }
-            clientInfoList.add(clientInfo);
+
+            boolean isAddClient = true;
+            for (ClientInfo info : clientInfoList) {
+                if (clientInfo.getHostname().equals(info.getHostname())) {
+                    isAddClient = false;
+                    break;
+                }
+            }
+
+            if (isAddClient) {
+                clientInfoList.add(clientInfo);
+            }
+
             Map<String, FileInfo> files = clientOfFiles.computeIfAbsent(file.getHostname(), k -> new HashMap<>(Constants.MAP_SIZE));
             files.put(file.getFileName(), file);
             if (log.isDebugEnabled()) {

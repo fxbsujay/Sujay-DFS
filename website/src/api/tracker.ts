@@ -1,6 +1,6 @@
 import https from './http/https'
 import { Method, ContentType } from './http'
-import { FileTreeModel, TrackerModel } from '@/model/Models'
+import {FileTreeModel, StorageModel, TrackerModel} from '@/model/Models'
 
 /**
  * <p>查询tracker节点信息</p>
@@ -20,4 +20,8 @@ export const queryTreeApi = () => {
  */
 export const queryInfoApi = () => {
     return https(false).request<TrackerModel>('tracker/info', Method.GET, {}, ContentType.form)
+}
+
+export const queryListApi = () => {
+    return https(false).request<Array<TrackerModel>>('tracker/list', Method.GET, {}, ContentType.form)
 }
