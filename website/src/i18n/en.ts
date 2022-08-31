@@ -7,6 +7,7 @@ export default {
         logout: 'logout'
     },
     router: {
-        home: 'home'
+        home: 'home',
+        storage: 'storage'
     }
 }

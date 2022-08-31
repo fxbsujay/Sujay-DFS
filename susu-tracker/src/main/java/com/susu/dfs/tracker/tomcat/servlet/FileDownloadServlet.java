@@ -50,12 +50,6 @@ public class FileDownloadServlet extends HttpServlet {
         String requestUri = req.getRequestURI();
         String filename = URLDecoder.decode(requestUri, "UTF-8");
 
-        if (!"true".equals(req.getHeader(REQUEST_HEADER))) {
-            log.warn("Exception request received, request rejected：{}", requestUri);
-            resp.sendError(403, "Get out of here.");
-            return;
-        }
-
         int trackerIndex = serverManager.getTrackerIndexByFilename(filename);
         if (serverManager.isCurrentTracker(trackerIndex)) {
             relayStorage(resp, requestUri, filename);

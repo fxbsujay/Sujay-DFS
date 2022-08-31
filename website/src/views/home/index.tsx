@@ -6,15 +6,27 @@
  */
 import { defineComponent, reactive } from 'vue'
 import { TableColumnType } from 'ant-design-vue'
-import { StorageModel, TrackerModel, FileTreeModel } from '@/model/Models'
+import { StorageModel, TrackerModel } from '@/model/Models'
 import { queryListApi as storageQueryList } from '@/api/storage'
-import { queryListApi as trackerQueryList, queryInfoApi, queryTreeApi } from '@/api/tracker'
+import { queryListApi as trackerQueryList, queryInfoApi } from '@/api/tracker'
 
 const storageColumns: TableColumnType<StorageModel>[] = [
     {
         key: 'host',
         title: 'host',
         dataIndex: 'host',
+        align: 'center'
+    },
+    {
+        key: 'port',
+        title: 'port',
+        dataIndex: 'port',
+        align: 'center'
+    },
+    {
+        key: 'httpPort',
+        title: 'http port',
+        dataIndex: 'httpPort',
         align: 'center'
     },
     {
@@ -73,14 +85,8 @@ export default defineComponent({
             storageListLoading: false,
             trackerListLoading: false,
             trackerInfo: new TrackerModel(),
-            fileTree: new FileTreeModel(),
             storageList: new Array<StorageModel>(),
             trackerList: new Array<TrackerModel>(),
-            fieldNames: {
-                children: 'children',
-                title: 'path',
-                key: 'path'
-            }
         })
 
         const init = () => {
@@ -103,11 +109,6 @@ export default defineComponent({
             queryInfoApi().then( res => {
                 data.trackerInfo = res
             })
-
-            queryTreeApi().then( res => {
-                data.fileTree = res
-            })
-
         }
 
         init()
@@ -124,16 +125,7 @@ export default defineComponent({
                        <a-descriptions-item label="count of files">{ data.trackerInfo.fileCount }</a-descriptions-item>
                    </a-descriptions>
                </a-row>
-               <a-divider orientation="left">file tree</a-divider>
-               <a-row>
-                   <a-col span={ 24 }>
-                       <a-directory-tree
-                           tree-data={ [data.fileTree] }
-                           field-names={ data.fieldNames }
-                       ></a-directory-tree>
-                   </a-col>
 
-               </a-row>
                <a-divider orientation="left">storage list</a-divider>
                <a-spin
                    spinning={ data.storageListLoading }

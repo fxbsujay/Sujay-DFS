@@ -11,6 +11,13 @@ public class StorageDTO {
     private String host;
 
     /**
+     * 端口
+     */
+    private Integer port;
+
+    private Integer httpPort;
+
+    /**
      * 状态
      */
     private Integer status;

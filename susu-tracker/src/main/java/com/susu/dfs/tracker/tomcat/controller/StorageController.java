@@ -41,6 +41,8 @@ public class StorageController {
             StorageDTO dto = new StorageDTO();
             dto.setStatus(clientInfo.getStatus());
             dto.setHost(clientInfo.getHostname());
+            dto.setPort(clientInfo.getPort());
+            dto.setHttpPort(clientInfo.getHttpPort());
             dto.setStoredSize(clientInfo.getStoredSize());
             dto.setFilePath(Constants.DEFAULT_BASE_DIR);
             result.add(dto);

@@ -107,6 +107,7 @@ public class ClientManager {
             return false;
         }
         ClientInfo client = new ClientInfo(request.getHostname(),request.getPort());
+        client.setHttpPort(request.getHttpPort());
         client.setName(request.getName());
         client.setClientId(clientId);
         log.info("Client register request : [hostname:{}]",request.getHostname());

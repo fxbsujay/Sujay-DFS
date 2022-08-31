@@ -32,6 +32,24 @@ const moduleRoutes: Array<RouteRecordRaw> = [
                 component: () => import('../views/home/index'),
             }
         ]
+    },
+    {
+        path: '/storage',
+        component: Layout,
+        redirect: '/storage/index',
+        name: 'storage',
+        meta: {
+            title: 'storage',
+            icon: '#icondashboard',
+            affix: true
+        },
+        children: [
+            {
+                path: 'index',
+                name: 'storage',
+                component: () => import('../views/storage/index'),
+            }
+        ]
     }
 ]
 

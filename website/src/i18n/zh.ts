@@ -7,6 +7,7 @@ export default {
         logout: '退出'
     },
     router: {
-        home: '首页'
+        home: '首页',
+        storage: '存储器'
     }
 }

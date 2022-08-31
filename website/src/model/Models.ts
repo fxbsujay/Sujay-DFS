@@ -1,6 +1,8 @@
 
 export interface StorageModel {
     host: string
+    port: number
+    httpPort: number
     status: number
     storedSize: bigint
     filePath: string

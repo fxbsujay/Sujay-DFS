@@ -88,6 +88,7 @@ public class TrackerClient {
         RegisterRequest request = RegisterRequest.newBuilder()
                 .setName(node.getName())
                 .setHostname(node.getHost())
+                .setHttpPort(node.getHttpPort())
                 .setPort(node.getPort()).build();
         NetPacket packet = NetPacket.buildPacket(request.toByteArray(),PacketType.STORAGE_REGISTER);
         log.info("Tracker Client Register : {}",request.getHostname());
