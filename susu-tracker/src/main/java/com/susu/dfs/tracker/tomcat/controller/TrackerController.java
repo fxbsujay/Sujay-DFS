@@ -74,7 +74,7 @@ public class TrackerController {
     @RequestMapping("/tree")
     public Result<FileTreeDTO> queryFileTree() {
         FileNode fileNode = trackerFileService.listFiles("/");
-        FileTreeDTO tree = FileTreeDTO.tree(fileNode, "/");
+        FileTreeDTO tree = FileTreeDTO.tree(fileNode, "/",0);
         return Result.ok(tree);
     }
 

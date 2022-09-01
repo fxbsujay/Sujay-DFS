@@ -17,6 +17,8 @@ import java.util.*;
 @Data
 public class FileTreeDTO {
 
+    private int index;
+
     /**
      *节点路径
      */
@@ -39,7 +41,7 @@ public class FileTreeDTO {
 
     private Long fileSize;
 
-    public static FileTreeDTO tree(FileNode node,String path) {
+    public static FileTreeDTO tree(FileNode node,String path,int index) {
         if (node == null) {
             return null;
         }
@@ -48,11 +50,13 @@ public class FileTreeDTO {
             return null;
         }
 
+        index++;
+
         FileTreeDTO dto = new FileTreeDTO();
         dto.setAttr(node.getAttr());
         dto.setType(node.getType());
         dto.setPath(node.getPath());
-
+        dto.setIndex(index);
         long fileSize = Long.parseLong(node.getAttr().getOrDefault(Constants.ATTR_FILE_SIZE, "0"));
         dto.setFileSize(fileSize);
 
@@ -60,7 +64,7 @@ public class FileTreeDTO {
 
         for (String key : node.getChildren().keySet()) {
             FileNode child = node.getChildren().get(key);
-            FileTreeDTO childDto = tree(child,path);
+            FileTreeDTO childDto = tree(child,path,index);
             if (childDto == null) {
                 continue;
             }

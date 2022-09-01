@@ -4,7 +4,7 @@ import {Convert} from './json2Model'
 import DuplicateRequest from './duplicate'
 import {message} from 'ant-design-vue'
 import 'ant-design-vue/es/message/style/css'
-import { RootObject } from '@/model/BaseModel'
+import {RootObject} from '@/model/BaseModel'
 
 /**
  * <p>Axios封装</p>
@@ -86,8 +86,10 @@ export default class HttpClient {
 
     if (contentType === ContentType.form) {
       requestConfig.params = allParams;
-    } else {
+    } else if (contentType === ContentType.json){
       requestConfig.data = JSON.stringify(allParams);
+    } else {
+      requestConfig.data = allParams;
     }
     return this.httpClient
       .request(requestConfig)

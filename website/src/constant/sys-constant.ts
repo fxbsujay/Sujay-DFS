@@ -3,7 +3,12 @@
  * @author fxbsujay@gmail.com
  * @version 20:29 2022/6/18
  */
-class Constant {
+
+export interface Props {
+    [key:string]:unknown
+}
+
+export class Constant {
     public key: string = ''
     public value: string = ''
 }

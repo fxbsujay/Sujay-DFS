@@ -9,6 +9,5 @@ import { Method, ContentType } from './http'
  * @version 13:24 2022/6/3
  */
 export const loginRequest = (userInfo: RequestParams) => {
-
     return https(false).request<LoginModel>('auth/login', Method.POST, userInfo, ContentType.json)
 }

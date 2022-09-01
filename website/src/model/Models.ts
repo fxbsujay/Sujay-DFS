@@ -20,9 +20,10 @@ export class TrackerModel {
 
 
 export class FileTreeModel {
+    index: number = 0
     path: string = ''
     type: number | string = ''
-    children: Array<FileTreeModel> | undefined = []
+    children: Array<FileTreeModel> = []
     attr: Map<string,string> = new Map<string, string>()
     fileSize: bigint | string = ''
 }

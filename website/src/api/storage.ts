@@ -1,6 +1,7 @@
 import https from './http/https'
-import { Method, ContentType } from './http'
+import {Method, ContentType, RequestParams} from './http'
 import { StorageModel } from '@/model/Models'
+import {LoginModel} from "@/model/UserModel";
 
 /**
  * <p>查询storage节点信息</p>
@@ -9,4 +10,8 @@ import { StorageModel } from '@/model/Models'
  */
 export const queryListApi = () => {
     return https(false).request<Array<StorageModel>>('storage/list', Method.GET, {}, ContentType.form)
+}
+
+export const uploadApi = (uploadInfo: RequestParams) => {
+    return https(false).request<LoginModel>('upload', Method.POST, uploadInfo, ContentType.multipart)
 }

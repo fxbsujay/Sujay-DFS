@@ -6,10 +6,7 @@ import com.susu.dfs.tracker.client.ClientManager;
 import com.susu.dfs.tracker.server.ServerManager;
 import com.susu.dfs.tracker.service.TrackerClusterService;
 import com.susu.dfs.tracker.service.TrackerFileService;
-import com.susu.dfs.tracker.tomcat.servlet.CorsFilter;
-import com.susu.dfs.tracker.tomcat.servlet.DispatchComponentProvider;
-import com.susu.dfs.tracker.tomcat.servlet.DispatcherServlet;
-import com.susu.dfs.tracker.tomcat.servlet.FileDownloadServlet;
+import com.susu.dfs.tracker.tomcat.servlet.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.Context;
 import org.apache.catalina.startup.Tomcat;
@@ -33,6 +30,8 @@ public class TomcatServer {
 
     private FileDownloadServlet fileDownloadServlet;
 
+    private FileUploadServlet fileUploadServlet;
+
     private DispatcherServlet dispatcherServlet;
 
     public TomcatServer(SysConfig config, ServerManager serverManager, ClientManager clientManager, TrackerClusterService trackerClusterService, TrackerFileService trackerFileService) {
@@ -42,6 +41,7 @@ public class TomcatServer {
         this.tomcat = new Tomcat();
         this.dispatcherServlet = new DispatcherServlet();
         this.fileDownloadServlet = new FileDownloadServlet(node,serverManager,clientManager,trackerClusterService);
+        this.fileUploadServlet = new FileUploadServlet(node,serverManager,clientManager,trackerClusterService);
     }
 
     public void start() {
@@ -49,11 +49,15 @@ public class TomcatServer {
         tomcat.setPort(port);
 
         Context context = tomcat.addContext("", null);
+        Tomcat.addServlet(context, FileUploadServlet.class.getSimpleName(), fileUploadServlet);
         Tomcat.addServlet(context, FileDownloadServlet.class.getSimpleName(), fileDownloadServlet);
         Tomcat.addServlet(context, DispatcherServlet.class.getSimpleName(), dispatcherServlet);
 
+
+        context.addServletMappingDecoded("/api/upload", FileUploadServlet.class.getSimpleName());
         context.addServletMappingDecoded("/api/*", DispatcherServlet.class.getSimpleName());
         context.addServletMappingDecoded("/*", FileDownloadServlet.class.getSimpleName());
+
         context.addWatchedResource("");
 
         FilterDef filterDef = new FilterDef();

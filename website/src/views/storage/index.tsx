@@ -1,5 +1,5 @@
 import { defineComponent, reactive } from 'vue'
-import { queryTreeApi } from '@/api/tracker'
+import { queryTreeApi, queryInfoApi } from '@/api/tracker'
 import { FileTreeModel } from '@/model/Models'
 import FileTree from './fileTree.vue'
 import './index.less'
@@ -13,6 +13,7 @@ export default defineComponent({
         const data = reactive({
             treeLoading: false,
             fileTree: new FileTreeModel(),
+            requestHeader: '',
             fieldNames: {
                 children: 'children',
                 title: 'path',
@@ -28,12 +29,16 @@ export default defineComponent({
             }).catch( res => {
                 data.treeLoading = false
             })
+
+            queryInfoApi().then( res => {
+                data.requestHeader = 'http://' + res.host + ':' + res.httpPort
+            })
         }
 
         init()
         return () => (
             <>
-                <FileTree treeList={ [data.fileTree] } />
+                <FileTree treeList={ [data.fileTree] } requestHeader={ data.requestHeader } />
             </>
         )
     }
