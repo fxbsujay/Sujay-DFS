@@ -1,4 +1,4 @@
-package com.susu.dfs.client;
+package com.susu.dfs.common.client;
 
 import com.susu.dfs.common.file.transfer.OnProgressListener;
 

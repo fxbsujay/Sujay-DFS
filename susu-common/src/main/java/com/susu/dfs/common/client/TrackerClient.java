@@ -1,4 +1,4 @@
-package com.susu.dfs.client;
+package com.susu.dfs.common.client;
 
 import com.susu.dfs.common.Node;
 import com.susu.dfs.common.config.NodeConfig;
@@ -18,24 +18,21 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TrackerClient {
 
-    private final Node node;
-
     private NetClient netClient;
 
     private TaskScheduler taskScheduler;
 
-    public TrackerClient(Node node,TaskScheduler taskScheduler) {
-        this.node = node;
+    public TrackerClient(TaskScheduler taskScheduler) {
         this.taskScheduler = taskScheduler;
-        this.netClient = new NetClient(node.getName(),taskScheduler,-1);
+        this.netClient = new NetClient("Tracker-Client",taskScheduler,-1);
     }
 
-    public void start() throws InterruptedException {
+    public void start(String host, int port) throws InterruptedException {
         this.netClient.addPackageListener(this::onTrackerResponse);
         this.netClient.addConnectListener(isConnected -> {
             log.info("Tracker Client Connect Start : {}",isConnected);
         });
-        this.netClient.start(node.getTrackerHost(),node.getTrackerPort());
+        this.netClient.start(host,port);
         this.netClient.ensureStart();
     }
 

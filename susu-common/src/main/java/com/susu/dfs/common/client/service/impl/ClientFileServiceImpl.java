@@ -1,8 +1,8 @@
-package com.susu.dfs.client.service.impl;
+package com.susu.dfs.common.client.service.impl;
 
 import com.susu.common.model.*;
-import com.susu.dfs.client.OnMultiFileProgressListener;
-import com.susu.dfs.client.TrackerClient;
+import com.susu.dfs.common.client.OnMultiFileProgressListener;
+import com.susu.dfs.common.client.TrackerClient;
 import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.eum.PacketType;
 import com.susu.dfs.common.file.transfer.FileTransportClient;
@@ -11,7 +11,7 @@ import com.susu.dfs.common.netty.NetClient;
 import com.susu.dfs.common.netty.msg.NetPacket;
 import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.common.utils.FileUtils;
-import com.susu.dfs.client.service.ClientFileService;
+import com.susu.dfs.common.client.service.ClientFileService;
 import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.util.HashMap;
@@ -24,13 +24,14 @@ import java.util.Map;
  * @version 10:45 2022/7/14
  */
 @Slf4j
-public class ClientFileServiceImpl implements ClientFileService {
+public class ClientFileServiceImpl implements ClientFileService{
 
     private TrackerClient trackerClient;
 
     private TaskScheduler taskScheduler;
 
     public ClientFileServiceImpl(TrackerClient trackerClient, TaskScheduler taskScheduler) {
+
         this.trackerClient = trackerClient;
         this.taskScheduler = taskScheduler;
     }

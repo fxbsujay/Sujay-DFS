@@ -1,7 +1,7 @@
 package com.susu.dfs.client;
 
-import com.susu.dfs.client.service.ClientFileService;
-import com.susu.dfs.common.config.SysConfig;
+import com.susu.dfs.common.client.ClientApplication;
+import com.susu.dfs.common.client.service.ClientFileService;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,10 +13,8 @@ public class ClientTest {
     private static final String DOWNLOAD_PATH = System.getProperty("user.dir") + "/download/susu.jpg";
 
     public static void main(String[] args) {
-        SysConfig config = SysConfig.loadClientConfig(ClientApplication.class);
-        ClientApplication application = new ClientApplication(config);
         try {
-            application.start();
+            ClientApplication application = ClientApplication.initStart();
             ClientFileService fileService = application.getFileService();
             Map<String,String> attr = new HashMap<>();
             attr.put("aaa","bbbb");

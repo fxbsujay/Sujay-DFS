@@ -1,7 +1,6 @@
-package com.susu.dfs.client.service;
+package com.susu.dfs.common.client.service;
 
 import com.susu.dfs.common.file.transfer.OnProgressListener;
-
 import java.io.File;
 import java.util.Map;
 
