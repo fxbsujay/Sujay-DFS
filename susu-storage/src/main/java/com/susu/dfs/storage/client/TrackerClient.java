@@ -7,12 +7,15 @@ import com.susu.dfs.common.FileInfo;
 import com.susu.dfs.common.Node;
 import com.susu.dfs.common.config.SysConfig;
 import com.susu.dfs.common.eum.PacketType;
+import com.susu.dfs.common.file.transfer.FilePacket;
+import com.susu.dfs.common.file.transfer.FileReceiveHandler;
 import com.susu.dfs.common.netty.NetClient;
 import com.susu.dfs.common.netty.msg.NetPacket;
 import com.susu.dfs.common.netty.msg.NetRequest;
 import com.susu.dfs.common.task.HeartbeatTask;
 import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.storage.server.StorageManager;
+import com.susu.dfs.storage.server.StorageTransportCallback;
 import com.susu.dfs.storage.task.CommandTask;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.concurrent.ScheduledFuture;
@@ -50,13 +53,16 @@ public class TrackerClient {
 
     private StorageManager storageManager;
 
-    public TrackerClient(SysConfig config, TaskScheduler taskScheduler, StorageManager storageManager) {
+    private FileReceiveHandler fileReceiveHandler;
+
+    public TrackerClient(SysConfig config, TaskScheduler taskScheduler, StorageManager storageManager, StorageTransportCallback callback) {
         this.node = config.getNode();
         this.HEARTBEAT_INTERVAL = config.HEARTBEAT_INTERVAL;
         this.netClient = new NetClient(node.getName(), taskScheduler);
         this.taskScheduler = taskScheduler;
         this.storageManager = storageManager;
         this.commandTask = new CommandTask(taskScheduler,this,storageManager);
+        this.fileReceiveHandler = new FileReceiveHandler(callback);
     }
 
     /**
@@ -118,6 +124,9 @@ public class TrackerClient {
                 break;
             case STORAGE_HEART_BEAT:
                 storageHeartbeatResponse(request);
+                break;
+            case UPLOAD_FILE:
+                clientUploadFile(request);
                 break;
             default:
                 break;
@@ -226,6 +235,17 @@ public class TrackerClient {
                 .build();
         NetPacket packet = NetPacket.buildPacket(removeCompletionRequest.toByteArray(), PacketType.REMOVE_FILE_COMPLETE);
         netClient.send(packet);
+    }
+
+    /**
+     * <p>Description: 客户端上传文件</p>
+     */
+    private void clientUploadFile(NetRequest request) {
+       FilePacket filePacket = FilePacket.parseFrom(request.getRequest().getBody());
+        if (filePacket.getType() == FilePacket.HEAD) {
+            log.info("Received the uploaded file from the client.....");
+        }
+        fileReceiveHandler.handleRequest(filePacket);
     }
 
 }

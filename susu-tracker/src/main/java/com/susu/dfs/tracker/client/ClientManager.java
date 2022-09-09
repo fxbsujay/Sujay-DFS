@@ -11,6 +11,7 @@ import com.susu.dfs.common.utils.StringUtils;
 import com.susu.dfs.tracker.rebalance.RemoveReplicaTask;
 import com.susu.dfs.tracker.rebalance.ReplicaTask;
 import com.susu.dfs.tracker.service.TrackerFileService;
+import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,6 +42,15 @@ public class ClientManager {
     private final Map<String, ClientInfo> clients = new ConcurrentHashMap<>();
 
     /**
+     * 客户端通道
+     *      Example:    {
+     *                      key:    hostname
+     *                      value:  clientInfo
+     *                  }
+     */
+    private final Map<String, ChannelHandlerContext> channels = new ConcurrentHashMap<>();
+
+    /**
      * 每个文件对应存储的Datanode信息
      *      Example:    {
      *                      key:    filename
@@ -61,7 +71,6 @@ public class ClientManager {
     private TrackerFileService trackerFileService;
 
     private final ReentrantReadWriteLock replicaLock = new ReentrantReadWriteLock();
-
 
     public ClientManager(SysConfig config,TaskScheduler taskScheduler) {
         taskScheduler.schedule("Client-Check", new DataNodeAliveMonitor(),
@@ -102,7 +111,7 @@ public class ClientManager {
      * @param request 注册请求
      * @return 是否注册成功 【 true / false 】
      */
-    public boolean register(RegisterRequest request,Long clientId) {
+    public boolean register(RegisterRequest request,Long clientId,ChannelHandlerContext channel) {
         if (StringUtils.isBlank(request.getHostname())) {
             return false;
         }
@@ -112,6 +121,7 @@ public class ClientManager {
         client.setClientId(clientId);
         log.info("Client register request : [hostname:{}]",request.getHostname());
         clients.put(request.getHostname(),client);
+        setClientChannel(request.getHostname(),channel);
         return true;
     }
 
@@ -127,6 +137,15 @@ public class ClientManager {
             clientInfo.setStatus(ClientInfo.STATUS_READY);
         }
     }
+
+    private void setClientChannel(String hostname, ChannelHandlerContext channel) {
+        if (channel != null) channels.put(hostname,channel);
+    }
+
+    public ChannelHandlerContext getClientChannel(String hostname) {
+        return channels.get(hostname);
+    }
+
     /**
      * <p>Description: 客户端心跳</p>
      * <p>Description: Client Heartbeat</p>
@@ -250,6 +269,16 @@ public class ClientManager {
     }
 
     /**
+     * <p>Description: 获取所有已经上报节点信息的本机所在节点</p>
+     */
+    private List<ClientInfo> selectAllClientByChannels() {
+        return clients.values().stream()
+                .filter(clientInfo -> clientInfo.getStatus() == ClientInfo.STATUS_READY && channels.get(clientInfo.getHostname()) != null)
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
+    /**
      * <p>Description: 判断存储节点是否包含该文件</p>
      */
     private boolean isClientContainsFile(String hostname, String filename) {
@@ -267,6 +296,13 @@ public class ClientManager {
      */
     public List<ClientInfo> selectAllClientsByFile(int size, String filename) {
         return selectAllClientsByFile(selectAllClients(),size,filename);
+    }
+
+    /**
+     * <p>Description: 随机获取用于存储该文件的节点，排除已经包含该文件的节点</p>
+     */
+    public List<ClientInfo> selectAllClientsByFileAndChannel(int size, String filename) {
+        return selectAllClientsByFile(selectAllClientByChannels(),size,filename);
     }
 
 

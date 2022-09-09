@@ -1,6 +1,7 @@
 package com.susu.dfs.common.file.transfer;
 
 import com.susu.dfs.common.utils.FileUtils;
+import com.susu.dfs.common.utils.StringUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import java.io.File;
@@ -84,10 +85,13 @@ public class FileAppender {
      * 完成数据包传输
      */
     public void completed() throws IOException, InterruptedException {
-        String md5 = FileUtils.fileMd5(file.getAbsolutePath());
-        boolean success = this.fileAttribute.getMd5().equals(md5);
-        if (!success) {
-            throw new IllegalStateException("File corruption !!");
+        String oldMd5 = this.fileAttribute.getMd5();
+        if (StringUtils.isNotBlank(oldMd5)) {
+            String md5 = FileUtils.fileMd5(file.getAbsolutePath());
+            boolean success = this.fileAttribute.getMd5().equals(md5);
+            if (!success) {
+                throw new IllegalStateException("File corruption !!");
+            }
         }
         fileTransportCallback.onCompleted(fileAttribute);
         log.info("File transfer complete：[filename={}]", fileAttribute.getFilename());

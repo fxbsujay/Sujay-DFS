@@ -156,7 +156,7 @@ export default {
     }
 
     /**
-     *  查看图片
+     * 查看图片
      */
     const viewHandle = (file: FileTreeModel) => {
       data.path = getFilePath(props.treeList[0].children[0],5,props.requestHeader)

@@ -34,6 +34,11 @@ public class DefaultFileSendTask {
 
     public DefaultFileSendTask(File file, String filename, SocketChannel socketChannel,
                                OnProgressListener listener) throws IOException {
+       this(file,filename,socketChannel,listener,true);
+    }
+
+    public DefaultFileSendTask(File file, String filename, SocketChannel socketChannel,
+                               OnProgressListener listener, boolean isHex) throws IOException {
         this.file = file;
         this.filename = filename;
         this.socketChannel = socketChannel;
@@ -41,9 +46,13 @@ public class DefaultFileSendTask {
         this.fileAttribute.setFileName(filename);
         this.fileAttribute.setSize(file.length());
         this.fileAttribute.setId(StringUtils.getRandomString(12));
-        this.fileAttribute.setMd5(FileUtils.fileMd5(file.getAbsolutePath()));
+        if (isHex) {
+            this.fileAttribute.setMd5(FileUtils.fileMd5(file.getAbsolutePath()));
+        }
         this.listener = listener;
     }
+
+
 
     /**
      * 执行逻辑

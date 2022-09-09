@@ -41,7 +41,7 @@ public class TomcatServer {
         this.tomcat = new Tomcat();
         this.dispatcherServlet = new DispatcherServlet();
         this.fileDownloadServlet = new FileDownloadServlet(node,serverManager,clientManager,trackerClusterService);
-        this.fileUploadServlet = new FileUploadServlet(node,serverManager,clientManager,trackerClusterService);
+        this.fileUploadServlet = new FileUploadServlet(config,serverManager,clientManager,trackerClusterService,trackerFileService);
     }
 
     public void start() {

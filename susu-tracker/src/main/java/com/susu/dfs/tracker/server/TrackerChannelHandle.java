@@ -183,7 +183,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
         long clientId = snowFlakeUtils.nextId();
         boolean broadcast = broadcast(request.getRequest());
         RegisterRequest registerRequest = RegisterRequest.parseFrom(request.getRequest().getBody());
-        boolean register = clientManager.register(registerRequest,clientId);
+        boolean register = clientManager.register(registerRequest,clientId,broadcast ? null : request.getCtx());
         if (register && !broadcast) {
             RegisterResponse response = RegisterResponse.newBuilder().setClientId(clientId).build();
             request.sendResponse(response);
@@ -409,7 +409,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
         NewTrackerInfo newPeerDataNodeInfo = NewTrackerInfo.parseFrom(packet.getBody());
         List<RegisterRequest> requestsList = newPeerDataNodeInfo.getRequestsList();
         for (RegisterRequest registerRequest : requestsList) {
-            clientManager.register(registerRequest,registerRequest.getNodeId());
+            clientManager.register(registerRequest,registerRequest.getNodeId(),null);
             ClientInfo client = clientManager.getClientByHost(registerRequest.getHostname());
             client.setStatus(ClientInfo.STATUS_READY);
         }
@@ -572,5 +572,4 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
         }
         return new ArrayList<>();
     }
-
 }

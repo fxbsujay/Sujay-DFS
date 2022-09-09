@@ -32,8 +32,9 @@ public class StorageApplication {
     public StorageApplication(SysConfig config) {
         this.taskScheduler = new TaskScheduler( "STORAGE-TRACKER");
         this.storageManager = new StorageManager(config.DEFAULT_BASE_DIR, FileLocatorFactory.SHA1);
-        this.trackerClient = new TrackerClient(config, taskScheduler, storageManager);
+
         StorageTransportCallback transportCallback = new StorageTransportCallback(storageManager,trackerClient);
+        this.trackerClient = new TrackerClient(config, taskScheduler, storageManager,transportCallback);
         this.storageServer = new StorageServer(config.getNode(),taskScheduler,storageManager,transportCallback);
     }
 
