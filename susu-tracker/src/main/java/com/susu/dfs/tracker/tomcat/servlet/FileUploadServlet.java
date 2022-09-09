@@ -1,8 +1,6 @@
 package com.susu.dfs.tracker.tomcat.servlet;
 
 import com.alibaba.fastjson.JSONObject;
-import com.susu.dfs.common.FileInfo;
-import com.susu.dfs.common.Node;
 import com.susu.dfs.common.Result;
 import com.susu.dfs.common.config.SysConfig;
 import com.susu.dfs.common.file.transfer.DefaultFileSendTask;
@@ -12,12 +10,11 @@ import com.susu.dfs.tracker.client.ClientManager;
 import com.susu.dfs.tracker.server.ServerManager;
 import com.susu.dfs.tracker.service.TrackerClusterService;
 import com.susu.dfs.tracker.service.TrackerFileService;
-import com.susu.dfs.tracker.tomcat.dto.UploadCompletedDTO;
+import com.susu.dfs.tracker.tomcat.dto.UploadDTO;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.SocketChannel;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.FileItem;
-import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.apache.tomcat.util.http.fileupload.disk.DiskFileItemFactory;
 import org.apache.tomcat.util.http.fileupload.servlet.ServletFileUpload;
 import org.apache.tomcat.util.http.fileupload.servlet.ServletRequestContext;
@@ -91,7 +88,7 @@ public class FileUploadServlet extends HttpServlet {
                                 public void onCompleted() {
                                     log.info("create a file：[ filename={},storages={}]",filename,client.getHostname());
                                     trackerFileService.createFile(filename,new HashMap<>());
-                                    UploadCompletedDTO completedDTO = new UploadCompletedDTO();
+                                    UploadDTO completedDTO = new UploadDTO();
                                     completedDTO.setStorageHost(client.getHostname());
                                     returnResult(response,Result.ok(completedDTO));
                                 }

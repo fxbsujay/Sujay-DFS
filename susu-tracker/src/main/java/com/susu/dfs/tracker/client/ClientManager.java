@@ -159,7 +159,6 @@ public class ClientManager {
             return false;
         }
         long latestHeartbeatTime = System.currentTimeMillis();
-        log.info("Heartbeat received from client：[hostname={}, latestHeartbeatTime={}]", hostname, DateUtils.getTime(new Date(latestHeartbeatTime)));
         dataNode.setLatestHeartbeatTime(latestHeartbeatTime);
         return true;
     }

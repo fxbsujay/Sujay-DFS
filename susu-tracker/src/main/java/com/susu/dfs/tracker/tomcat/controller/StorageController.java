@@ -1,19 +1,14 @@
 package com.susu.dfs.tracker.tomcat.controller;
 
-import com.sun.activation.registries.MailcapFile;
 import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.Result;
 import com.susu.dfs.tracker.client.ClientInfo;
 import com.susu.dfs.tracker.client.ClientManager;
 import com.susu.dfs.tracker.tomcat.annotation.Autowired;
-import com.susu.dfs.tracker.tomcat.annotation.RequestBody;
+import com.susu.dfs.tracker.tomcat.annotation.PathVariable;
 import com.susu.dfs.tracker.tomcat.annotation.RequestMapping;
 import com.susu.dfs.tracker.tomcat.annotation.RestController;
 import com.susu.dfs.tracker.tomcat.dto.StorageDTO;
-import com.susu.dfs.tracker.tomcat.dto.UploadDTO;
-import org.apache.tomcat.util.http.fileupload.servlet.ServletFileUpload;
-
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,12 +48,10 @@ public class StorageController {
         return Result.ok(result);
     }
 
-    @RequestMapping(value = "/upload" , method = "POST")
-    public Result<Boolean> upload(@RequestBody UploadDTO dto) {
-
+    @RequestMapping(value = "/remove/{filename}",method = "DELETE")
+    public Result<Boolean> removeFile(@PathVariable("username") String filename) {
 
         return Result.ok(true);
     }
-
 
 }
