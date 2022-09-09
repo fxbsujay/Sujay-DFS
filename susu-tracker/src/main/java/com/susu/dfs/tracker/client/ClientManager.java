@@ -159,9 +159,7 @@ public class ClientManager {
             return false;
         }
         long latestHeartbeatTime = System.currentTimeMillis();
-        if (log.isDebugEnabled()) {
-            log.debug("Heartbeat received from client：[hostname={}, latestHeartbeatTime={}]", hostname, DateUtils.getTime(new Date(latestHeartbeatTime)));
-        }
+        log.info("Heartbeat received from client：[hostname={}, latestHeartbeatTime={}]", hostname, DateUtils.getTime(new Date(latestHeartbeatTime)));
         dataNode.setLatestHeartbeatTime(latestHeartbeatTime);
         return true;
     }
@@ -174,21 +172,25 @@ public class ClientManager {
         public void run() {
             Iterator<ClientInfo> iterator = clients.values().iterator();
             List<ClientInfo> toRemoveStorage = new ArrayList<>();
+
             while (iterator.hasNext()) {
                 ClientInfo next = iterator.next();
                 long currentTimeMillis = System.currentTimeMillis();
                 if (currentTimeMillis < next.getLatestHeartbeatTime() + HEARTBEAT_OUT_TIME) {
                     continue;
                 }
+
                 log.info("Client out time，remove client：[hostname={}, current={}, latestHeartbeatTime={}]",
                         next, DateUtils.getTime(new Date(currentTimeMillis)),DateUtils.getTime(new Date(next.getLatestHeartbeatTime())));
+
                 iterator.remove();
                 toRemoveStorage.add(next);
             }
+
             for (ClientInfo client : toRemoveStorage) {
                 createLostReplicaTask(client);
-
             }
+
         }
     }
 

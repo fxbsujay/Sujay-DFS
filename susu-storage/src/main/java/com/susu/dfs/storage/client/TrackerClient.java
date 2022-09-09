@@ -55,13 +55,16 @@ public class TrackerClient {
 
     private FileReceiveHandler fileReceiveHandler;
 
-    public TrackerClient(SysConfig config, TaskScheduler taskScheduler, StorageManager storageManager, StorageTransportCallback callback) {
+    public TrackerClient(SysConfig config, TaskScheduler taskScheduler, StorageManager storageManager) {
         this.node = config.getNode();
         this.HEARTBEAT_INTERVAL = config.HEARTBEAT_INTERVAL;
         this.netClient = new NetClient(node.getName(), taskScheduler);
         this.taskScheduler = taskScheduler;
         this.storageManager = storageManager;
         this.commandTask = new CommandTask(taskScheduler,this,storageManager);
+
+    }
+    public void setFileReceiveHandler(StorageTransportCallback callback) {
         this.fileReceiveHandler = new FileReceiveHandler(callback);
     }
 

@@ -73,9 +73,9 @@ public class FileUploadServlet extends HttpServlet {
                 for (FileItem item : fileItems) {
 
                     if (!item.isFormField()) {
+                        String filename = config.DEFAULT_BASE_FILE_PATH + "/" + item.getName();
                         File file = new File(item.getName());
                         item.write(file);
-                        String filename = config.DEFAULT_BASE_FILE_PATH + file.getName();
                         List<ClientInfo> clients = clientManager.selectAllClientsByFileAndChannel(1,filename);
                         for (ClientInfo client : clients) {
                             ChannelHandlerContext clientChannel = clientManager.getClientChannel(client.getHostname());

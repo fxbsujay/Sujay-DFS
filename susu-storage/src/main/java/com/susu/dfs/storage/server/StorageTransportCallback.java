@@ -23,6 +23,7 @@ public class StorageTransportCallback implements FileTransportCallback {
     public StorageTransportCallback(StorageManager storageManager, TrackerClient trackerClient) {
         this.storageManager = storageManager;
         this.trackerClient = trackerClient;
+        trackerClient.setFileReceiveHandler(this);
     }
 
     @Override
