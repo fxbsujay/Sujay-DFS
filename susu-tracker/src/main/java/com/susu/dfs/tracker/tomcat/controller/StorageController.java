@@ -11,6 +11,8 @@ import com.susu.dfs.tracker.tomcat.annotation.PathVariable;
 import com.susu.dfs.tracker.tomcat.annotation.RequestMapping;
 import com.susu.dfs.tracker.tomcat.annotation.RestController;
 import com.susu.dfs.tracker.tomcat.dto.StorageDTO;
+import com.susu.dfs.tracker.tomcat.dto.UploadDTO;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,9 +58,9 @@ public class StorageController {
         return Result.ok(result);
     }
 
-    @RequestMapping(value = "/remove/{filename}",method = "DELETE")
-    public Result<Boolean> removeFile(@PathVariable("username") String filename) {
-        trackerChannelHandle.removeFile(filename);
+    @RequestMapping(value = "/remove",method = "DELETE")
+    public Result<Boolean> removeFile(UploadDTO dto) {
+        trackerChannelHandle.removeFile(dto.getPath());
         return Result.ok(true);
     }
 

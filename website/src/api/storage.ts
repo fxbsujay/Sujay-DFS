@@ -15,3 +15,7 @@ export const queryListApi = () => {
 export const uploadApi = (uploadInfo: RequestParams) => {
     return https(false).request<LoginModel>('upload', Method.POST, uploadInfo, ContentType.multipart)
 }
+
+export const removeApi = (file: RequestParams) => {
+    return https(false).request<boolean>('storage/remove', Method.DELETE, file, ContentType.form)
+}

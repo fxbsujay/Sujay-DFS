@@ -7,11 +7,18 @@
     >
       <template #title="item">
         <span>{{ item.path }}</span>
-        <a-button v-if="item.type === 1" danger class="tree-node-but" size="small" type="primary">
-          <template #icon>
-            <DeleteOutlined />
-          </template>
-        </a-button>
+        <a-popconfirm
+            title="Are you sure delete this task?"
+            ok-text="Yes"
+            cancel-text="No"
+            @confirm="() => removeHandel(item)"
+        >
+          <a-button v-if="item.type === 1" danger class="tree-node-but" size="small" type="primary">
+            <template #icon>
+              <DeleteOutlined />
+            </template>
+          </a-button>
+        </a-popconfirm>
         <a-button v-if="item.type === 1" class="tree-node-but" size="small" type="primary" @click="() => viewHandle(item)">
           <template #icon>
             <EyeOutlined />
@@ -22,7 +29,7 @@
 
     <a-modal
         style="padding: 25px;width: 450px;height: 450px"
-        v-model:visible="data.viewVisible"
+        v-model:visible="data.viewImageVisible"
         footer=""
     >
       <div style="margin: 20px">
@@ -45,6 +52,7 @@ import { TreeProps } from 'ant-design-vue'
 import type { UploadProps } from 'ant-design-vue'
 import { DeleteOutlined, EyeOutlined, CloudUploadOutlined, SearchOutlined } from '@ant-design/icons-vue'
 import { reactive, ref } from 'vue'
+import { removeApi } from '@/api/storage'
 export default {
   name: "FileTree",
   components: {
@@ -79,12 +87,14 @@ export default {
     const fileList = ref<UploadProps['fileList']>([]);
 
     const data = reactive({
-      viewVisible: false,
+      viewImageVisible: false,
       path: '',
       formData: {
         filepath: ''
       }
     })
+
+  
 
     /**
      *  查看图片请求路径
@@ -110,15 +120,28 @@ export default {
      * 查看图片
      */
     const viewHandle = (file: FileTreeModel) => {
+
       data.path = getFilePath(props.treeList[0].children[0],file.index,props.requestHeader)
-      data.viewVisible = true
+      data.viewImageVisible = true
+    }
+
+    /**
+     * 删除文件
+     * @param file
+     */
+    const removeHandel = (file: FileTreeModel) => {
+      const path = getFilePath(props.treeList[0].children[0],file.index,'')
+      removeApi({ path: path }).then( res => {
+        console.log(res)
+      })
     }
 
     return {
       data,
       fieldNames,
       fileList,
-      viewHandle
+      viewHandle,
+      removeHandel
     }
 
   }
