@@ -12,7 +12,6 @@
         <module>susu-storage</module>
         <module>susu-tracker</module>
         <module>susu-common</module>
-        <module>susu-client</module>
     </modules>
 
     <properties>

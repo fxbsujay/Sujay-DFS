@@ -1,7 +1,8 @@
-package com.susu.dfs.client;
+package com.susu.test;
 
 import com.susu.dfs.common.client.ClientApplication;
 import com.susu.dfs.common.client.service.ClientFileService;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;

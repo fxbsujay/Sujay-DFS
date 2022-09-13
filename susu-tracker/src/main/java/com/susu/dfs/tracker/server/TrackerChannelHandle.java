@@ -31,6 +31,7 @@ import io.netty.channel.socket.SocketChannel;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -83,8 +84,9 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
         this.trackerFileService = trackerFileService;
         this.trackerClusterService = trackerClusterService;
         this.trackerClusterService.setTrackerChannelHandle(this);
+
         this.serverManager.addOnSlotCompletedListener(slots -> {
-            log.info("slot 初始化已经完成了");
+            log.info("Slot initialization is complete");
         });
     }
 
@@ -487,6 +489,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
         log.info("Receive the Storage information reported by the client：[hostname={}, filename={}]", removeCompletionRequest.getHostname(), removeCompletionRequest.getFilename());
         ClientInfo client = clientManager.getClientByHost(removeCompletionRequest.getHostname());
         client.addStoredDataSize(-removeCompletionRequest.getFileSize());
+
         if (!broadcast) {
             request.sendResponse();
         }
@@ -541,7 +544,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
             packet.setBroadcast(true);
             List<Integer> broadcast = trackerClusterService.broadcast(packet);
             if (!broadcast.isEmpty()) {
-                log.debug("广播请求给所有的Tracker: [sequence={}, broadcast={}, packetType={}]",
+                log.debug("Broadcast request to all Tracker: [sequence={}, broadcast={}, packetType={}]",
                         packet.getSequence(), broadcast, PacketType.getEnum(packet.getType()).getDescription());
             }
         }
@@ -555,23 +558,30 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      * @return 请求结果
      */
     private List<NetPacket> broadcastSync(NetRequest request) {
+
         if (!node.getIsCluster()) {
             return new ArrayList<>();
         }
+
         NetPacket packet = request.getRequest();
         boolean isBroadcastRequest = packet.getBroadcast();
+
         if (!isBroadcastRequest) {
+
             packet.setBroadcast(true);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
             List<NetPacket> nettyPackets = new ArrayList<>(trackerClusterService.broadcastSync(packet));
             stopWatch.stop();
+
             if (!nettyPackets.isEmpty()) {
-                log.debug("同步发送请求给所有的Tracker，并获取到了响应: [sequence={}, broadcast={}, packetType={}, cost={} s]",
+
+                log.debug("Broadcast request to all Tracker and obtained the response: [sequence={}, broadcast={}, packetType={}, cost={} s]",
                         packet.getSequence(), trackerClusterService.getAllTrackerIndex(),
                         PacketType.getEnum(packet.getType()).getDescription(),
                         stopWatch.getTime() / 1000.0D);
             }
+
             return nettyPackets;
         }
         return new ArrayList<>();

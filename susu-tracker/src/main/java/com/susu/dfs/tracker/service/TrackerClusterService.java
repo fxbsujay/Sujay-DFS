@@ -103,7 +103,7 @@ public class TrackerClusterService {
         if (Objects.equals(node.getIndex(), tracker.getIndex())) {
             return;
         }
-        log.info("建立连接：[index={},hostname={},port={}]",tracker.getIndex(),tracker.getHostname(),tracker.getPort());
+        log.info("Establish connection：[index={},hostname={},port={}]",tracker.getIndex(),tracker.getHostname(),tracker.getPort());
         synchronized (this) {
             TrackerCluster trackerCluster = clusterServerMap.get(tracker.getIndex());
             if (force || trackerCluster == null) {
@@ -140,7 +140,7 @@ public class TrackerClusterService {
             TrackerCluster oldCluster = clusterServerMap.get(index);
             TrackerCluster newCluster = new TrackerClusterServer(tracker,channel,node.getIndex(),index,taskScheduler);
             if (oldCluster == null) {
-                log.info("收到新的Tracker的通知网络包, 保存连接以便下一次使用: [trackerIndex={}]", index);
+                log.info("Received a new Tracker connection: [trackerIndex={}]", index);
                 clusterServerMap.put(index, newCluster);
                 return newCluster;
             }
@@ -148,7 +148,7 @@ public class TrackerClusterService {
             if (oldCluster instanceof TrackerClusterServer && newCluster.getTargetIndex() == oldCluster.getTargetIndex()) {
                 TrackerClusterServer trackerClusterServer = (TrackerClusterServer) oldCluster;
                 trackerClusterServer.setSocketChannel(channel);
-                log.info("Tracker Cluster reconnect, update channel: [index={}]", oldCluster.getTargetIndex());
+                log.info("Tracker Cluster reconnect, update channel: [trackerIndex={}]", oldCluster.getTargetIndex());
                 return oldCluster;
             }
             clusterServerMap.put(index, newCluster);
@@ -220,14 +220,14 @@ public class TrackerClusterService {
             CountDownLatch latch = new CountDownLatch(clusterServerMap.size());
 
             for (TrackerCluster trackerCluster : clusterServerMap.values()) {
-                taskScheduler.scheduleOnce("同步请求TrackerCluster", () -> {
+                taskScheduler.scheduleOnce("Broadcast TrackerCluster", () -> {
                     NetPacket response;
                     NetPacket requestCopy = NetPacket.copy(packet);
                     try {
                         response = trackerCluster.sendSync(requestCopy);
                         result.add(response);
                     } catch (Exception e) {
-                        log.error("同步请求TrackerCluster失败，sequence=" + requestCopy.getSequence(), e);
+                        log.error("Broadcast failed, [sequence={}, e={}]", requestCopy.getSequence(), e);
                     } finally {
                         latch.countDown();
                     }
