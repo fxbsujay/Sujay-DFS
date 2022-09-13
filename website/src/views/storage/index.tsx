@@ -23,6 +23,9 @@ export default defineComponent({
             requestHeader: '',
             uploadVisible: false,
             path: '',
+            queryData: {
+                path: ''
+            },
             formData: {
                 filepath: ''
             },
@@ -35,7 +38,7 @@ export default defineComponent({
 
         const init = () => {
             data.treeLoading = true
-            queryTreeApi().then( res => {
+            queryTreeApi(data.queryData).then( res => {
                 data.fileTree = res
                 data.treeLoading = false
             }).catch( res => {
@@ -53,10 +56,8 @@ export default defineComponent({
          * 上传文件
          */
         const uploadHandle = () => {
-            const formData = new FormData();
-            formData.append("file",fileList.value[0] as any)
-            formData.append("filepath","/aaaaaaaaaaaa")
-            uploadApi({ "filepath": "/aaaaaaaa", "file": fileList.value[0]}).then( res => {
+            const file = new File(fileList.value,data.formData.filepath + "/" + fileList.value[0].name)
+            uploadApi({ "file": file }).then( res => {
                 data.uploadVisible = false
             })
         }
@@ -64,20 +65,22 @@ export default defineComponent({
         const openUpload = ():boolean =>  data.uploadVisible = true
 
         /**
-         *  手动上传
+         * 手动上传
          */
         const beforeUpload: UploadProps['beforeUpload'] = file => {
             fileList.value = [...fileList.value, file];
             return false;
-        };
+        }
 
         init()
         return () => (
             <>
                 <a-input-search
+                    v-model:value={ data.queryData.path }
                     style={{ width: '300px', margin: '10px'}}
                     placeholder={ "input search text" }
                     enter-button
+                    onSearch={ init }
                 />
                 <a-button
                     style={{ width: '50px', margin: '10px'}}
@@ -106,9 +109,8 @@ export default defineComponent({
                             <a-form-item
                                 label={ "file path" }
                                 name="file path"
-                                rules={[{required: true, message: 'Please input your username!'}]}
                             >
-                                <a-input value={ data.formData.filepath } placeholder={ "for example:  /aaa/bbb" }/>
+                                <a-input v-model:value={ data.formData.filepath } placeholder={ "for example:  /aaa/bbb" }/>
                             </a-form-item>
                         </a-form>
 

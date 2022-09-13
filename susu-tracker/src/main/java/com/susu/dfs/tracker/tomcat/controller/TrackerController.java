@@ -5,6 +5,7 @@ import com.susu.dfs.common.Result;
 import com.susu.dfs.common.TrackerInfo;
 import com.susu.dfs.common.config.SysConfig;
 import com.susu.dfs.common.file.FileNode;
+import com.susu.dfs.common.utils.StringUtils;
 import com.susu.dfs.tracker.client.ClientInfo;
 import com.susu.dfs.tracker.client.ClientManager;
 import com.susu.dfs.tracker.server.ServerManager;
@@ -15,6 +16,7 @@ import com.susu.dfs.tracker.tomcat.annotation.RestController;
 import com.susu.dfs.tracker.tomcat.dto.FileTreeDTO;
 import com.susu.dfs.tracker.tomcat.dto.StorageDTO;
 import com.susu.dfs.tracker.tomcat.dto.TrackerDTO;
+import com.susu.dfs.tracker.tomcat.dto.UploadDTO;
 import org.checkerframework.checker.units.qual.A;
 
 import java.util.ArrayList;
@@ -72,9 +74,14 @@ public class TrackerController {
     }
 
     @RequestMapping("/tree")
-    public Result<FileTreeDTO> queryFileTree() {
-        FileNode fileNode = trackerFileService.listFiles("/");
-        FileTreeDTO tree = FileTreeDTO.tree(fileNode, "/",0);
+    public Result<FileTreeDTO> queryFileTree(UploadDTO dto) {
+        String filepath = StringUtils.isNotBlank(dto.getPath()) ? dto.getPath() : "/";
+        FileNode fileNode = trackerFileService.listFiles(filepath);
+        FileTreeDTO tree = FileTreeDTO.tree(fileNode, filepath,0);
+        if (tree == null) {
+            tree = new FileTreeDTO();
+            tree.setPath("/");
+        }
         return Result.ok(tree);
     }
 

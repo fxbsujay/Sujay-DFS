@@ -73,7 +73,7 @@ public class TrackerApplication {
          this.serverManager = new ServerManager(node,config.getTrackers(),clientManager,clusterService, fileService);
          this.trackerChannelHandle = new TrackerChannelHandle(config,taskScheduler, clientManager, serverManager, fileService, clusterService);
          this.trackerServer = new TrackerServer(node,taskScheduler,trackerChannelHandle);
-         this.tomcatServer = new TomcatServer(config,serverManager,clientManager,clusterService,fileService);
+         this.tomcatServer = new TomcatServer(config,trackerChannelHandle,serverManager,clientManager,clusterService,fileService);
     }
 
     /**

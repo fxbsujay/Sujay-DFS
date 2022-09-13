@@ -1,6 +1,7 @@
 <template>
   <div class="file-tree">
     <a-directory-tree
+        multiple
         :tree-data="treeList"
         :field-names="fieldNames"
     >
@@ -72,7 +73,7 @@ export default {
     const fieldNames: TreeProps['fieldNames'] = {
       children: 'children',
       title: 'path',
-      key: 'path'
+      key: 'index'
     }
 
     const fileList = ref<UploadProps['fileList']>([]);

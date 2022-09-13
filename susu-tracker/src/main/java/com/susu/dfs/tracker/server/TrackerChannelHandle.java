@@ -449,24 +449,28 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
         String filename =  DEFAULT_BASE_FILE_PATH + removeFileRequest.getFilename();
         int trackerIndex = serverManager.getTrackerIndexByFilename(filename);
         if (serverManager.isCurrentTracker(trackerIndex)) {
-            FileNode fileNode = trackerFileService.listFiles(filename);
-            if (fileNode == null) {
-                throw new RuntimeException("file does not exist !!：" + filename);
-            }
-            Map<String, String> attr = new HashMap<>(Constants.MAP_SIZE);
-            attr.put(Constants.ATTR_FILE_DEL_TIME, String.valueOf(System.currentTimeMillis()));
-            if (fileNode.getChildren().isEmpty()) {
-                trackerFileService.deleteFile(filename);
-                String destFilename = DEFAULT_BASE_FILE_PATH + File.separator + Constants.TRASH_DIR + filename;
-                Map<String, String> currentAttr = fileNode.getAttr();
-                currentAttr.putAll(attr);
-                trackerFileService.createFile(destFilename,currentAttr);
-                log.debug("Delete files and move to trash：[src={}, target={}]", filename, destFilename);
-            } else {
-                throw new RuntimeException("file does not exist !!：" + filename);
-            }
+            removeFile(filename);
         } else {
             trackerClusterService.relay(trackerIndex,request);
+        }
+    }
+
+    public void removeFile(String filename) {
+        FileNode fileNode = trackerFileService.listFiles(filename);
+        if (fileNode == null) {
+            throw new RuntimeException("file does not exist !!：" + filename);
+        }
+        Map<String, String> attr = new HashMap<>(Constants.MAP_SIZE);
+        attr.put(Constants.ATTR_FILE_DEL_TIME, String.valueOf(System.currentTimeMillis()));
+        if (fileNode.getChildren().isEmpty()) {
+            trackerFileService.deleteFile(filename);
+            String destFilename = DEFAULT_BASE_FILE_PATH + File.separator + Constants.TRASH_DIR + filename;
+            Map<String, String> currentAttr = fileNode.getAttr();
+            currentAttr.putAll(attr);
+            trackerFileService.createFile(destFilename,currentAttr);
+            log.debug("Delete files and move to trash：[src={}, target={}]", filename, destFilename);
+        } else {
+            throw new RuntimeException("file does not exist !!：" + filename);
         }
     }
 

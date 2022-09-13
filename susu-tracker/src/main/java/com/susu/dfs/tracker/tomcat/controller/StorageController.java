@@ -4,6 +4,8 @@ import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.Result;
 import com.susu.dfs.tracker.client.ClientInfo;
 import com.susu.dfs.tracker.client.ClientManager;
+import com.susu.dfs.tracker.server.ServerManager;
+import com.susu.dfs.tracker.server.TrackerChannelHandle;
 import com.susu.dfs.tracker.tomcat.annotation.Autowired;
 import com.susu.dfs.tracker.tomcat.annotation.PathVariable;
 import com.susu.dfs.tracker.tomcat.annotation.RequestMapping;
@@ -24,6 +26,12 @@ public class StorageController {
 
     @Autowired
     private ClientManager clientManager;
+
+    @Autowired
+    private ServerManager serverManager;
+
+    @Autowired
+    private TrackerChannelHandle trackerChannelHandle;
 
     @RequestMapping("/list")
     public Result<List<StorageDTO>> queryList() {
@@ -50,7 +58,7 @@ public class StorageController {
 
     @RequestMapping(value = "/remove/{filename}",method = "DELETE")
     public Result<Boolean> removeFile(@PathVariable("username") String filename) {
-
+        trackerChannelHandle.removeFile(filename);
         return Result.ok(true);
     }
 

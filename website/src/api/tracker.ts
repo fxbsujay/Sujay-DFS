@@ -1,6 +1,6 @@
 import https from './http/https'
-import { Method, ContentType } from './http'
-import {FileTreeModel, StorageModel, TrackerModel} from '@/model/Models'
+import {Method, ContentType, RequestParams} from './http'
+import {FileTreeModel, TrackerModel} from '@/model/Models'
 
 /**
  * <p>查询tracker节点信息</p>
@@ -8,8 +8,8 @@ import {FileTreeModel, StorageModel, TrackerModel} from '@/model/Models'
  * @author fxbsujay@gmail.com
  * @version 11:19 2022/8/30
  */
-export const queryTreeApi = () => {
-    return https(false).request<FileTreeModel>('tracker/tree', Method.GET, {}, ContentType.form)
+export const queryTreeApi = (queryData: RequestParams) => {
+    return https(false).request<FileTreeModel>('tracker/tree', Method.GET, queryData, ContentType.form)
 }
 
 /**

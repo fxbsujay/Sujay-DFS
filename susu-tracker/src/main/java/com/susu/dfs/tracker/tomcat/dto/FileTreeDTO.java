@@ -51,7 +51,6 @@ public class FileTreeDTO {
         }
 
         index++;
-
         FileTreeDTO dto = new FileTreeDTO();
         dto.setAttr(node.getAttr());
         dto.setType(node.getType());
@@ -63,6 +62,7 @@ public class FileTreeDTO {
         List<FileTreeDTO> children = new LinkedList<>();
 
         for (String key : node.getChildren().keySet()) {
+            index++;
             FileNode child = node.getChildren().get(key);
             FileTreeDTO childDto = tree(child,path,index);
             if (childDto == null) {

@@ -60,7 +60,6 @@ public class FileUploadServlet extends HttpServlet {
         DiskFileItemFactory factory = new DiskFileItemFactory();
         ServletFileUpload upload = new ServletFileUpload(factory);
         List<FileItem> fileItems;
-        String queryString = request.getQueryString();
 
         try {
             fileItems = upload.parseRequest(new ServletRequestContext(request));
@@ -70,9 +69,18 @@ public class FileUploadServlet extends HttpServlet {
                 for (FileItem item : fileItems) {
 
                     if (!item.isFormField()) {
-                        String filename = config.DEFAULT_BASE_FILE_PATH + "/" + item.getName();
-                        File file = new File(item.getName());
+                        String[] namepath = item.getName().split("/");
+                        String name = item.getName();
+
+                        String path = name.substring(0,1);
+                        if (!"/".equals(path)) {
+                            name = File.separator + name;
+                        }
+
+                        String filename = config.DEFAULT_BASE_FILE_PATH + name;
+                        File file = new File(namepath[namepath.length - 1]);
                         item.write(file);
+
                         List<ClientInfo> clients = clientManager.selectAllClientsByFileAndChannel(1,filename);
                         for (ClientInfo client : clients) {
                             ChannelHandlerContext clientChannel = clientManager.getClientChannel(client.getHostname());
