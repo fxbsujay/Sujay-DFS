@@ -1,6 +1,6 @@
 package com.susu.dfs.common;
 
-import com.susu.common.model.TrackerNode;
+import com.susu.dfs.common.model.TrackerNode;
 import lombok.Data;
 
 /**

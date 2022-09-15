@@ -1,6 +1,6 @@
 package com.susu.dfs.common.file;
 
-import com.susu.common.model.Metadata;
+import com.susu.dfs.common.model.Metadata;
 import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.file.image.ImageLogWrapper;
 import com.susu.dfs.common.utils.StopWatch;

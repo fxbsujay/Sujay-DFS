@@ -1,6 +1,6 @@
 package com.susu.dfs.tracker.slot;
 
-import com.susu.common.model.*;
+import com.susu.dfs.common.model.*;
 import com.susu.dfs.common.FileInfo;
 import com.susu.dfs.common.eum.FileNodeType;
 import com.susu.dfs.common.eum.PacketType;

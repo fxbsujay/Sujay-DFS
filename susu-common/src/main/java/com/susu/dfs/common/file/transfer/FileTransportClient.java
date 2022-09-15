@@ -1,12 +1,10 @@
 package com.susu.dfs.common.file.transfer;
 
-import com.susu.common.model.GetFileRequest;
+import com.susu.dfs.common.model.GetFileRequest;
 import com.susu.dfs.common.eum.PacketType;
 import com.susu.dfs.common.netty.NetClient;
 import com.susu.dfs.common.netty.msg.NetPacket;
-import com.susu.dfs.common.task.TaskScheduler;
 import lombok.extern.slf4j.Slf4j;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Map;

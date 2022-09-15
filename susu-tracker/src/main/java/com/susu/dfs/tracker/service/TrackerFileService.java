@@ -1,6 +1,6 @@
 package com.susu.dfs.tracker.service;
 
-import com.susu.common.model.ReadyLog;
+import com.susu.dfs.common.model.ReadyLog;
 import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.config.SysConfig;
 import com.susu.dfs.common.eum.ReadyLogType;

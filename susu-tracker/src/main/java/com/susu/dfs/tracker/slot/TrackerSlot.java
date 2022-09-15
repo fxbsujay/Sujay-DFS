@@ -1,6 +1,6 @@
 package com.susu.dfs.tracker.slot;
 
-import com.susu.common.model.TrackerSlots;
+import com.susu.dfs.common.model.TrackerSlots;
 import com.susu.dfs.common.netty.msg.NetPacket;
 import com.susu.dfs.common.netty.msg.NetRequest;
 

@@ -1,6 +1,6 @@
 package com.susu.dfs.tracker.server;
 
-import com.susu.common.model.*;
+import com.susu.dfs.common.model.*;
 import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.FileInfo;
 import com.susu.dfs.common.Node;
@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**

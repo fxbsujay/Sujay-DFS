@@ -1,7 +1,7 @@
 package com.susu.dfs.tracker.server;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.susu.common.model.*;
+import com.susu.dfs.common.model.*;
 import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.FileInfo;
 import com.susu.dfs.common.Node;
@@ -20,18 +20,13 @@ import com.susu.dfs.common.netty.AbstractChannelHandler;
 import com.susu.dfs.common.netty.msg.NetPacket;
 import com.susu.dfs.common.eum.PacketType;
 import com.susu.dfs.tracker.cluster.TrackerCluster;
-import com.susu.dfs.tracker.cluster.TrackerClusterClient;
-import com.susu.dfs.tracker.cluster.TrackerClusterServer;
 import com.susu.dfs.tracker.rebalance.RemoveReplicaTask;
 import com.susu.dfs.tracker.rebalance.ReplicaTask;
 import com.susu.dfs.tracker.service.TrackerClusterService;
 import com.susu.dfs.tracker.service.TrackerFileService;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.socket.SocketChannel;
 import lombok.extern.slf4j.Slf4j;
-
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;

@@ -1,9 +1,8 @@
 package com.susu.dfs.tracker.slot;
 
 
-import com.susu.common.model.*;
+import com.susu.dfs.common.model.*;
 import com.susu.dfs.common.Constants;
-import com.susu.dfs.common.TrackerInfo;
 import com.susu.dfs.common.eum.PacketType;
 import com.susu.dfs.common.netty.msg.NetPacket;
 import com.susu.dfs.tracker.client.ClientInfo;
@@ -11,9 +10,7 @@ import com.susu.dfs.tracker.client.ClientManager;
 import com.susu.dfs.tracker.service.TrackerClusterService;
 import com.susu.dfs.tracker.service.TrackerFileService;
 import lombok.extern.slf4j.Slf4j;
-
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author sujay

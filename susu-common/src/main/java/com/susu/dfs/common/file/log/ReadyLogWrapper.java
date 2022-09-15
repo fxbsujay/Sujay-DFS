@@ -1,6 +1,6 @@
 package com.susu.dfs.common.file.log;
 
-import com.susu.common.model.ReadyLog;
+import com.susu.dfs.common.model.ReadyLog;
 import com.susu.dfs.common.eum.ReadyLogType;
 import com.susu.dfs.common.utils.HexConvertUtils;
 import lombok.extern.slf4j.Slf4j;

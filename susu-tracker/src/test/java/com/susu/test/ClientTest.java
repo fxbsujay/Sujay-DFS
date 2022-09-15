@@ -1,3 +1,4 @@
+/*
 package com.susu.test;
 
 import com.susu.dfs.common.client.ClientApplication;
@@ -28,3 +29,4 @@ public class ClientTest {
         }
     }
 }
+*/

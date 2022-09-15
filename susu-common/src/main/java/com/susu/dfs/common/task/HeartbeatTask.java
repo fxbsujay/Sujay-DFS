@@ -1,6 +1,6 @@
 package com.susu.dfs.common.task;
 
-import com.susu.common.model.HeartbeatRequest;
+import com.susu.dfs.common.model.HeartbeatRequest;
 import com.susu.dfs.common.Node;
 import com.susu.dfs.common.eum.PacketType;
 import com.susu.dfs.common.netty.msg.NetPacket;

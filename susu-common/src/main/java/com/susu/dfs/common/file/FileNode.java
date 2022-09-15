@@ -1,6 +1,6 @@
 package com.susu.dfs.common.file;
 
-import com.susu.common.model.ImageLog;
+import com.susu.dfs.common.model.ImageLog;
 import com.susu.dfs.common.eum.FileNodeType;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;

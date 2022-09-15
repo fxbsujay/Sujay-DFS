@@ -91,7 +91,6 @@ public class Constants {
      */
     public static final int TRASH_CLEAR_THRESHOLD = 86400000;
 
-
     /**
      *  垃圾清理任务的时间间隔
      */

@@ -1,6 +1,6 @@
 package com.susu.dfs.tracker.client;
 
-import com.susu.common.model.RegisterRequest;
+import com.susu.dfs.common.model.RegisterRequest;
 import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.FileInfo;
 import com.susu.dfs.common.config.SysConfig;

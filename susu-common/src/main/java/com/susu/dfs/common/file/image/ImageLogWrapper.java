@@ -1,7 +1,7 @@
 package com.susu.dfs.common.file.image;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.susu.common.model.ImageLog;
+import com.susu.dfs.common.model.ImageLog;
 import com.susu.dfs.common.utils.FileUtils;
 import com.susu.dfs.common.utils.HexConvertUtils;
 import com.susu.dfs.common.utils.StopWatch;

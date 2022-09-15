@@ -1,6 +1,6 @@
 package com.susu.dfs.common.client.service.impl;
 
-import com.susu.common.model.*;
+import com.susu.dfs.common.model.*;
 import com.susu.dfs.common.client.OnMultiFileProgressListener;
 import com.susu.dfs.common.client.TrackerClient;
 import com.susu.dfs.common.Constants;

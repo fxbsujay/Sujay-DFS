@@ -1,19 +1,15 @@
 package com.susu.dfs.common.netty.msg;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.susu.common.model.NetPacketHeader;
+import com.susu.dfs.common.model.NetPacketHeader;
 import com.susu.dfs.common.Constants;
-import com.susu.dfs.common.eum.MsgType;
 import com.susu.dfs.common.eum.PacketType;
-import com.susu.dfs.common.utils.HexConvertUtils;
 import com.susu.dfs.common.utils.StringUtils;
 import io.netty.buffer.ByteBuf;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import java.util.*;
 
 /**
