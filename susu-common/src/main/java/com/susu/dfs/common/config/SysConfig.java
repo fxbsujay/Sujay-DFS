@@ -6,9 +6,12 @@ import com.susu.dfs.common.TrackerInfo;
 import com.susu.dfs.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.yaml.snakeyaml.Yaml;
-import java.io.BufferedReader;
-import java.io.FileReader;
+
+import java.io.*;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +54,8 @@ public class SysConfig {
      */
     private final List<TrackerInfo> trackers = new ArrayList<>();
 
+    private final static String CONFIG_FILE_NAME = "application.yaml";
+
     /**
      * 当前节点信息
      */
@@ -65,24 +70,44 @@ public class SysConfig {
     }
 
     private static <T>  Map<String, Object> loadFile(Class<T> tClass) {
-        BufferedReader br = null;
+        String path = "";
         try {
-            URL resource = tClass.getClassLoader().getResource("application.yaml");
+            URL resource = tClass.getClassLoader().getResource(CONFIG_FILE_NAME);
 
             if (resource == null) {
-                log.error("The application.yaml file under the resource directory cannot be found !!");
+                log.error("The {} file under the resource directory cannot be found !!", CONFIG_FILE_NAME);
                 System.exit(1);
             }
 
-            String path = resource.getPath().substring(1);
-            log.info("read config file in ：{}",path);
-            br = new BufferedReader(new FileReader(path));
+            path = resource.getPath().substring(1);
+
         } catch (Exception e) {
             log.error("exception for read file");
             System.exit(1);
         }
+        return loadFilePath(path);
+    }
 
-        return new Yaml().load(br);
+    private static String getLoadFilePath() {
+        return System.getProperty("user.dir") + "/" + CONFIG_FILE_NAME;
+    }
+
+    private static Map<String, Object> loadFilePath(String path) {
+        InputStream in = null;
+        try {
+            if (StringUtils.isBlank(path)) {
+                path = getLoadFilePath();
+            }
+            log.info("read config file in ：{}",path);
+            Path filepath = Paths.get(path);
+            in = Files.newInputStream(filepath);
+
+        } catch (IOException e) {
+            log.error("exception for read file");
+            System.exit(1);
+        }
+
+        return new Yaml().load(in);
     }
 
     private static SysConfig loadConfig(Map<String, Object> configParams) {
@@ -141,10 +166,18 @@ public class SysConfig {
         return config;
     }
 
+    public static <T> SysConfig loadTrackerConfig(String path) {
+        Map<String, Object> stringObjectMap = loadFilePath(path);
+        return loadTrackerConfig(stringObjectMap);
+    }
 
     public static <T> SysConfig loadTrackerConfig(Class<T> tClass) {
-
         Map<String, Object> stringObjectMap = loadFile(tClass);
+        return loadTrackerConfig(stringObjectMap);
+    }
+
+    public static <T> SysConfig loadTrackerConfig(Map<String, Object> stringObjectMap) {
+
 
         Map<String, Object> trackerConfig = (Map<String, Object>) stringObjectMap.get("tracker");
 
@@ -180,9 +213,20 @@ public class SysConfig {
 
         return config;
     }
-    public static <T> SysConfig loadStorageConfig(Class<T> tClass) {
 
+
+    public static <T> SysConfig loadStorageConfig(String path) {
+        Map<String, Object> stringObjectMap = loadFilePath(path);
+        return loadStorageConfig(stringObjectMap);
+    }
+
+    public static <T> SysConfig loadStorageConfig(Class<T> tClass) {
         Map<String, Object> stringObjectMap = loadFile(tClass);
+        return loadStorageConfig(stringObjectMap);
+    }
+
+
+    private static <T> SysConfig loadStorageConfig(Map<String, Object> stringObjectMap) {
 
         Map<String, Object> storageConfig = (Map<String, Object>) stringObjectMap.get("storage");
         SysConfig config = loadConfig(storageConfig);
