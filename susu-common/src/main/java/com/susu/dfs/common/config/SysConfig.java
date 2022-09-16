@@ -3,8 +3,10 @@ package com.susu.dfs.common.config;
 import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.Node;
 import com.susu.dfs.common.TrackerInfo;
+import com.susu.dfs.common.eum.ServerEnum;
 import com.susu.dfs.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.C;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.*;
@@ -54,7 +56,10 @@ public class SysConfig {
      */
     private final List<TrackerInfo> trackers = new ArrayList<>();
 
-    private final static String CONFIG_FILE_NAME = "application.yaml";
+    /**
+     * 配置文件名称
+     */
+    private final static String CONFIG_FILE_NAME = "/application.yaml";
 
     /**
      * 当前节点信息
@@ -69,34 +74,33 @@ public class SysConfig {
         return trackers;
     }
 
-    private static <T>  Map<String, Object> loadFile(Class<T> tClass) {
-        String path = "";
+    /**
+     *  加载 resources 路径下的配置文件
+     */
+    private static <T>  Map<String, Object> loadFile() {
+        InputStream in = null;
         try {
-            URL resource = tClass.getClassLoader().getResource(CONFIG_FILE_NAME);
-
-            if (resource == null) {
+            in = SysConfig.class.getResourceAsStream(CONFIG_FILE_NAME);
+            if (in == null) {
                 log.error("The {} file under the resource directory cannot be found !!", CONFIG_FILE_NAME);
                 System.exit(1);
             }
-
-            path = resource.getPath().substring(1);
-
         } catch (Exception e) {
             log.error("exception for read file");
             System.exit(1);
         }
-        return loadFilePath(path);
+
+        return new Yaml().load(in);
     }
 
-    private static String getLoadFilePath() {
-        return System.getProperty("user.dir") + "/" + CONFIG_FILE_NAME;
-    }
-
-    private static Map<String, Object> loadFilePath(String path) {
+    /**
+     *  加载 path 路径下的配置文件
+     */
+    private static Map<String, Object> loadFile(String path) {
         InputStream in = null;
         try {
             if (StringUtils.isBlank(path)) {
-                path = getLoadFilePath();
+                path = System.getProperty("user.dir") + CONFIG_FILE_NAME;
             }
             log.info("read config file in ：{}",path);
             Path filepath = Paths.get(path);
@@ -108,6 +112,40 @@ public class SysConfig {
         }
 
         return new Yaml().load(in);
+    }
+
+    public static SysConfig loadConfig(ServerEnum type) {
+        return loadConfig(null,type);
+    }
+
+    public static SysConfig loadConfig(String[] args, ServerEnum type) {
+
+        Map<String, Object> stringObjectMap;
+
+        if (args == null || args.length == 0) {
+            stringObjectMap = loadFile();
+        } else {
+            stringObjectMap = loadFile(args[0]);
+        }
+
+        SysConfig config = new SysConfig();
+        switch (type) {
+            case TRACKER:
+                config =  loadTrackerConfig(stringObjectMap);
+                break;
+            case STORAGE:
+                config = loadStorageConfig(stringObjectMap);
+                break;
+            case CLIENT:
+                config = loadConfig(stringObjectMap);
+                break;
+            default:
+                break;
+        }
+
+        return  config;
+
+
     }
 
     private static SysConfig loadConfig(Map<String, Object> configParams) {
@@ -166,18 +204,7 @@ public class SysConfig {
         return config;
     }
 
-    public static <T> SysConfig loadTrackerConfig(String path) {
-        Map<String, Object> stringObjectMap = loadFilePath(path);
-        return loadTrackerConfig(stringObjectMap);
-    }
-
-    public static <T> SysConfig loadTrackerConfig(Class<T> tClass) {
-        Map<String, Object> stringObjectMap = loadFile(tClass);
-        return loadTrackerConfig(stringObjectMap);
-    }
-
-    public static <T> SysConfig loadTrackerConfig(Map<String, Object> stringObjectMap) {
-
+    private static SysConfig loadTrackerConfig(Map<String, Object> stringObjectMap) {
 
         Map<String, Object> trackerConfig = (Map<String, Object>) stringObjectMap.get("tracker");
 
@@ -214,19 +241,7 @@ public class SysConfig {
         return config;
     }
 
-
-    public static <T> SysConfig loadStorageConfig(String path) {
-        Map<String, Object> stringObjectMap = loadFilePath(path);
-        return loadStorageConfig(stringObjectMap);
-    }
-
-    public static <T> SysConfig loadStorageConfig(Class<T> tClass) {
-        Map<String, Object> stringObjectMap = loadFile(tClass);
-        return loadStorageConfig(stringObjectMap);
-    }
-
-
-    private static <T> SysConfig loadStorageConfig(Map<String, Object> stringObjectMap) {
+    private static SysConfig loadStorageConfig(Map<String, Object> stringObjectMap) {
 
         Map<String, Object> storageConfig = (Map<String, Object>) stringObjectMap.get("storage");
         SysConfig config = loadConfig(storageConfig);
@@ -263,9 +278,9 @@ public class SysConfig {
         return config;
     }
 
-    public static <T> SysConfig loadClientConfig(Class<T> tClass) {
+    public static SysConfig loadClientConfig() {
 
-        Map<String, Object> stringObjectMap = loadFile(tClass);
+        Map<String, Object> stringObjectMap = loadFile();
 
         Map<String, Object> storageConfig = (Map<String, Object>) stringObjectMap.get("client");
         SysConfig config = new SysConfig();

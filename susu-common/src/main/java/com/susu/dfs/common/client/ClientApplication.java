@@ -34,7 +34,7 @@ public class ClientApplication {
      *  初始化启动
      */
     public static ClientApplication initStart() throws Exception {
-        SysConfig config = SysConfig.loadClientConfig(ClientApplication.class);
+        SysConfig config = SysConfig.loadClientConfig();
         ClientApplication clientApplication = new ClientApplication();
         Node node = config.getNode();
         clientApplication.start(node.getTrackerHost(),node.getTrackerPort());
@@ -43,7 +43,7 @@ public class ClientApplication {
     }
 
     public static ClientFileService initStart(String a) throws Exception {
-        SysConfig config = SysConfig.loadClientConfig(ClientApplication.class);
+        SysConfig config = SysConfig.loadClientConfig();
         ClientApplication clientApplication = new ClientApplication();
         Node node = config.getNode();
         clientApplication.start(node.getTrackerHost(),node.getTrackerPort());

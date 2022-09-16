@@ -1,6 +1,7 @@
 package com.susu.dfs.storage;
 
 import com.susu.dfs.common.config.SysConfig;
+import com.susu.dfs.common.eum.ServerEnum;
 import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.storage.client.TrackerClient;
 import com.susu.dfs.storage.locator.FileLocatorFactory;
@@ -58,7 +59,9 @@ public class StorageApplication {
      * </ul>
      */
     public static void main(String[] args) {
-        SysConfig config = SysConfig.loadStorageConfig(StorageApplication.class);
+
+        SysConfig config = SysConfig.loadConfig(args, ServerEnum.STORAGE);
+
         StorageApplication application = new StorageApplication(config);
         try {
             Runtime.getRuntime().addShutdownHook(new Thread(application::shutdown));

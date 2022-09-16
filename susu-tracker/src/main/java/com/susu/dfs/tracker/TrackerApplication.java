@@ -3,6 +3,7 @@ package com.susu.dfs.tracker;
 import com.susu.dfs.common.Node;
 import com.susu.dfs.common.config.NodeConfig;
 import com.susu.dfs.common.config.SysConfig;
+import com.susu.dfs.common.eum.ServerEnum;
 import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.tracker.client.ClientManager;
 import com.susu.dfs.tracker.server.ServerManager;
@@ -52,7 +53,8 @@ public class TrackerApplication {
      * </ul>
      */
      public static void main(String[] args) {
-         SysConfig config = SysConfig.loadTrackerConfig(TrackerApplication.class);
+
+         SysConfig config = SysConfig.loadConfig(args, ServerEnum.TRACKER);
          TrackerApplication application = new TrackerApplication(config);
          try {
              Runtime.getRuntime().addShutdownHook(new Thread(application::shutdown));

@@ -54,11 +54,9 @@ public class TomcatServer {
         Tomcat.addServlet(context, FileDownloadServlet.class.getSimpleName(), fileDownloadServlet);
         Tomcat.addServlet(context, DispatcherServlet.class.getSimpleName(), dispatcherServlet);
 
-
         context.addServletMappingDecoded("/api/upload", FileUploadServlet.class.getSimpleName());
         context.addServletMappingDecoded("/api/*", DispatcherServlet.class.getSimpleName());
         context.addServletMappingDecoded("/*", FileDownloadServlet.class.getSimpleName());
-
         context.addWatchedResource("");
 
         FilterDef filterDef = new FilterDef();
@@ -71,11 +69,6 @@ public class TomcatServer {
         filterMap.setCharset(StandardCharsets.UTF_8);
         context.addFilterDef(filterDef);
         context.addFilterMap(filterMap);
-
-        URL resource = this.getClass().getResource("/webapp");
-        if (resource != null) {
-            tomcat.addWebapp("/home",resource.getPath());
-        }
 
         try {
             tomcat.init();
