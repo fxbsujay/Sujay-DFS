@@ -12,7 +12,6 @@ import com.susu.dfs.tracker.cluster.TrackerClusterServer;
 import com.susu.dfs.tracker.server.ServerManager;
 import com.susu.dfs.tracker.server.TrackerChannelHandle;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.socket.SocketChannel;
 import lombok.extern.slf4j.Slf4j;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

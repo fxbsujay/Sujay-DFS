@@ -5,7 +5,6 @@ import com.susu.dfs.tracker.tomcat.VariablePathParser;
 import com.susu.dfs.tracker.tomcat.annotation.*;
 import io.netty.handler.codec.http.HttpMethod;
 import lombok.extern.slf4j.Slf4j;
-
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

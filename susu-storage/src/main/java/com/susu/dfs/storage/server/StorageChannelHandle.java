@@ -1,6 +1,6 @@
 package com.susu.dfs.storage.server;
 
-import com.susu.common.model.GetFileRequest;
+import com.susu.dfs.common.model.GetFileRequest;
 import com.susu.dfs.common.eum.PacketType;
 import com.susu.dfs.common.file.transfer.DefaultFileSendTask;
 import com.susu.dfs.common.file.transfer.FilePacket;

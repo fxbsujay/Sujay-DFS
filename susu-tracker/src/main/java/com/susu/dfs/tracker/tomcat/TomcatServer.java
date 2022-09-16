@@ -13,7 +13,6 @@ import org.apache.catalina.Context;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.tomcat.util.descriptor.web.FilterDef;
 import org.apache.tomcat.util.descriptor.web.FilterMap;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 /**

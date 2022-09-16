@@ -1,7 +1,6 @@
 package com.susu.dfs.tracker.task;
 
 import com.susu.dfs.common.task.BaseThread;
-
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 

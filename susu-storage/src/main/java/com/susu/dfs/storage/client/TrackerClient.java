@@ -2,7 +2,7 @@ package com.susu.dfs.storage.client;
 
 import com.google.common.collect.Lists;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.susu.common.model.*;
+import com.susu.dfs.common.model.*;
 import com.susu.dfs.common.FileInfo;
 import com.susu.dfs.common.Node;
 import com.susu.dfs.common.config.SysConfig;

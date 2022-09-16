@@ -1,6 +1,6 @@
 package com.susu.dfs.storage.task;
 
-import com.susu.common.model.NetPacketCommand;
+import com.susu.dfs.common.model.NetPacketCommand;
 import com.susu.dfs.common.eum.CommandType;
 import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.common.utils.FileUtils;

@@ -1,6 +1,5 @@
 package com.susu.dfs.tracker.cluster;
 
-
 import com.susu.dfs.common.TrackerInfo;
 import com.susu.dfs.common.netty.NetClient;
 import com.susu.dfs.common.netty.msg.NetPacket;

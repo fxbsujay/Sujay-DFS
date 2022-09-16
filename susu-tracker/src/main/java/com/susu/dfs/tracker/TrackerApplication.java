@@ -1,7 +1,6 @@
 package com.susu.dfs.tracker;
 
 import com.susu.dfs.common.Node;
-import com.susu.dfs.common.config.NodeConfig;
 import com.susu.dfs.common.config.SysConfig;
 import com.susu.dfs.common.eum.ServerEnum;
 import com.susu.dfs.common.task.TaskScheduler;
@@ -13,8 +12,6 @@ import com.susu.dfs.tracker.service.TrackerClusterService;
 import com.susu.dfs.tracker.service.TrackerFileService;
 import com.susu.dfs.tracker.tomcat.TomcatServer;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.units.qual.C;
-
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
