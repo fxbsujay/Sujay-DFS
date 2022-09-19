@@ -1,5 +1,8 @@
 package com.susu.dfs.common.utils;
 
+import io.netty.channel.Channel;
+import io.netty.channel.socket.SocketChannel;
+
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.UnknownHostException;
@@ -74,4 +77,10 @@ public class NetUtils {
         }
         return HOSTNAME;
     }
+
+    public static String getChannelId(Channel channel) {
+        SocketChannel socketChannel = (SocketChannel) channel;
+        return socketChannel.id().asLongText().replaceAll("-", "");
+    }
+
 }

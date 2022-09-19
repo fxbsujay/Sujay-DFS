@@ -62,8 +62,8 @@ public class TrackerClient {
         this.taskScheduler = taskScheduler;
         this.storageManager = storageManager;
         this.commandTask = new CommandTask(taskScheduler,this,storageManager);
-
     }
+
     public void setFileReceiveHandler(StorageTransportCallback callback) {
         this.fileReceiveHandler = new FileReceiveHandler(callback);
     }

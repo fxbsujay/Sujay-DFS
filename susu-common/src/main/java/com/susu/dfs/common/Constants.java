@@ -127,6 +127,11 @@ public class Constants {
     public static final String SLOTS_FILE_NAME = "slots.info";
 
     /**
+     *  用户信息持久化文件名称
+     */
+    public static final String USER_FILE_NAME = "user.info";
+
+    /**
      * 文件副本最大数量
      */
     public static final int MAX_REPLICA_NUM = 5;

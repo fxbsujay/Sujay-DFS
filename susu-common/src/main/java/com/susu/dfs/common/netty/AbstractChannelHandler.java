@@ -47,7 +47,7 @@ public abstract class AbstractChannelHandler extends ChannelInboundHandlerAdapte
                 try {
                     consumedMsg = handlePackage(ctx, nettyPacket);
                 } catch (Exception e) {
-                    log.info("处理请求发生异常：", e);
+                    log.info("Exception in processing request：", e);
                 }
             }
             if (!consumedMsg) {
