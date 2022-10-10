@@ -2,6 +2,7 @@ package com.susu.dfs.tracker.tomcat;
 
 import com.susu.dfs.common.Node;
 import com.susu.dfs.common.config.SysConfig;
+import com.susu.dfs.common.utils.FileUtils;
 import com.susu.dfs.tracker.client.ClientManager;
 import com.susu.dfs.tracker.server.ServerManager;
 import com.susu.dfs.tracker.server.TrackerChannelHandle;
@@ -13,6 +14,12 @@ import org.apache.catalina.Context;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.tomcat.util.descriptor.web.FilterDef;
 import org.apache.tomcat.util.descriptor.web.FilterMap;
+
+import java.io.File;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -67,8 +74,24 @@ public class TomcatServer {
         filterMap.setFilterName("CorsFilter");
         filterMap.setCharset(StandardCharsets.UTF_8);
         context.addFilterDef(filterDef);
+
         context.addFilterMap(filterMap);
 
+        URL resource = this.getClass().getResource("/webapp");
+        if (resource != null) {
+
+            String webappPath = resource.getPath();
+            if (resource.getPath().contains(".jar!")) {
+
+                webappPath = System.getProperty("user.dir") + File.separator +  "webapp";
+                File file = new File(webappPath);
+                if (file.exists()) {
+                    FileUtils.mkdirParent(webappPath);
+                }
+            }
+
+            tomcat.addWebapp("/home",webappPath);
+        }
         try {
             tomcat.init();
             tomcat.start();
@@ -77,6 +100,10 @@ public class TomcatServer {
             log.error("Tomcat启动失败：", e);
             System.exit(0);
         }
+    }
+
+    public static void main(String[] args) {
+        System.out.println();
     }
 
     public void shutdown() {
