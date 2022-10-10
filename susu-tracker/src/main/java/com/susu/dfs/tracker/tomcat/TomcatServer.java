@@ -14,6 +14,7 @@ import org.apache.catalina.Context;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.tomcat.util.descriptor.web.FilterDef;
 import org.apache.tomcat.util.descriptor.web.FilterMap;
+import org.apache.tomcat.util.scan.StandardJarScanner;
 
 import java.io.File;
 import java.io.InputStream;
@@ -85,12 +86,13 @@ public class TomcatServer {
 
                 webappPath = System.getProperty("user.dir") + File.separator +  "webapp";
                 File file = new File(webappPath);
-                if (file.exists()) {
-                    FileUtils.mkdirParent(webappPath);
+                if (!file.exists()) {
+                    FileUtils.mkdirs(webappPath);
                 }
             }
 
-            tomcat.addWebapp("/home",webappPath);
+            Context webContext = tomcat.addWebapp("/home", webappPath);
+            ((StandardJarScanner) webContext.getJarScanner()).setScanManifest(false);
         }
         try {
             tomcat.init();

@@ -20,7 +20,7 @@ export class SysConstant {
   /**
    * API Path
    */
-  static httpPath = 'http://localhost:9080/api'
+  static httpPath = 'http://47.104.195.118:9080/api'
 
 }
 

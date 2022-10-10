@@ -100,18 +100,15 @@ export default {
      *  查看图片请求路径
      */
     const getFilePath = (file: FileTreeModel,index: number = 0, path: string = ''): string => {
-
       if (file.index === index) {
-
         return path + '/' + file.path
       }
-
       if (file.children.length > 0) {
-
-        const filePath = path + '/' + file.path
+        let filePath = path + '/' + file.path
         file.children.forEach( item => {
-          path = getFilePath(item,index,filePath)
+          filePath = getFilePath(item,index,filePath)
         })
+        path = filePath
       }
       return path
     }
@@ -120,7 +117,6 @@ export default {
      * 查看图片
      */
     const viewHandle = (file: FileTreeModel) => {
-
       data.path = getFilePath(props.treeList[0].children[0],file.index,props.requestHeader)
       data.viewImageVisible = true
     }

@@ -6,6 +6,7 @@ import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
 import * as path from "path";
 
 export default defineConfig({
+  base: '/home/',
   resolve: {
     alias: {
         '@': path.resolve(__dirname,'./src')
