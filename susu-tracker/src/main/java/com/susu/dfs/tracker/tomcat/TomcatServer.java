@@ -15,11 +15,7 @@ import org.apache.catalina.startup.Tomcat;
 import org.apache.tomcat.util.descriptor.web.FilterDef;
 import org.apache.tomcat.util.descriptor.web.FilterMap;
 import org.apache.tomcat.util.scan.StandardJarScanner;
-
 import java.io.File;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
@@ -75,7 +71,6 @@ public class TomcatServer {
         filterMap.setFilterName("CorsFilter");
         filterMap.setCharset(StandardCharsets.UTF_8);
         context.addFilterDef(filterDef);
-
         context.addFilterMap(filterMap);
 
         URL resource = this.getClass().getResource("/webapp");
@@ -102,10 +97,6 @@ public class TomcatServer {
             log.error("Tomcat启动失败：", e);
             System.exit(0);
         }
-    }
-
-    public static void main(String[] args) {
-        System.out.println();
     }
 
     public void shutdown() {

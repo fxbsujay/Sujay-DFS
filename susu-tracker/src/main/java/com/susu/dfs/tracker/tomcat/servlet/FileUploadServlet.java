@@ -5,6 +5,7 @@ import com.susu.dfs.common.Result;
 import com.susu.dfs.common.config.SysConfig;
 import com.susu.dfs.common.file.transfer.DefaultFileSendTask;
 import com.susu.dfs.common.file.transfer.OnProgressListener;
+import com.susu.dfs.common.utils.FileUtils;
 import com.susu.dfs.tracker.client.ClientInfo;
 import com.susu.dfs.tracker.client.ClientManager;
 import com.susu.dfs.tracker.server.ServerManager;
@@ -98,20 +99,17 @@ public class FileUploadServlet extends HttpServlet {
                                     trackerFileService.createFile(filename,new HashMap<>());
                                     UploadDTO completedDTO = new UploadDTO();
                                     completedDTO.setStorageHost(client.getHostname());
+                                    FileUtils.del(file);
                                     returnResult(response,Result.ok(completedDTO));
                                 }
-
                             };
 
                             DefaultFileSendTask sendTask = new DefaultFileSendTask(file,filename,(SocketChannel) clientChannel.channel(),onProgressListener,false);
                             sendTask.execute(true);
                         }
-
                     }
-
                 }
             }
-
         } catch (Exception e) {
             sendError(response,500,e.getMessage());
         }
