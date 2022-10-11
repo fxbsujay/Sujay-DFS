@@ -46,7 +46,7 @@ export default defineComponent({
             })
 
             queryInfoApi().then( res => {
-                data.requestHeader = 'http://47.104.195.118:9084'
+                data.requestHeader = 'http://' + res.host + ':' + res.httpPort
             })
         }
 
