@@ -33,10 +33,9 @@ const moduleRoutes: Array<RouteRecordRaw> = [
             }
         ]
     },
-    {
-        path: '/storage',
+    {path: '/home/storage',
         component: Layout,
-        redirect: '/storage/index',
+        redirect: '/home/storage/index',
         name: 'storage',
         meta: {
             title: 'storage',
