@@ -16,8 +16,11 @@ import org.apache.tomcat.util.descriptor.web.FilterDef;
 import org.apache.tomcat.util.descriptor.web.FilterMap;
 import org.apache.tomcat.util.scan.StandardJarScanner;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 
 /**
  * <p>Description: Tomcat  Http服务端</p>
@@ -29,6 +32,8 @@ import java.nio.charset.StandardCharsets;
 public class TomcatServer {
 
     private int port;
+
+    private final String basedir = System.getProperty("user.dir") + "/tomcat";
 
     private Tomcat tomcat;
 
@@ -49,6 +54,9 @@ public class TomcatServer {
     }
 
     public void start() {
+
+
+        tomcat.setBaseDir(basedir);
         tomcat.setHostname("localhost");
         tomcat.setPort(port);
 
@@ -74,22 +82,23 @@ public class TomcatServer {
         context.addFilterMap(filterMap);
 
         URL resource = this.getClass().getResource("/webapp");
-        if (resource != null) {
-
-            String webappPath = resource.getPath();
-            if (resource.getPath().contains(".jar!")) {
-
-                webappPath = System.getProperty("user.dir") + File.separator +  "webapp";
-                File file = new File(webappPath);
-                if (!file.exists()) {
-                    FileUtils.mkdirs(webappPath);
+        try {
+            if (resource != null) {
+                String webappPath = resource.getPath();
+                if (resource.getPath().contains(".jar!")) {
+                    // webappPath = file:/home/dfs/tracker.jar!/webapp
+                    webappPath = basedir + File.separator +  "webapp";
+                    File file = new File(webappPath);
+                    if (!file.exists()) {
+                        file.mkdirs();
+                    }
+                    file.deleteOnExit();
                 }
+
+                Context webContext = tomcat.addWebapp("/home", webappPath);
+                ((StandardJarScanner) webContext.getJarScanner()).setScanManifest(false);
             }
 
-            Context webContext = tomcat.addWebapp("/home", webappPath);
-            ((StandardJarScanner) webContext.getJarScanner()).setScanManifest(false);
-        }
-        try {
             tomcat.init();
             tomcat.start();
             log.info("Tomcat Server started on port：{}", port);
@@ -104,6 +113,16 @@ public class TomcatServer {
             tomcat.stop();
         } catch (Exception e) {
             log.error("Shutdown Tomcat Server：", e);
+        }
+    }
+
+    private File createTempDir(String prefix) {
+        try {
+            File tempDir = Files.createTempDirectory(prefix).toFile();
+            tempDir.deleteOnExit();
+            return tempDir;
+        } catch (IOException var3) {
+            throw new RuntimeException("Unable to create tempDir. java.io.tmpdir is set to " + System.getProperty("java.io.tmpdir"), var3);
         }
     }
 }

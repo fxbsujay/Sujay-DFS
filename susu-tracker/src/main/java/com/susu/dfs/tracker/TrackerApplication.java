@@ -43,6 +43,7 @@ public class TrackerApplication {
 
     /**
      * <h3>服务端的启动流程</h3>
+     * nohup java -jar susu-storage-1.0-SNAPSHOT.jar /mydata/dfs/application.yaml &
      * <ul>
      *     <li>加载配置文件</li>
      *     <li>初始化任务执行器，一个线程池</li>
