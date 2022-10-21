@@ -3,6 +3,7 @@ package com.susu.dfs.tracker.service;
 import com.alibaba.fastjson.JSONObject;
 import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.User;
+import com.susu.dfs.common.eum.ActionEnum;
 import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.common.utils.FileUtils;
 import com.susu.dfs.common.utils.NetUtils;
@@ -177,6 +178,39 @@ public class TrackerUserService {
             return true;
         }
     }
+
+    /**
+     * <p>Description: Synchronize user information </p>
+     *
+     * @param action Operation Type
+     * @param user Users to be updated
+     */
+    public void syncUserEvent(User user, ActionEnum action) {
+        switch (action) {
+            case ADD:
+            case UPDATE:
+                addUser(user);
+                break;
+            case DELETE:
+                deleteUser(user.getUsername());
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * <p>Description: Synchronize user information and refresh locally stored user information </p>
+     *
+     * @param users Users needing synchronization
+     */
+    public void syncUsersEvent(List<User> users) {
+        this.users = users
+                .stream()
+                .collect(Collectors.toMap(User::getUsername, Function.identity()));
+        loadWriteUsers();
+    }
+
 
 
 

@@ -2,7 +2,6 @@ package com.susu.dfs.tracker.tomcat;
 
 import com.susu.dfs.common.Node;
 import com.susu.dfs.common.config.SysConfig;
-import com.susu.dfs.common.utils.FileUtils;
 import com.susu.dfs.tracker.client.ClientManager;
 import com.susu.dfs.tracker.server.ServerManager;
 import com.susu.dfs.tracker.server.TrackerChannelHandle;
@@ -16,7 +15,6 @@ import org.apache.tomcat.util.descriptor.web.FilterDef;
 import org.apache.tomcat.util.descriptor.web.FilterMap;
 import org.apache.tomcat.util.scan.StandardJarScanner;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -55,7 +53,6 @@ public class TomcatServer {
 
     public void start() {
 
-
         tomcat.setBaseDir(basedir);
         tomcat.setHostname("localhost");
         tomcat.setPort(port);
@@ -82,28 +79,29 @@ public class TomcatServer {
         context.addFilterMap(filterMap);
 
         URL resource = this.getClass().getResource("/webapp");
-        try {
-            if (resource != null) {
-                String webappPath = resource.getPath();
-                if (resource.getPath().contains(".jar!")) {
-                    // webappPath = file:/home/dfs/tracker.jar!/webapp
-                    webappPath = basedir + File.separator +  "webapp";
-                    File file = new File(webappPath);
-                    if (!file.exists()) {
-                        file.mkdirs();
-                    }
+        if (resource != null) {
+
+            String webappPath = resource.getPath();
+
+            if (resource.getPath().contains(".jar!")) {
+                // webappPath = file:/home/dfs/tracker.jar!/webapp
+                webappPath = System.getProperty("user.dir") + "/webapp";
+                File file = new File(webappPath);
+                if (!file.exists() && file.mkdirs()) {
                     file.deleteOnExit();
                 }
-
-                Context webContext = tomcat.addWebapp("/home", webappPath);
-                ((StandardJarScanner) webContext.getJarScanner()).setScanManifest(false);
             }
 
+            Context webContext = tomcat.addWebapp("/home", webappPath);
+            ((StandardJarScanner) webContext.getJarScanner()).setScanManifest(false);
+        }
+
+        try {
             tomcat.init();
             tomcat.start();
             log.info("Tomcat Server started on port：{}", port);
         } catch (Exception e) {
-            log.error("Tomcat启动失败：", e);
+            log.error("Tomcat start fail：", e);
             System.exit(0);
         }
     }
