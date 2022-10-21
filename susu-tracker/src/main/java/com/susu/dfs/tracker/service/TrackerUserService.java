@@ -180,6 +180,29 @@ public class TrackerUserService {
     }
 
     /**
+     * <p>Description: Receive broadcast authentication request to save token </p>
+     * <p>Description: 收到广播的认证请求保存token </p>
+     *
+     * @param username 用户名
+     * @param userToken 用户认证Token
+     */
+    public void setToken(String username, String userToken) {
+        Set<String> existsTokens = userTokens.computeIfAbsent(username, k -> new HashSet<>());
+        existsTokens.add(userToken);
+    }
+
+    /**
+     * <p>Description: 该用户是否登录 </p>
+     *
+     * @param username 用户名
+     * @param token    认证信息
+     */
+    public boolean isLogin(String username, String token) {
+        Set<String> tokens = userTokens.getOrDefault(username, new HashSet<>());
+        return tokens.contains(token);
+    }
+
+    /**
      * <p>Description: Synchronize user information </p>
      *
      * @param action Operation Type
@@ -212,6 +235,15 @@ public class TrackerUserService {
     }
 
 
+    public User getUser(String username) {
+        return User.copy(users.get(username));
+    }
 
+    public List<User> getUsers() {
+        return users.values()
+                .stream()
+                .map(User::copy)
+                .collect(Collectors.toList());
+    }
 
 }

@@ -2,6 +2,8 @@ package com.susu.dfs.common;
 
 import lombok.Data;
 
+import java.util.ArrayList;
+
 /**
  * <p>Description: Tracker 的用户信息</p>
  *
@@ -31,4 +33,11 @@ public class User {
      */
     private long createTime;
 
+
+    public static User copy(User user) {
+        User ret = new User();
+        ret.setUsername(user.username);
+        ret.setSecret(user.secret);
+        return ret;
+    }
 }
