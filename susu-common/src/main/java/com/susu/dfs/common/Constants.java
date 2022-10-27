@@ -14,12 +14,12 @@ public class Constants {
     /**
      * 系统版本号
      */
-    public static final int SYS_VERSION = 1;
+    public static final String SYS_VERSION = "1.0.0";
 
     /**
      *  系统授权名称
      */
-    public static final String SYS_AUTHOR = "SUSA";
+    public static final String SYS_AUTHOR = "SUSU";
 
     /**
      * Netty 最大传输字节数

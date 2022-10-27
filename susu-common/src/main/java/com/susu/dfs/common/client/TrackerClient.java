@@ -1,7 +1,5 @@
 package com.susu.dfs.common.client;
 
-import com.susu.dfs.common.Node;
-import com.susu.dfs.common.config.NodeConfig;
 import com.susu.dfs.common.eum.PacketType;
 import com.susu.dfs.common.netty.NetClient;
 import com.susu.dfs.common.netty.msg.NetPacket;
@@ -31,9 +29,21 @@ public class TrackerClient {
         this.netClient.addPackageListener(this::onTrackerResponse);
         this.netClient.addConnectListener(isConnected -> {
             log.info("Tracker Client Connect Start : {}",isConnected);
+            if (isConnected) {
+
+            }
         });
         this.netClient.start(host,port);
         this.netClient.ensureStart();
+    }
+
+    /**
+     *  auth
+     */
+    private void authenticate() {
+        taskScheduler.scheduleOnce("Initiate user authentication",() -> {
+
+        });
     }
 
     /**
@@ -59,7 +69,7 @@ public class TrackerClient {
     private void onTrackerResponse(NetRequest request) throws Exception {
         PacketType packetType = PacketType.getEnum(request.getRequest().getType());
 
-        log.info("Tracker 处理成功");
+        log.info("Tracker onTrackerResponse");
     }
 
 }

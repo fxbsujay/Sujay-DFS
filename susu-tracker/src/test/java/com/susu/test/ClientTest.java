@@ -1,13 +1,10 @@
-/*
 package com.susu.test;
 
 import com.susu.dfs.common.client.ClientApplication;
 import com.susu.dfs.common.client.service.ClientFileService;
+import lombok.extern.slf4j.Slf4j;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-
+@Slf4j
 public class ClientTest {
 
     private static final String UPLOAD_LOCAL_PATH = System.getProperty("user.dir") + "/img/susu.jpg";
@@ -16,17 +13,12 @@ public class ClientTest {
 
     public static void main(String[] args) {
         try {
-            ClientApplication application = ClientApplication.initStart();
-            ClientFileService fileService = application.getFileService();
-            Map<String,String> attr = new HashMap<>();
-            attr.put("aaa","bbbb");
-            fileService.put("/aaa/bbb/test.jpg",new File(UPLOAD_LOCAL_PATH),-1,attr);
-            Map<String, String> stringStringMap = fileService.readAttr("/aaa/bbb/test.jpg");
-            System.out.println(stringStringMap.get("aaa"));
-            fileService.get("/aaa/bbb/test.jpg",DOWNLOAD_PATH);
+            ClientApplication client = ClientApplication.initStart();
+            ClientFileService fileService = client.getFileService();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            log.info("Client Application Start Error!!");
+            System.exit(1);
         }
     }
 }
-*/

@@ -42,15 +42,6 @@ public class ClientApplication {
         return clientApplication;
     }
 
-    public static ClientFileService initStart(String a) throws Exception {
-        SysConfig config = SysConfig.loadClientConfig();
-        ClientApplication clientApplication = new ClientApplication();
-        Node node = config.getNode();
-        clientApplication.start(node.getTrackerHost(),node.getTrackerPort());
-        clientApplication.inService = true;
-        return clientApplication.clientFileService;
-    }
-
     public ClientFileService getFileService() {
         return clientFileService;
     }

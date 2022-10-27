@@ -6,6 +6,7 @@ import com.susu.dfs.common.TrackerInfo;
 import com.susu.dfs.common.eum.ServerEnum;
 import com.susu.dfs.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.A;
 import org.yaml.snakeyaml.Yaml;
 import java.io.*;
 import java.nio.file.Files;
@@ -57,6 +58,11 @@ public class SysConfig {
      * 配置文件名称
      */
     private final static String CONFIG_FILE_NAME = "/application.yaml";
+
+    /**
+     * 认证信息
+     */
+    private final static AuthConfig authConfig = new AuthConfig();
 
     /**
      * 当前节点信息

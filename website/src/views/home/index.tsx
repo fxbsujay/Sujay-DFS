@@ -80,7 +80,6 @@ export default defineComponent({
     name: 'Home',
     setup () {
 
-
         const data = reactive({
             storageListLoading: false,
             trackerListLoading: false,
