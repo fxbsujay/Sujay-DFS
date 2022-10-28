@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TrackerChannelHandle extends AbstractChannelHandler {
 
-    private String DEFAULT_BASE_FILE_PATH = "/susu";
+    private final String DEFAULT_BASE_FILE_PATH;
 
     private final Node node;
 

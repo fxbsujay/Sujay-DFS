@@ -9,6 +9,8 @@ import com.susu.dfs.common.utils.FileUtils;
 import com.susu.dfs.common.utils.NetUtils;
 import com.susu.dfs.common.utils.StringUtils;
 import io.netty.channel.Channel;
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
  * @author sujay
  * @version 10:14 2022/9/19
  */
+@Slf4j
 public class TrackerUserService {
 
     /**
@@ -63,6 +66,7 @@ public class TrackerUserService {
      * 加载磁盘中的用户新
      */
     public void loadReadyUsers() {
+        log.info("Load user persistent file: [file={}]",USERS_FILE_BASE_DIR);
         File file = new File(USERS_FILE_BASE_DIR);
 
         if (!file.exists()) {

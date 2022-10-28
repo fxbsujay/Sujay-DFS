@@ -44,7 +44,7 @@ public class TrackerFileService extends AbstractFileService {
     private volatile long maxTxId = 0L;
 
     public TrackerFileService(SysConfig config,TaskScheduler taskScheduler, ClientManager clientManager) {
-        super(config.DEFAULT_BASE_DIR);
+        super(config.SYS_LOG_BASE_DIR);
         this.taskScheduler = taskScheduler;
         this.baseDir = config.SYS_LOG_BASE_DIR;
         this.doubleBuffer = new DoubleBuffer(baseDir);
@@ -71,6 +71,7 @@ public class TrackerFileService extends AbstractFileService {
     @Override
     public void recoveryNamespace() throws Exception {
         try {
+            log.info("Restore namespace from file: [file={}]",baseDir);
             ImageLogWrapper image = scanLatestValidImageLog(baseDir);
             long txId = 0L;
             if (image != null) {

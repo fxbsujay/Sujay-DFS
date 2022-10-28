@@ -35,12 +35,12 @@ public class SysConfig {
     public int HEARTBEAT_CHECK_INTERVAL = Constants.HEARTBEAT_CHECK_INTERVAL;
 
     /**
-     * 客户端文件存储位置
+     * 文件存储位置 源文件
      */
     public String DEFAULT_BASE_DIR = Constants.DEFAULT_BASE_DIR;
 
     /**
-     * 默认系统持久化文件存储位置
+     * 默认系统持久化文件存储位置 Image_log, user.info, Ready_Log
      */
     public String SYS_LOG_BASE_DIR = Constants.DEFAULT_BASE_DIR;
 
@@ -144,7 +144,7 @@ public class SysConfig {
                 config = loadStorageConfig(stringObjectMap);
                 break;
             case CLIENT:
-                config = loadConfig(stringObjectMap);
+                config = loadClientConfig(stringObjectMap);
                 break;
             default:
                 break;
@@ -285,32 +285,45 @@ public class SysConfig {
         return config;
     }
 
-    public static SysConfig loadClientConfig() {
+    public static SysConfig loadClientConfig(Map<String, Object> stringObjectMap) {
 
-        Map<String, Object> stringObjectMap = loadFile();
-
-        Map<String, Object> storageConfig = (Map<String, Object>) stringObjectMap.get("client");
+        Map<String, Object> clientConfig = (Map<String, Object>) stringObjectMap.get("client");
         SysConfig config = new SysConfig();
 
-        String name = (String) storageConfig.get("name");
+        String name = (String) clientConfig.get("name");
         if (StringUtils.isNotBlank(name)) {
             config.node.setName(name);
         } else {
             config.node.setName("net-client");
         }
 
-        String trackerHost = (String) storageConfig.get("trackerHost");
+        String trackerHost = (String) clientConfig.get("trackerHost");
         if (StringUtils.isNotBlank(trackerHost)) {
             config.node.setTrackerHost(trackerHost);
         } else {
             config.node.setHost("localhost");
         }
 
-        Integer trackerPort = (Integer) storageConfig.get("trackerPort");
+        Integer trackerPort = (Integer) clientConfig.get("trackerPort");
         if (trackerPort != null) {
             config.node.setTrackerPort(trackerPort);
         } else {
             config.node.setTrackerPort(9081);
+        }
+        AuthConfig authConfig = config.getAuthConfig();
+
+        String username = (String) clientConfig.get("username");
+        if (StringUtils.isNotBlank(username)) {
+            authConfig.setUsername(username);
+        } else {
+            authConfig.setUsername("susu");
+        }
+
+        String password = (String) clientConfig.get("password");
+        if (StringUtils.isNotBlank(password)) {
+            authConfig.setPassword(password);
+        } else {
+            authConfig.setPassword("susu");
         }
 
         return config;

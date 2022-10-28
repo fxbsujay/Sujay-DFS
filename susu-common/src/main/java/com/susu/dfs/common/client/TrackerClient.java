@@ -101,10 +101,8 @@ public class TrackerClient {
      */
     public void shutdown() {
         log.info("Shutdown Tracker Client");
-        if (netClient != null) {
-            taskScheduler.shutdown();
-            netClient.shutdown();
-        }
+        taskScheduler.shutdown();
+        netClient.shutdown();
     }
 
     public NetPacket authSendSync(NetPacket packet) throws InterruptedException {

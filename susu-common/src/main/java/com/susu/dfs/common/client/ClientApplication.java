@@ -1,8 +1,8 @@
 package com.susu.dfs.common.client;
 
-import com.susu.dfs.common.Node;
 import com.susu.dfs.common.client.service.ClientFileService;
 import com.susu.dfs.common.config.SysConfig;
+import com.susu.dfs.common.eum.ServerEnum;
 import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.common.client.service.impl.ClientFileServiceImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +34,7 @@ public class ClientApplication {
      *  初始化启动
      */
     public static ClientApplication initStart() throws Exception {
-        SysConfig config = SysConfig.loadClientConfig();
+        SysConfig config = SysConfig.loadConfig(ServerEnum.CLIENT);
         ClientApplication clientApplication = new ClientApplication(config);
         clientApplication.start();
         clientApplication.inService = true;
@@ -48,8 +48,6 @@ public class ClientApplication {
     /**
      * 启动
      *
-     * @param host  tracker 主机地址
-     * @param port  tracker 主机端口
      * @throws Exception    netty连接异常
      */
     public ClientFileService start() throws Exception {

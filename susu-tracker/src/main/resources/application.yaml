@@ -4,14 +4,26 @@ tracker:
   port: 9081
   httpPort: 9080
   config:
-    heartbeatInterval: 30000
     heartbeatOutTime: 600000
     heartbeatCheckInterval: 30000
-    defaultBaseDir: E:\srv\file
     defaultBaseFilePath: /susu
     sysLogBaseDir: E:\srv\file
 
+storage:
+  name: net-storage
+  host: localhost
+  port: 9083
+  httpPort: 9084
+  trackerHost: localhost
+  trackerPort: 9081
+  config:
+    heartbeatInterval: 30000
+    defaultBaseDir: E:\srv\file
+    defaultBaseFilePath: /susu
+
 client:
+  username: susu
+  password: susu
   name: net-client
   trackerHost: localhost
   trackerPort: 9081
