@@ -1,11 +1,12 @@
 import {defineComponent, reactive, ref} from 'vue'
-import { queryTreeApi, queryInfoApi } from '@/api/tracker'
+import { queryTreeApi } from '@/api/tracker'
 import { FileTreeModel } from '@/model/Models'
 import FileTree from './fileTree.vue'
 import { DeleteOutlined, EyeOutlined, CloudUploadOutlined, SearchOutlined } from '@ant-design/icons-vue'
 import './index.less'
 import { UploadProps } from "ant-design-vue";
 import { uploadApi } from '@/api/storage'
+import key from "@/constant/key";
 export default defineComponent({
     name: 'Storage',
     components: {
@@ -44,10 +45,7 @@ export default defineComponent({
             }).catch( res => {
                 data.treeLoading = false
             })
-
-            queryInfoApi().then( res => {
-                data.requestHeader = 'http://' + res.host + ':' + res.httpPort
-            })
+            data.requestHeader = key.httpPath + '/download'
         }
 
         const fileList = ref<UploadProps['fileList']>([]);

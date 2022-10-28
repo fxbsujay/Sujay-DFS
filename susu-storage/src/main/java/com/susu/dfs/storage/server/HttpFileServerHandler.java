@@ -32,7 +32,12 @@ public class HttpFileServerHandler extends SimpleChannelInboundHandler<FullHttpR
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
-        String filename = URLDecoder.decode(request.uri(), "UTF-8");
+        String urlPrefix = "/api/download";
+        String url = URLDecoder.decode(request.uri(), "UTF-8");
+        if (!url.startsWith(urlPrefix)) {
+            return;
+        }
+        String filename = url.substring(urlPrefix.length());
         if (!request.method().equals(HttpMethod.GET)) {
             log.info("Ignore http request : [uri={}, method={}]", request.uri(), request.method());
             return;

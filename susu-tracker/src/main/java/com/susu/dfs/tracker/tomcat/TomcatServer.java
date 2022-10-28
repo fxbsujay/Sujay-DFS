@@ -63,8 +63,8 @@ public class TomcatServer {
         Tomcat.addServlet(context, DispatcherServlet.class.getSimpleName(), dispatcherServlet);
 
         context.addServletMappingDecoded("/api/upload", FileUploadServlet.class.getSimpleName());
+        context.addServletMappingDecoded("/api/download/*", FileDownloadServlet.class.getSimpleName());
         context.addServletMappingDecoded("/api/*", DispatcherServlet.class.getSimpleName());
-        context.addServletMappingDecoded("/*", FileDownloadServlet.class.getSimpleName());
         context.addWatchedResource("");
 
         FilterDef filterDef = new FilterDef();

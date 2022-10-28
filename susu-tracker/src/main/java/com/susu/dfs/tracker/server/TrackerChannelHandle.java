@@ -394,7 +394,6 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      * @throws InvalidProtocolBufferException protobuf error
      */
     private void storageUploadFileComplete(NetRequest request) throws InvalidProtocolBufferException{
-        verifyToken(request);
         NetPacket packet = request.getRequest();
         UploadCompletionRequest uploadCompletionRequest = UploadCompletionRequest.parseFrom(packet.getBody());
         log.info("Receive the Storage information reported by the client：[hostname={}, filename={}]", uploadCompletionRequest.getHostname(), uploadCompletionRequest.getFilename());

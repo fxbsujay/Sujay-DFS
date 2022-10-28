@@ -48,6 +48,10 @@ public class FileDownloadServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String requestUri = req.getRequestURI();
         String filename = URLDecoder.decode(requestUri, "UTF-8");
+        if (!filename.startsWith("/api/download")) {
+            return;
+        }
+        filename = filename.substring("/api/download".length());
 
         int trackerIndex = serverManager.getTrackerIndexByFilename(filename);
         if (serverManager.isCurrentTracker(trackerIndex)) {
