@@ -24,9 +24,9 @@ public class ClientApplication {
 
     private volatile boolean inService = false;
 
-    private ClientApplication() {
+    private ClientApplication(SysConfig config) {
         this.taskScheduler = new TaskScheduler("CLIENT-TRACKER");
-        this.trackerClient = new TrackerClient(taskScheduler);
+        this.trackerClient = new TrackerClient(config, taskScheduler);
         this.clientFileService = new ClientFileServiceImpl(trackerClient,taskScheduler);
     }
 
@@ -35,9 +35,8 @@ public class ClientApplication {
      */
     public static ClientApplication initStart() throws Exception {
         SysConfig config = SysConfig.loadClientConfig();
-        ClientApplication clientApplication = new ClientApplication();
-        Node node = config.getNode();
-        clientApplication.start(node.getTrackerHost(),node.getTrackerPort());
+        ClientApplication clientApplication = new ClientApplication(config);
+        clientApplication.start();
         clientApplication.inService = true;
         return clientApplication;
     }
@@ -53,11 +52,11 @@ public class ClientApplication {
      * @param port  tracker 主机端口
      * @throws Exception    netty连接异常
      */
-    public ClientFileService start(String host, int port) throws Exception {
+    public ClientFileService start() throws Exception {
         if (inService) {
             throw new RuntimeException("Client started !!");
         }
-        this.trackerClient.start(host,port);
+        this.trackerClient.start();
         return clientFileService;
     }
 

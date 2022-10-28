@@ -1,9 +1,9 @@
 package com.susu.dfs.common.netty.msg;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.susu.dfs.common.model.NetPacketHeader;
 import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.eum.PacketType;
+import com.susu.dfs.common.model.NetPacketHeader;
 import com.susu.dfs.common.utils.StringUtils;
 import io.netty.buffer.ByteBuf;
 import lombok.Builder;
@@ -135,6 +135,16 @@ public class NetPacket {
         return Boolean.parseBoolean(header.getOrDefault("broadcast", "false"));
     }
 
+    /**
+     *  客户端的认证信息
+     */
+    public void setToken(String token) {
+        header.put("token-x", token);
+    }
+
+    public String getToken() {
+        return header.getOrDefault("token-x", "");
+    }
 
     /**
      * <p>Description: 写入数据</p>

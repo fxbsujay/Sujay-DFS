@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -50,6 +51,12 @@ public class TrackerUserService {
     public TrackerUserService(String baseDir, TaskScheduler taskScheduler) {
         this.USERS_FILE_BASE_DIR = baseDir + File.separator + Constants.USER_FILE_NAME;
         this.taskScheduler = taskScheduler;
+        loadReadyUsers();
+        this.taskScheduler.schedule("Save users information", this::loadWriteUsers,
+                Constants.WRITE_USER_FILE_INTERVAL,
+                Constants.WRITE_USER_FILE_INTERVAL,
+                TimeUnit.MILLISECONDS);
+        Runtime.getRuntime().addShutdownHook(new Thread(this::loadWriteUsers));
     }
 
     /**
@@ -59,6 +66,11 @@ public class TrackerUserService {
         File file = new File(USERS_FILE_BASE_DIR);
 
         if (!file.exists()) {
+            users = new ConcurrentHashMap<>();
+            User user = new User();
+            user.setSecret("susu");
+            user.setUsername("susu");
+            users.put("susu",user);
             return;
         }
 
@@ -122,13 +134,10 @@ public class TrackerUserService {
      * <p>Description: 用户登录 </p>
      *
      * @param channel           客户端连接
-     * @param authenticateInfo  用户信息
+     * @param username          用户名
+     * @param secret            用户秘钥
      */
-    public boolean login(Channel channel, String authenticateInfo) {
-        String[] split = authenticateInfo.split(",");
-        String username = split[0];
-        String secret = split[1];
-
+    public boolean login(Channel channel, String username, String secret) {
         synchronized (this) {
             if (!users.containsKey(username)) {
                 return false;
@@ -180,6 +189,28 @@ public class TrackerUserService {
     }
 
     /**
+     * <p>Description: 获取用户Token </p>
+     */
+    public String getToken(Channel channel) {
+        synchronized (this) {
+            String clientId = NetUtils.getChannelId(channel);
+            String username = channelUsers.get(clientId);
+            if (StringUtils.isEmpty(username)) {
+                return null;
+            }
+
+            Set<String> tokens = userTokens.get(username);
+            for (String token : tokens) {
+                String existsClientId = token.split("-")[0];
+                if (existsClientId.equals(clientId)) {
+                    return token;
+                }
+            }
+            return null;
+        }
+    }
+
+    /**
      * <p>Description: Receive broadcast authentication request to save token </p>
      * <p>Description: 收到广播的认证请求保存token </p>
      *
@@ -194,11 +225,20 @@ public class TrackerUserService {
     /**
      * <p>Description: 该用户是否登录 </p>
      *
-     * @param username 用户名
+     * @param channel  客户端
      * @param token    认证信息
      */
-    public boolean isLogin(String username, String token) {
-        Set<String> tokens = userTokens.getOrDefault(username, new HashSet<>());
+    public boolean isLogin(Channel channel, String token) {
+        String clientId = NetUtils.getChannelId(channel);
+        String username = channelUsers.get(clientId);
+        if (StringUtils.isBlank(username)) {
+            return false;
+        }
+        User user = users.get(username);
+        if (user == null) {
+            return false;
+        }
+        Set<String> tokens = userTokens.getOrDefault(user.getUsername(), new HashSet<>());
         return tokens.contains(token);
     }
 

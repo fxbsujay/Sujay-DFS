@@ -11,6 +11,7 @@ import com.susu.dfs.common.eum.CommandType;
 import com.susu.dfs.common.file.FileNode;
 import com.susu.dfs.common.netty.msg.NetRequest;
 import com.susu.dfs.common.task.TaskScheduler;
+import com.susu.dfs.common.utils.NetUtils;
 import com.susu.dfs.common.utils.SnowFlakeUtils;
 import com.susu.dfs.common.utils.StopWatch;
 import com.susu.dfs.common.utils.StringUtils;
@@ -24,6 +25,8 @@ import com.susu.dfs.tracker.rebalance.RemoveReplicaTask;
 import com.susu.dfs.tracker.rebalance.ReplicaTask;
 import com.susu.dfs.tracker.service.TrackerClusterService;
 import com.susu.dfs.tracker.service.TrackerFileService;
+import com.susu.dfs.tracker.service.TrackerUserService;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
 import java.io.File;
@@ -59,6 +62,8 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
 
     private final TrackerFileService trackerFileService;
 
+    private final TrackerUserService trackerUserService;
+
     private final TrackerClusterService trackerClusterService;
 
     /**
@@ -68,7 +73,8 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
 
     public TrackerChannelHandle(SysConfig config, TaskScheduler taskScheduler,
                                 ClientManager clientManager, ServerManager serverManager,
-                                TrackerFileService trackerFileService, TrackerClusterService trackerClusterService) {
+                                TrackerUserService trackerUserService, TrackerFileService trackerFileService,
+                                TrackerClusterService trackerClusterService) {
         this.node = config.getNode();
         this.DEFAULT_BASE_FILE_PATH = config.DEFAULT_BASE_FILE_PATH;
         this.taskScheduler = taskScheduler;
@@ -76,6 +82,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
                 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(Constants.HANDLE_THREAD_EXECUTOR_QUEUE_SIZE_MAX));
         this.clientManager = clientManager;
         this.serverManager = serverManager;
+        this.trackerUserService = trackerUserService;
         this.trackerFileService = trackerFileService;
         this.trackerClusterService = trackerClusterService;
         this.trackerClusterService.setTrackerChannelHandle(this);
@@ -102,6 +109,9 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
                 break;
             case STORAGE_HEART_BEAT:
                 storageHeartbeatHandle(request);
+                break;
+            case AUTH_INFO:
+                clientAuthHandel(request);
                 break;
             case MKDIR:
                 clientMkdirHandel(request);
@@ -276,6 +286,31 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
         request.sendResponse(response);
     }
 
+    private void clientAuthHandel(NetRequest request) throws InvalidProtocolBufferException {
+        NetPacket packet = request.getRequest();
+        AuthenticateInfoRequest authRequest = AuthenticateInfoRequest.parseFrom(packet.getBody());
+
+        if (!packet.getBroadcast()) {
+            Channel channel = request.getCtx().channel();
+            boolean authenticate = trackerUserService.login(channel, authRequest.getUsername(), authRequest.getPassword());
+            if (!authenticate) {
+                log.info("Authentication failed ！！");
+                return;
+            }
+            String token = trackerUserService.getToken(channel);
+            packet.setToken(token);
+            broadcastSync(request);
+            AuthenticateInfoResponse response = AuthenticateInfoResponse.newBuilder()
+                    .setToken(token)
+                    .build();
+            request.sendResponse(response);
+        } else {
+            trackerUserService.setToken(authRequest.getUsername(),packet.getToken());
+            request.sendResponse();
+            log.info("Receive broadcast authentication information: [username={},token={}]",authRequest.getUsername(),packet.getToken());
+        }
+    }
+
     /**
      * <p>Description: 客户端的创建文件夹请求</p>
      * <p>Description: Create folder request from client </p>
@@ -285,6 +320,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      * @throws InterruptedException           消息转发异常
      */
     private void clientMkdirHandel(NetRequest request) throws InvalidProtocolBufferException, InterruptedException {
+        verifyToken(request);
         NetPacket packet = request.getRequest();
         MkdirRequest mkdirRequest = MkdirRequest.parseFrom(packet.getBody());
         String realFilename =  DEFAULT_BASE_FILE_PATH + mkdirRequest.getPath();
@@ -305,6 +341,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      * @throws InvalidProtocolBufferException protobuf error
      */
     private void clientCreateFileHandle(NetRequest request) throws InvalidProtocolBufferException{
+        verifyToken(request);
         NetPacket packet = request.getRequest();
         CreateFileRequest createFileRequest = CreateFileRequest.parseFrom(packet.getBody());
         String filename = DEFAULT_BASE_FILE_PATH + createFileRequest.getFilename();
@@ -341,6 +378,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      * @throws InvalidProtocolBufferException protobuf error
      */
     private void clientUploadFileConfirm(NetRequest request) throws InvalidProtocolBufferException, InterruptedException {
+        verifyToken(request);
         NetPacket packet = request.getRequest();
         CreateFileRequest createFileRequest = CreateFileRequest.parseFrom(packet.getBody());
         String filename =  DEFAULT_BASE_FILE_PATH  + createFileRequest.getFilename();
@@ -356,6 +394,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      * @throws InvalidProtocolBufferException protobuf error
      */
     private void storageUploadFileComplete(NetRequest request) throws InvalidProtocolBufferException{
+        verifyToken(request);
         NetPacket packet = request.getRequest();
         UploadCompletionRequest uploadCompletionRequest = UploadCompletionRequest.parseFrom(packet.getBody());
         log.info("Receive the Storage information reported by the client：[hostname={}, filename={}]", uploadCompletionRequest.getHostname(), uploadCompletionRequest.getFilename());
@@ -417,6 +456,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      * @param request   网络包
      */
     private void clientReadAttrHandle(NetRequest request) throws InvalidProtocolBufferException, InterruptedException {
+        verifyToken(request);
         NetPacket packet = request.getRequest();
         ReadAttrRequest readAttrRequest = ReadAttrRequest.parseFrom(packet.getBody());
         String readFilename = DEFAULT_BASE_FILE_PATH + readAttrRequest.getFilename();
@@ -441,6 +481,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      * @param request   网络包
      */
     private void clientRemoveFile(NetRequest request) throws InvalidProtocolBufferException, InterruptedException {
+        verifyToken(request);
         NetPacket packet = request.getRequest();
         RemoveFileRequest removeFileRequest = RemoveFileRequest.parseFrom(packet.getBody());
         String filename =  DEFAULT_BASE_FILE_PATH + removeFileRequest.getFilename();
@@ -497,7 +538,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
      * @throws InvalidProtocolBufferException protobuf error
      */
     private void clientGetStorageForFile(NetRequest request) throws InvalidProtocolBufferException, InterruptedException {
-
+        verifyToken(request);
         NetPacket packet = request.getRequest();
         GetStorageForFileRequest getStorageForFileRequest = GetStorageForFileRequest.parseFrom(packet.getBody());
         String realFilename = DEFAULT_BASE_FILE_PATH + getStorageForFileRequest.getFilename();
@@ -513,6 +554,7 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
                     .setHostname(client.getHostname())
                     .setPort(client.getPort())
                     .build();
+
             GetStorageForFileResponse response = GetStorageForFileResponse.newBuilder()
                     .setStorage(storageNode)
                     .setRealFileName(realFilename)
@@ -522,6 +564,25 @@ public class TrackerChannelHandle extends AbstractChannelHandler {
         } else {
             trackerClusterService.relay(trackerIndex,request);
         }
+    }
+
+    /**
+     * 验证Client端的消息是否合法
+     */
+    private void verifyToken(NetRequest request) {
+        NetPacket packet = request.getRequest();
+        String token = packet.getToken();
+
+        if (StringUtils.isEmpty(token)) {
+            log.warn("An unauthenticated request was received and has been blocked：[channel={}, packetType={}]", NetUtils.getChannelId(request.getCtx().channel()), packet.getType());
+            throw new RuntimeException("Illegal token !!");
+        }
+
+        if (!trackerUserService.isLogin(request.getCtx().channel(), token)) {
+            log.warn("An unauthenticated request was received and has been blocked：[channel={}, packetType={}]", NetUtils.getChannelId(request.getCtx().channel()), packet.getType());
+            throw new RuntimeException("Illegal token !!");
+        }
+
     }
 
     /**

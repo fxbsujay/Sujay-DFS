@@ -10,6 +10,7 @@ import com.susu.dfs.tracker.server.TrackerChannelHandle;
 import com.susu.dfs.tracker.server.TrackerServer;
 import com.susu.dfs.tracker.service.TrackerClusterService;
 import com.susu.dfs.tracker.service.TrackerFileService;
+import com.susu.dfs.tracker.service.TrackerUserService;
 import com.susu.dfs.tracker.tomcat.TomcatServer;
 import lombok.extern.slf4j.Slf4j;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -34,6 +35,8 @@ public class TrackerApplication {
     private final TrackerServer trackerServer;
 
     private final TrackerFileService fileService;
+
+    private final TrackerUserService userService;
 
     private final TrackerClusterService clusterService;
 
@@ -68,10 +71,11 @@ public class TrackerApplication {
          Node node = config.getNode();
          this.taskScheduler = new TaskScheduler("TRACKER-TRACKER");
          this.clientManager = new ClientManager(config,taskScheduler);
+         this.userService = new TrackerUserService(config.SYS_LOG_BASE_DIR,taskScheduler);
          this.fileService = new TrackerFileService(config,taskScheduler,clientManager);
          this.clusterService = new TrackerClusterService(node,config.getTrackers(),taskScheduler);
          this.serverManager = new ServerManager(node,config.getTrackers(),clientManager,clusterService, fileService);
-         this.trackerChannelHandle = new TrackerChannelHandle(config,taskScheduler, clientManager, serverManager, fileService, clusterService);
+         this.trackerChannelHandle = new TrackerChannelHandle(config,taskScheduler, clientManager, serverManager, userService, fileService, clusterService);
          this.trackerServer = new TrackerServer(node,taskScheduler,trackerChannelHandle);
          this.tomcatServer = new TomcatServer(config,trackerChannelHandle,serverManager,clientManager,clusterService,fileService);
     }

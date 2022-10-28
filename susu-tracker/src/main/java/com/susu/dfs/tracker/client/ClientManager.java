@@ -1,10 +1,10 @@
 package com.susu.dfs.tracker.client;
 
-import com.susu.dfs.common.model.RegisterRequest;
 import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.FileInfo;
 import com.susu.dfs.common.config.SysConfig;
 import com.susu.dfs.common.file.FileNode;
+import com.susu.dfs.common.model.RegisterRequest;
 import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.common.utils.DateUtils;
 import com.susu.dfs.common.utils.StringUtils;
@@ -111,7 +111,7 @@ public class ClientManager {
      * @param request 注册请求
      * @return 是否注册成功 【 true / false 】
      */
-    public boolean register(RegisterRequest request,Long clientId,ChannelHandlerContext channel) {
+    public boolean register(RegisterRequest request, Long clientId, ChannelHandlerContext channel) {
         if (StringUtils.isBlank(request.getHostname())) {
             return false;
         }

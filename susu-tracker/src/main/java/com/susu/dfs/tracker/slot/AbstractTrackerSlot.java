@@ -1,9 +1,9 @@
 package com.susu.dfs.tracker.slot;
 
 import com.google.common.collect.Sets;
+import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.model.Metadata;
 import com.susu.dfs.common.model.TrackerSlots;
-import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.utils.FileUtils;
 import com.susu.dfs.tracker.client.ClientManager;
 import com.susu.dfs.tracker.service.TrackerClusterService;

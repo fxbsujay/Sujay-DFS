@@ -1,6 +1,5 @@
 package com.susu.dfs.tracker.service;
 
-import com.susu.dfs.common.model.ReadyLog;
 import com.susu.dfs.common.Constants;
 import com.susu.dfs.common.config.SysConfig;
 import com.susu.dfs.common.eum.ReadyLogType;
@@ -8,6 +7,7 @@ import com.susu.dfs.common.file.AbstractFileService;
 import com.susu.dfs.common.file.image.ImageLogWrapper;
 import com.susu.dfs.common.file.log.DoubleBuffer;
 import com.susu.dfs.common.file.log.ReadyLogWrapper;
+import com.susu.dfs.common.model.ReadyLog;
 import com.susu.dfs.common.task.ClearImageTask;
 import com.susu.dfs.common.task.TaskScheduler;
 import com.susu.dfs.tracker.client.ClientManager;

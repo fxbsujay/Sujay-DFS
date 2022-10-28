@@ -1,10 +1,10 @@
 package com.susu.dfs.storage.server;
 
-import com.susu.dfs.common.model.GetFileRequest;
 import com.susu.dfs.common.eum.PacketType;
 import com.susu.dfs.common.file.transfer.DefaultFileSendTask;
 import com.susu.dfs.common.file.transfer.FilePacket;
 import com.susu.dfs.common.file.transfer.FileReceiveHandler;
+import com.susu.dfs.common.model.GetFileRequest;
 import com.susu.dfs.common.netty.AbstractChannelHandler;
 import com.susu.dfs.common.netty.msg.NetPacket;
 import com.susu.dfs.common.netty.msg.NetRequest;

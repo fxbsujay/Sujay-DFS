@@ -6,6 +6,18 @@ option java_multiple_files = true;
 option java_package = "com.susu.dfs.common.model";
 
 import "storage.proto";
+
+/**
+ *  认证信息
+ */
+message AuthenticateInfoRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message AuthenticateInfoResponse {
+  string token = 1;
+}
 /**
  *  创建文件夹
  */

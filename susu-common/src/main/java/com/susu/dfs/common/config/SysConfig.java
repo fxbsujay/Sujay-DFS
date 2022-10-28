@@ -62,7 +62,7 @@ public class SysConfig {
     /**
      * 认证信息
      */
-    private final static AuthConfig authConfig = new AuthConfig();
+    private final AuthConfig authConfig = new AuthConfig();
 
     /**
      * 当前节点信息
@@ -71,6 +71,10 @@ public class SysConfig {
 
     public Node getNode() {
         return node;
+    }
+
+    public AuthConfig getAuthConfig() {
+        return authConfig;
     }
 
     public List<TrackerInfo> getTrackers() {
@@ -292,7 +296,7 @@ public class SysConfig {
         if (StringUtils.isNotBlank(name)) {
             config.node.setName(name);
         } else {
-            config.node.setName("net-storage");
+            config.node.setName("net-client");
         }
 
         String trackerHost = (String) storageConfig.get("trackerHost");

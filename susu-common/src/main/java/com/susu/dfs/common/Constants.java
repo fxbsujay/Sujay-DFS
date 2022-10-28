@@ -132,6 +132,11 @@ public class Constants {
     public static final String USER_FILE_NAME = "user.info";
 
     /**
+     *  用户信息持久化任务的时间间隔 毫秒
+     */
+    public static final int WRITE_USER_FILE_INTERVAL = 3600000;
+
+    /**
      * 文件副本最大数量
      */
     public static final int MAX_REPLICA_NUM = 5;

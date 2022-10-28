@@ -9,9 +9,9 @@ import java.util.Date;
 @Data
 public class AuthConfig {
 
-    private String username;
+    private String username = "susu";
 
-    private String password;
+    private String password = "susu";
 
     private String token;
 

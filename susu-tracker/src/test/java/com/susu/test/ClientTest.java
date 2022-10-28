@@ -4,6 +4,8 @@ import com.susu.dfs.common.client.ClientApplication;
 import com.susu.dfs.common.client.service.ClientFileService;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
+
 @Slf4j
 public class ClientTest {
 
@@ -15,6 +17,8 @@ public class ClientTest {
         try {
             ClientApplication client = ClientApplication.initStart();
             ClientFileService fileService = client.getFileService();
+            fileService.put("susuA.jpg",new File(UPLOAD_LOCAL_PATH));
+            fileService.get("susuA.jpg",DOWNLOAD_PATH);
         } catch (Exception e) {
             e.printStackTrace();
             log.info("Client Application Start Error!!");
