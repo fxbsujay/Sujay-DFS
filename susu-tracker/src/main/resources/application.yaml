@@ -19,7 +19,6 @@ storage:
   config:
     heartbeatInterval: 30000
     defaultBaseDir: E:\srv\file
-    defaultBaseFilePath: /susu
 
 client:
   username: susu

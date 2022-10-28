@@ -24,20 +24,22 @@ public class User {
     private String password;
 
     /**
-     * 秘钥
-     */
-    private String secret;
-
-    /**
      * 创建时间
      */
     private long createTime;
 
-
     public static User copy(User user) {
         User ret = new User();
         ret.setUsername(user.username);
-        ret.setSecret(user.secret);
+        ret.setPassword(user.password);
         return ret;
+    }
+
+    public User() {
+    }
+
+    public User(String username, String password) {
+        this.username = username;
+        this.password = password;
     }
 }

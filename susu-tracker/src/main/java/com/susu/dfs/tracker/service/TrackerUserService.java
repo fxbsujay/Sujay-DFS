@@ -30,6 +30,11 @@ import java.util.stream.Collectors;
 public class TrackerUserService {
 
     /**
+     * 默认用户名密码，在项目第一次启动时加载
+     */
+    private final static String DEFAULT_ACCOUNT = "susu";
+
+    /**
      *  持久化文件路径
      */
     private final String USERS_FILE_BASE_DIR;;
@@ -71,10 +76,7 @@ public class TrackerUserService {
 
         if (!file.exists()) {
             users = new ConcurrentHashMap<>();
-            User user = new User();
-            user.setSecret("susu");
-            user.setUsername("susu");
-            users.put("susu",user);
+            users.put(DEFAULT_ACCOUNT,new User(DEFAULT_ACCOUNT,DEFAULT_ACCOUNT));
             return;
         }
 
@@ -107,7 +109,7 @@ public class TrackerUserService {
      * 添加一个用户，如果已存在用户则为修改
      */
     public void addUser(User user) {
-        if (StringUtils.isBlank(user.getUsername()) || StringUtils.isBlank(user.getSecret())) {
+        if (StringUtils.isBlank(user.getUsername()) || StringUtils.isBlank(user.getPassword())) {
             return;
         }
         User containsUser = users.get(user.getUsername());
@@ -116,7 +118,7 @@ public class TrackerUserService {
             users.put(user.getUsername(),user);
             return;
         }
-        containsUser.setSecret(user.getSecret());
+        containsUser.setPassword(user.getPassword());
     }
 
     /**
@@ -139,16 +141,16 @@ public class TrackerUserService {
      *
      * @param channel           客户端连接
      * @param username          用户名
-     * @param secret            用户秘钥
+     * @param password          用户秘钥
      */
-    public boolean login(Channel channel, String username, String secret) {
+    public boolean login(Channel channel, String username, String password) {
         synchronized (this) {
             if (!users.containsKey(username)) {
                 return false;
             }
 
             User user = users.get(username);
-            if (!user.getSecret().equals(secret)) {
+            if (!user.getPassword().equals(password)) {
                 return false;
             }
 

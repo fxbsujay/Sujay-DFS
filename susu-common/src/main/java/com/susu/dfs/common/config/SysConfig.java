@@ -313,17 +313,12 @@ public class SysConfig {
         AuthConfig authConfig = config.getAuthConfig();
 
         String username = (String) clientConfig.get("username");
-        if (StringUtils.isNotBlank(username)) {
-            authConfig.setUsername(username);
-        } else {
-            authConfig.setUsername("susu");
-        }
-
         String password = (String) clientConfig.get("password");
-        if (StringUtils.isNotBlank(password)) {
+        if (StringUtils.isNotBlank(username) || StringUtils.isNotBlank(password)) {
+            authConfig.setUsername(username);
             authConfig.setPassword(password);
         } else {
-            authConfig.setPassword("susu");
+            throw new RuntimeException("User information is empty !!");
         }
 
         return config;
