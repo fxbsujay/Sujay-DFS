@@ -8,6 +8,8 @@ import lombok.Getter;
 @Getter
 public enum ErrorEnum {
 
+    SUCCESS_200(200, "操作成功"),
+
     /**
      *  系统异常
      */

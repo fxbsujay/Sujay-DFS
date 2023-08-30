@@ -15,12 +15,12 @@ public class Result<T> {
     /**
      * 编码
      **/
-    private int code = 200;
+    private int code;
 
     /**
      * 消息内容
      **/
-    private String msg = "操作成功";
+    private String msg;
 
     /**
      * 数据
@@ -28,29 +28,21 @@ public class Result<T> {
     private T data;
 
     private Result() {
+        this(ErrorEnum.SUCCESS_200.getCode(), ErrorEnum.SUCCESS_200.getMessage());
     }
 
     private Result(T data) {
-        this.data = data;
-    }
-
-    private Result(Integer code) {
-        this.code = code;
+       this(ErrorEnum.SUCCESS_200.getCode(), ErrorEnum.SUCCESS_200.getMessage(), data);
     }
 
     private Result(Integer code, String msg) {
+        this(code, msg, null);
+    }
+
+    private Result(Integer code, String msg, T data) {
         this.code = code;
         this.msg = msg;
-    }
-
-    private Result(String msg) {
-        this.msg = msg;
-    }
-
-
-    private Result(T data, String msg) {
         this.data = data;
-        this.msg = msg;
     }
 
     public static Result<String> ok() {
@@ -60,11 +52,6 @@ public class Result<T> {
     public static <T> Result<T> ok(T data) {
         return new Result<>(data);
     }
-
-    public static <T> Result<T> ok(T data,String msg) {
-        return new Result<>(data,msg);
-    }
-
 
     public static <T> Result<T> error() {
         return new Result<>(ErrorEnum.ERROR_500.getCode(),ErrorEnum.ERROR_500.getMessage());

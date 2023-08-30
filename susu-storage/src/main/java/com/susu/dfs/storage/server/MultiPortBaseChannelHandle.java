@@ -26,6 +26,7 @@ public class MultiPortBaseChannelHandle extends BaseChannelHandler {
 
     @Override
     protected void initChannel(SocketChannel ch) {
+        StringBuilder builder = new StringBuilder();
         int localPort = ch.localAddress().getPort();
         if (localPort == node.getPort()) {
             super.initChannel(ch);

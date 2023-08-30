@@ -16,6 +16,7 @@ export default class DuplicateRequest {
 
   /**
    * @description: 验证是否是相同的url点击过快
+   *
    * @param {string} url
    * @param {Method} method
    * @param {RequestParams} params

@@ -8,7 +8,6 @@ package com.susu.dfs.storage.locator;
  */
 public interface FileLocator {
 
-
     /**
      * <p>Description: 根据文件名定位绝对路径</p>
      * <p>Description: Locate the absolute path according to the file name</p>

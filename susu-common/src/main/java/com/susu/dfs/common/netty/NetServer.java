@@ -42,6 +42,8 @@ public class NetServer {
 
     private EventLoopGroup worker;
 
+    private ServerBootstrap bootstrap;
+
     /**
      * @param name 启动的节点名称
      */
@@ -51,6 +53,10 @@ public class NetServer {
         this.worker = new NioEventLoopGroup();
         this.baseChannelHandler = new BaseChannelHandler();
         this.taskScheduler = taskScheduler;
+    }
+
+    public NetServer(String name) {
+        this(name, null);
     }
 
     /**
@@ -88,28 +94,40 @@ public class NetServer {
      * @exception InterruptedException 绑定端口异常
      */
     public void start(List<Integer> ports) throws InterruptedException {
-        ServerBootstrap bootstrap = new ServerBootstrap()
+        bootstrap = new ServerBootstrap()
                 .group(boss, worker)
                 .channel(NioServerSocketChannel.class)
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .childHandler(baseChannelHandler);
-        List<ChannelFuture> channelFeature = new ArrayList<>();
+
         try {
-            for (Integer port : ports) {
-                ChannelFuture future = bootstrap.bind(port).sync();
-                log.info("Netty Server started on port ：{}", port);
-                channelFeature.add(future);
-            }
-            for (ChannelFuture future : channelFeature) {
-                future.channel().closeFuture().addListener((ChannelFutureListener) future1 -> future1.channel().close());
-            }
-            for (ChannelFuture future : channelFeature) {
-                future.channel().closeFuture().sync();
-            }
+            bindSync(ports);
         } finally {
             boss.shutdownGracefully();
             worker.shutdownGracefully();
+        }
+    }
+
+    /**
+     * 绑定端口
+     * <p>Description: bind port </p>
+     *
+     * @param ports 端口
+     * @exception InterruptedException 绑定端口异常
+     */
+    public void bindSync(List<Integer> ports) throws InterruptedException {
+        List<ChannelFuture> channelFeature = new ArrayList<>();
+        for (Integer port : ports) {
+            ChannelFuture future = bootstrap.bind(port).sync();
+            log.info("Netty Server started on port ：{}", port);
+            channelFeature.add(future);
+        }
+        for (ChannelFuture future : channelFeature) {
+            future.channel().closeFuture().addListener((ChannelFutureListener) future1 -> future1.channel().close());
+        }
+        for (ChannelFuture future : channelFeature) {
+            future.channel().closeFuture().sync();
         }
     }
 
